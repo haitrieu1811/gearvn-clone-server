@@ -9,6 +9,11 @@ export enum UserStatus {
   Blocked
 }
 
+export enum UserVerifyStatus {
+  Unverified,
+  Verified
+}
+
 export enum Gender {
   Male,
   Female,
@@ -33,4 +38,11 @@ export enum BlogStatus {
   Pending,
   Resolved,
   Rejected
+}
+
+export enum TokenType {
+  Access,
+  Refresh,
+  EmailVerify,
+  ForgotPassword
 }
