@@ -1,7 +1,11 @@
 import express from 'express';
 import { config } from 'dotenv';
+
 import usersRouter from './routes/users.routes';
+import databaseService from './services/database.services';
 config();
+
+databaseService.connect();
 
 const app = express();
 const port = process.env.PORT;
