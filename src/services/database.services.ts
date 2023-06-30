@@ -1,5 +1,6 @@
-import { MongoClient, ServerApiVersion, Db } from 'mongodb';
 import { config } from 'dotenv';
+import { Db, MongoClient, Collection } from 'mongodb';
+import User from '~/models/schemas/User.schema';
 config();
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@gearvn-clone-cluster.ur6rvkl.mongodb.net/?retryWrites=true&w=majority`;
@@ -21,6 +22,10 @@ class DatabaseService {
       console.log(error);
       throw error;
     }
+  }
+
+  get users(): Collection<User> {
+    return this.db.collection(process.env.DB_USERS_COLLECTION as string);
   }
 }
 
