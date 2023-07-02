@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
-import { Db, MongoClient, Collection } from 'mongodb';
+import { Collection, Db, MongoClient } from 'mongodb';
+import Address from '~/models/schemas/Address.schema';
 
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import User from '~/models/schemas/User.schema';
@@ -32,6 +33,10 @@ class DatabaseService {
 
   get refresh_tokens(): Collection<RefreshToken> {
     return this.db.collection(process.env.DB_REFRESH_TOKENS_COLLECTION as string);
+  }
+
+  get addresses(): Collection<Address> {
+    return this.db.collection(process.env.DB_ADDRESSES_COLLECTION as string);
   }
 }
 

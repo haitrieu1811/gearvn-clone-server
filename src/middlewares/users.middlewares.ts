@@ -1,13 +1,17 @@
 import { config } from 'dotenv';
-import { Request } from 'express';
+import { NextFunction, Request } from 'express';
 import { ParamSchema, check, checkSchema } from 'express-validator';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import capitalize from 'lodash/capitalize';
+import { ObjectId } from 'mongodb';
 
 import { USERS_PROJECTION } from '~/constants/db';
+import { UserVerifyStatus } from '~/constants/enum';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { USERS_MESSAGES } from '~/constants/messages';
+import { PHONE_NUMBER_REGEX } from '~/constants/regex';
 import { ErrorWithStatus } from '~/models/Errors';
+import { TokenPayload } from '~/models/requests/User.requests';
 import databaseService from '~/services/database.services';
 import userService from '~/services/users.services';
 import { hashPassword } from '~/utils/crypto';
@@ -27,7 +31,7 @@ const emailSchema: ParamSchema = {
   },
   custom: {
     options: async (value) => {
-      const { isExist, user } = await userService.checkEmailExist(value);
+      const { isExist } = await userService.checkEmailExist(value);
       if (isExist) {
         throw new Error(USERS_MESSAGES.EMAIL_ALREADY_EXIST);
       }
@@ -75,6 +79,30 @@ const confirmPasswordSchema: ParamSchema = {
       }
       return true;
     }
+  }
+};
+
+const imageSchema: ParamSchema = {
+  optional: true,
+  isString: {
+    errorMessage: USERS_MESSAGES.IMAGE_URL_MUST_BE_A_STRING
+  },
+  trim: true,
+  isLength: {
+    options: {
+      min: 1,
+      max: 250
+    },
+    errorMessage: USERS_MESSAGES.IMAGE_URL_LENGTH
+  }
+};
+
+const addressIdSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: USERS_MESSAGES.ADDRESS_ID_IS_REQUIRED
+  },
+  isString: {
+    errorMessage: USERS_MESSAGES.ADDRESS_ID_MUST_BE_A_STRING
   }
 };
 
@@ -156,6 +184,111 @@ export const refreshTokenValidator = validate(
   )
 );
 
+export const forgotPasswordTokenValidator = validate(
+  checkSchema(
+    {
+      forgot_password_token: {
+        trim: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!value) {
+              throw new ErrorWithStatus({
+                message: USERS_MESSAGES.FORGOT_PASSWORD_TOKEN_IS_REQUIRED,
+                status: HTTP_STATUS.UNAUTHORIZED
+              });
+            }
+            try {
+              const [user, decoded_forgot_password_token] = await Promise.all([
+                databaseService.users.findOne({ forgot_password_token: value }),
+                verifyToken({
+                  token: value,
+                  secretOrPublicKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
+                })
+              ]);
+              if (!user) {
+                throw new ErrorWithStatus({
+                  message: USERS_MESSAGES.FORGOT_PASSWORD_TOKEN_NOT_EXIST,
+                  status: HTTP_STATUS.UNAUTHORIZED
+                });
+              }
+              (req as Request).decoded_forgot_password_token = decoded_forgot_password_token;
+            } catch (error) {
+              if (error instanceof JsonWebTokenError) {
+                throw new ErrorWithStatus({
+                  message: error.message,
+                  status: HTTP_STATUS.UNAUTHORIZED
+                });
+              }
+              throw error;
+            }
+            return true;
+          }
+        }
+      }
+    },
+    ['body']
+  )
+);
+
+export const emailVerifyTokenValidator = validate(
+  checkSchema(
+    {
+      email_verify_token: {
+        trim: true,
+        custom: {
+          options: async (value, { req }) => {
+            if (!value) {
+              throw new ErrorWithStatus({
+                message: USERS_MESSAGES.EMAIL_VERIFY_TOKEN_IS_REQUIRED,
+                status: HTTP_STATUS.UNAUTHORIZED
+              });
+            }
+            try {
+              const [user, decoded_email_verify_token] = await Promise.all([
+                databaseService.users.findOne({ email_verify_token: value }),
+                verifyToken({
+                  token: value,
+                  secretOrPublicKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string
+                })
+              ]);
+              if (!user) {
+                throw new ErrorWithStatus({
+                  message: USERS_MESSAGES.EMAIL_VERIFY_TOKEN_NOT_EXIST,
+                  status: HTTP_STATUS.UNAUTHORIZED
+                });
+              }
+              (req as Request).decoded_email_verify_token = decoded_email_verify_token;
+            } catch (error) {
+              if (error instanceof JsonWebTokenError) {
+                throw new ErrorWithStatus({
+                  message: capitalize(error.message),
+                  status: HTTP_STATUS.UNAUTHORIZED
+                });
+              }
+              throw error;
+            }
+            return true;
+          }
+        }
+      }
+    },
+    ['body']
+  )
+);
+
+export const verifiedUserValidator = (req: Request, res: any, next: NextFunction) => {
+  const { verify } = req.decoded_authorization as TokenPayload;
+  if (verify !== UserVerifyStatus.Verified) {
+    return next(
+      new ErrorWithStatus({
+        message: USERS_MESSAGES.USER_IS_UNVERIFIED,
+        status: HTTP_STATUS.FORBIDDEN
+      })
+    );
+  }
+  next();
+};
+
 export const RegisterValidator = validate(
   checkSchema(
     {
@@ -210,42 +343,171 @@ export const loginValidator = validate(
   )
 );
 
-export const verifyEmailValidator = validate(
+export const forgotPasswordValidator = validate(
   checkSchema(
     {
-      email_verify_token: {
-        trim: true,
+      email: {
+        ...emailSchema,
         custom: {
-          options: async (value, { req }) => {
-            if (!value) {
-              throw new ErrorWithStatus({
-                message: USERS_MESSAGES.EMAIL_VERIFY_TOKEN_IS_REQUIRED,
-                status: HTTP_STATUS.UNAUTHORIZED
-              });
-            }
-            try {
-              const decoded_email_verify_token = await verifyToken({
-                token: value,
-                secretOrPublicKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string
-              });
-              (req as Request).decoded_email_verify_token = decoded_email_verify_token;
-            } catch (error) {
-              throw new ErrorWithStatus({
-                message: capitalize((error as JsonWebTokenError).message),
-                status: HTTP_STATUS.UNAUTHORIZED
-              });
-            }
-            const user = await databaseService.users.findOne({ email_verify_token: value });
-            if (!user) {
-              throw new ErrorWithStatus({
-                message: USERS_MESSAGES.EMAIL_VERIFY_TOKEN_NOT_EXIST,
-                status: HTTP_STATUS.UNAUTHORIZED
-              });
+          options: async (value) => {
+            const { isExist } = await userService.checkEmailExist(value);
+            if (!isExist) {
+              throw new Error(USERS_MESSAGES.EMAIL_NOT_EXIST);
             }
             return true;
           }
         }
       }
+    },
+    ['body']
+  )
+);
+
+export const resetPasswordValidator = validate(
+  checkSchema(
+    {
+      password: passwordSchema,
+      confirm_password: confirmPasswordSchema
+    },
+    ['body']
+  )
+);
+
+export const changePasswordValidator = validate(
+  checkSchema(
+    {
+      old_password: {
+        trim: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!value) {
+              throw new Error(USERS_MESSAGES.OLD_PASSWORD_IS_REQUIRED);
+            }
+            const { user_id } = req.decoded_authorization as TokenPayload;
+            const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) });
+            if (user?.password !== hashPassword(value)) {
+              throw new Error(USERS_MESSAGES.OLD_PASSWORD_INCORRECT);
+            }
+            return true;
+          }
+        }
+      },
+      password: passwordSchema,
+      confirm_password: confirmPasswordSchema
+    },
+    ['body']
+  )
+);
+
+export const updateMeValidator = validate(
+  checkSchema(
+    {
+      fullName: {
+        optional: true,
+        isString: {
+          errorMessage: USERS_MESSAGES.FULLNAME_MUST_BE_A_STRING
+        },
+        isLength: {
+          options: {
+            min: 1,
+            max: 100
+          },
+          errorMessage: USERS_MESSAGES.FULLNAME_MUST_LENGTH_FROM_1_TO_100_CHARACTERS
+        },
+        trim: true
+      },
+      gender: {
+        optional: true
+      },
+      phoneNumber: {
+        optional: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!PHONE_NUMBER_REGEX.test(value)) {
+              throw new Error(USERS_MESSAGES.PHONE_NUMBER_INVALID);
+            }
+            const { user_id } = req.decoded_authorization as TokenPayload;
+            const user = await databaseService.users.findOne({ phoneNumber: value });
+            if (user && user._id.toString() !== user_id) {
+              throw new Error(USERS_MESSAGES.PHONE_NUMBER_IS_EXIST);
+            }
+            return true;
+          }
+        }
+      },
+      date_of_birth: {
+        optional: true,
+        isISO8601: {
+          options: {
+            strict: true,
+            strictSeparator: true
+          },
+          errorMessage: USERS_MESSAGES.DATE_OF_BIRTH_MUST_BE_A_ISO8601_STRING
+        },
+        trim: true
+      },
+      avatar: imageSchema
+    },
+    ['body']
+  )
+);
+
+export const addressValidator = validate(
+  checkSchema({
+    province: {
+      notEmpty: {
+        errorMessage: USERS_MESSAGES.PROVINCE_IS_REQUIRED
+      },
+      isString: {
+        errorMessage: USERS_MESSAGES.PROVINCE_MUST_BE_A_STRING
+      }
+    },
+    district: {
+      notEmpty: {
+        errorMessage: USERS_MESSAGES.DISTRICT_IS_REQUIRED
+      },
+      isString: {
+        errorMessage: USERS_MESSAGES.DISTRICT_MUST_BE_A_STRING
+      }
+    },
+    ward: {
+      notEmpty: {
+        errorMessage: USERS_MESSAGES.WARD_IS_REQUIRED
+      },
+      isString: {
+        errorMessage: USERS_MESSAGES.WARD_MUST_BE_A_STRING
+      }
+    },
+    street: {
+      notEmpty: {
+        errorMessage: USERS_MESSAGES.STREET_IS_REQUIRED
+      },
+      isString: {
+        errorMessage: USERS_MESSAGES.STREET_MUST_BE_A_STRING
+      },
+      isLength: {
+        options: {
+          min: 1,
+          max: 250
+        },
+        errorMessage: USERS_MESSAGES.ADDRESS_DETAIL_LENGTH
+      }
+    },
+    type: {
+      notEmpty: {
+        errorMessage: USERS_MESSAGES.ADDRESS_TYPE_IS_REQUIRED
+      },
+      isInt: {
+        errorMessage: USERS_MESSAGES.ADDRESS_TYPE_MUST_BE_A_INTEGER
+      }
+    }
+  })
+);
+
+export const deleteAddressValidator = validate(
+  checkSchema(
+    {
+      address_id: addressIdSchema
     },
     ['body']
   )

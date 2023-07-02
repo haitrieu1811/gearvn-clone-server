@@ -1,15 +1,24 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
+import { omit } from 'lodash';
 import { ObjectId } from 'mongodb';
 import { UserVerifyStatus } from '~/constants/enum';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { USERS_MESSAGES } from '~/constants/messages';
 
 import {
+  AddAddressRequestBody,
+  ChangePasswordRequestBody,
+  DeleteAddressRequestBody,
+  ForgotPasswordRequestBody,
   LoginRequestBody,
   LogoutRequestBody,
   RegisterRequestBody,
+  ResetPasswordRequestBody,
   TokenPayload,
+  UpdateAddressRequestBody,
+  UpdateAddressRequestParams,
+  UpdateMeRequestBody,
   VerifyEmailRequestBody
 } from '~/models/requests/User.requests';
 import User from '~/models/schemas/User.schema';
@@ -65,5 +74,77 @@ export const resendEmailVerifyController = async (req: Request, res: Response) =
     });
   }
   const result = await userService.resendEmailVerify(user_id);
+  return res.json(result);
+};
+
+export const forgotPasswordController = async (
+  req: Request<ParamsDictionary, any, ForgotPasswordRequestBody>,
+  res: Response
+) => {
+  const { email } = req.body;
+  const result = await userService.forgotPassword(email);
+  return res.json(result);
+};
+
+export const resetPasswordController = async (
+  req: Request<ParamsDictionary, any, ResetPasswordRequestBody>,
+  res: Response
+) => {
+  const { user_id, verify } = req.decoded_forgot_password_token as TokenPayload;
+  const { password } = req.body;
+  const result = await userService.resetPassword({ password, user_id, verify });
+  return res.json(result);
+};
+
+export const changePasswordController = async (
+  req: Request<ParamsDictionary, any, ChangePasswordRequestBody>,
+  res: Response
+) => {
+  const { password } = req.body;
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const result = await userService.changePassword({ password, user_id });
+  return res.json(result);
+};
+
+export const getMeController = async (req: Request, res: Response) => {
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const result = await userService.getMe(user_id);
+  return res.json(result);
+};
+
+export const updateMeController = async (req: Request<ParamsDictionary, any, UpdateMeRequestBody>, res: Response) => {
+  const payload = req.body;
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const rssult = await userService.updateMe({ payload, user_id });
+  return res.json(rssult);
+};
+
+export const addAddressController = async (
+  req: Request<ParamsDictionary, any, AddAddressRequestBody>,
+  res: Response
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const { body: payload } = req;
+  const result = await userService.addAddress({ payload, user_id });
+  return res.json(result);
+};
+
+export const updateAddressController = async (
+  req: Request<ParamsDictionary, any, UpdateAddressRequestBody>,
+  res: Response
+) => {
+  const { body: payload } = req;
+  const { address_id } = req.params;
+  const result = await userService.updateAddress({ payload, address_id });
+  return res.json(result);
+};
+
+export const deleteAddressController = async (
+  req: Request<ParamsDictionary, any, DeleteAddressRequestBody>,
+  res: Response
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const { address_id } = req.body;
+  const result = await userService.deleteAddress({ address_id, user_id });
   return res.json(result);
 };
