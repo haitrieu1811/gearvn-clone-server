@@ -504,11 +504,35 @@ export const addressValidator = validate(
   })
 );
 
-export const deleteAddressValidator = validate(
+export const addressExistValidator = validate(
   checkSchema(
     {
-      address_id: addressIdSchema
+      address_id: {
+        trim: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!value) {
+              throw new ErrorWithStatus({
+                message: USERS_MESSAGES.ADDRESS_ID_IS_REQUIRED,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            const { user_id } = req.decoded_authorization as TokenPayload;
+            const address = await databaseService.users.findOne({
+              _id: new ObjectId(user_id),
+              'addresses._id': new ObjectId(value)
+            });
+            if (!address) {
+              throw new ErrorWithStatus({
+                message: USERS_MESSAGES.ADDRESS_NOT_EXIST,
+                status: HTTP_STATUS.NOT_FOUND
+              });
+            }
+            return true;
+          }
+        }
+      }
     },
-    ['body']
+    ['params']
   )
 );

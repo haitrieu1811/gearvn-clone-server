@@ -19,9 +19,9 @@ import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import {
   RegisterValidator,
   accessTokenValidator,
+  addressExistValidator,
   addressValidator,
   changePasswordValidator,
-  deleteAddressValidator,
   emailVerifyTokenValidator,
   forgotPasswordTokenValidator,
   forgotPasswordValidator,
@@ -31,7 +31,7 @@ import {
   updateMeValidator,
   verifiedUserValidator
 } from '~/middlewares/users.middlewares';
-import { UpdateAddressRequestBody, UpdateMeRequestBody } from '~/models/requests/User.requests';
+import { AddAddressRequestBody, UpdateAddressRequestBody, UpdateMeRequestBody } from '~/models/requests/User.requests';
 import { wrapRequestHandler } from '~/utils/handler';
 
 const usersRouter = Router();
@@ -68,13 +68,15 @@ usersRouter.post(
   accessTokenValidator,
   verifiedUserValidator,
   addressValidator,
+  filterReqBodyMiddleware<AddAddressRequestBody>(['province', 'district', 'ward', 'street', 'type']),
   wrapRequestHandler(addAddressController)
 );
-usersRouter.patch(
+usersRouter.put(
   '/address/:address_id',
   accessTokenValidator,
   verifiedUserValidator,
   addressValidator,
+  addressExistValidator,
   filterReqBodyMiddleware<UpdateAddressRequestBody>(['province', 'district', 'ward', 'street', 'type']),
   wrapRequestHandler(updateAddressController)
 );
@@ -82,7 +84,7 @@ usersRouter.delete(
   '/address/:address_id',
   accessTokenValidator,
   verifiedUserValidator,
-  deleteAddressValidator,
+  addressExistValidator,
   wrapRequestHandler(deleteAddressController)
 );
 

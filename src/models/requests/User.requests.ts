@@ -1,5 +1,7 @@
 import { JwtPayload } from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
+import { ParamsDictionary } from 'express-serve-static-core';
+
 import { AddressType, Gender, TokenType, UserVerifyStatus } from '~/constants/enum';
 
 export interface TokenPayload extends JwtPayload {
@@ -66,10 +68,10 @@ export interface UpdateAddressRequestBody {
   type: AddressType;
 }
 
-export interface UpdateAddressRequestParams {
+export interface UpdateAddressRequestParams extends ParamsDictionary {
   address_id: string;
 }
 
-export interface DeleteAddressRequestBody {
+export interface DeleteAddressRequestParams extends ParamsDictionary {
   address_id: string;
 }

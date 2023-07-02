@@ -1,6 +1,5 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
-import { omit } from 'lodash';
 import { ObjectId } from 'mongodb';
 import { UserVerifyStatus } from '~/constants/enum';
 import HTTP_STATUS from '~/constants/httpStatus';
@@ -9,7 +8,7 @@ import { USERS_MESSAGES } from '~/constants/messages';
 import {
   AddAddressRequestBody,
   ChangePasswordRequestBody,
-  DeleteAddressRequestBody,
+  DeleteAddressRequestParams,
   ForgotPasswordRequestBody,
   LoginRequestBody,
   LogoutRequestBody,
@@ -55,8 +54,8 @@ export const verifyEmailController = async (
   req: Request<ParamsDictionary, any, VerifyEmailRequestBody>,
   res: Response
 ) => {
-  const { user_id, verify } = req.decoded_email_verify_token as TokenPayload;
-  const result = await userService.verifyEmail({ user_id, verify });
+  const { user_id } = req.decoded_email_verify_token as TokenPayload;
+  const result = await userService.verifyEmail(user_id);
   return res.json(result);
 };
 
@@ -130,21 +129,19 @@ export const addAddressController = async (
 };
 
 export const updateAddressController = async (
-  req: Request<ParamsDictionary, any, UpdateAddressRequestBody>,
+  req: Request<UpdateAddressRequestParams, any, UpdateAddressRequestBody>,
   res: Response
 ) => {
   const { body: payload } = req;
   const { address_id } = req.params;
-  const result = await userService.updateAddress({ payload, address_id });
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const result = await userService.updateAddress({ payload, address_id, user_id });
   return res.json(result);
 };
 
-export const deleteAddressController = async (
-  req: Request<ParamsDictionary, any, DeleteAddressRequestBody>,
-  res: Response
-) => {
+export const deleteAddressController = async (req: Request<DeleteAddressRequestParams, any, any>, res: Response) => {
+  const { address_id } = req.params;
   const { user_id } = req.decoded_authorization as TokenPayload;
-  const { address_id } = req.body;
   const result = await userService.deleteAddress({ address_id, user_id });
   return res.json(result);
 };

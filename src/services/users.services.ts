@@ -10,7 +10,7 @@ import { signToken } from '~/utils/jwt';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import { USERS_PROJECTION } from '~/constants/db';
 import { AddAddressRequestBody, UpdateAddressRequestBody, UpdateMeRequestBody } from '~/models/requests/User.requests';
-import Address from '~/models/schemas/Address.schema';
+import { Address } from '~/models/schemas/User.schema';
 config();
 
 interface SignToken {
@@ -154,9 +154,9 @@ class UserService {
     };
   }
 
-  async verifyEmail({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
+  async verifyEmail(user_id: string) {
     const [[access_token, refresh_token]] = await Promise.all([
-      this.signAccessAndRefreshToken({ user_id, verify }),
+      this.signAccessAndRefreshToken({ user_id, verify: UserVerifyStatus.Verified }),
       databaseService.users.updateOne(
         {
           _id: new ObjectId(user_id)
@@ -309,25 +309,44 @@ class UserService {
   }
 
   async addAddress({ payload, user_id }: { payload: AddAddressRequestBody; user_id: string }) {
-    await databaseService.addresses.insertOne(
-      new Address({
-        ...payload,
-        user_id: new ObjectId(user_id)
-      })
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      {
+        $push: {
+          addresses: {
+            _id: new ObjectId(),
+            ...payload
+          }
+        }
+      }
     );
     return {
       message: USERS_MESSAGES.ADD_ADDRESS_SUCCEED
     };
   }
 
-  async updateAddress({ payload, address_id }: { payload: UpdateAddressRequestBody; address_id: string }) {
-    await databaseService.addresses.updateOne(
+  async updateAddress({
+    payload,
+    address_id,
+    user_id
+  }: {
+    payload: UpdateAddressRequestBody;
+    address_id: string;
+    user_id: string;
+  }) {
+    await databaseService.users.updateOne(
       {
-        _id: new ObjectId(address_id)
+        _id: new ObjectId(user_id),
+        'addresses._id': new ObjectId(address_id)
       },
       {
         $set: {
-          ...payload
+          'addresses.$': {
+            _id: new ObjectId(address_id),
+            ...payload
+          }
         }
       }
     );
@@ -337,6 +356,18 @@ class UserService {
   }
 
   async deleteAddress({ address_id, user_id }: { address_id: string; user_id: string }) {
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      {
+        $pull: {
+          addresses: {
+            _id: new ObjectId(address_id)
+          }
+        }
+      }
+    );
     return {
       message: USERS_MESSAGES.DELETE_ADDRESS_SUCCEED
     };

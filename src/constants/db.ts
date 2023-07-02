@@ -5,7 +5,6 @@ export const USERS_PROJECTION = {
   type: 0,
   status: 0,
   roles: 0,
-  verify: 0,
   created_at: 0,
   updated_at: 0
 };
