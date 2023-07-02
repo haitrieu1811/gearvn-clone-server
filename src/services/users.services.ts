@@ -5,7 +5,7 @@ import User from '~/models/schemas/User.schema';
 import databaseService from './database.services';
 import { USERS_MESSAGES } from '~/constants/messages';
 import { hashPassword } from '~/utils/crypto';
-import { TokenType, UserVerifyStatus } from '~/constants/enum';
+import { TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
 import { signToken } from '~/utils/jwt';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import { USERS_PROJECTION } from '~/constants/db';
@@ -370,6 +370,25 @@ class UserService {
     );
     return {
       message: USERS_MESSAGES.DELETE_ADDRESS_SUCCEED
+    };
+  }
+
+  async updateRoles({ roles, user_id }: { roles: UserRole[]; user_id: string }) {
+    await databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      {
+        $set: {
+          roles
+        },
+        $currentDate: {
+          updated_at: true
+        }
+      }
+    );
+    return {
+      message: USERS_MESSAGES.UPDATE_ROLES_SUCCEED
     };
   }
 }

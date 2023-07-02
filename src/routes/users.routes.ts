@@ -13,6 +13,7 @@ import {
   resetPasswordController,
   updateAddressController,
   updateMeController,
+  updateRolesController,
   verifyEmailController
 } from '~/controllers/users.controllers';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
@@ -28,10 +29,18 @@ import {
   loginValidator,
   refreshTokenValidator,
   resetPasswordValidator,
+  rolesValidator,
   updateMeValidator,
   verifiedUserValidator
 } from '~/middlewares/users.middlewares';
-import { AddAddressRequestBody, UpdateAddressRequestBody, UpdateMeRequestBody } from '~/models/requests/User.requests';
+import {
+  AddAddressRequestBody,
+  ChangePasswordRequestBody,
+  ResetPasswordRequestBody,
+  UpdateAddressRequestBody,
+  UpdateMeRequestBody,
+  UpdateRolesRequestBody
+} from '~/models/requests/User.requests';
 import { wrapRequestHandler } from '~/utils/handler';
 
 const usersRouter = Router();
@@ -46,6 +55,7 @@ usersRouter.put(
   '/reset-password',
   forgotPasswordTokenValidator,
   resetPasswordValidator,
+  filterReqBodyMiddleware<ResetPasswordRequestBody>(['password']),
   wrapRequestHandler(resetPasswordController)
 );
 usersRouter.put(
@@ -53,6 +63,7 @@ usersRouter.put(
   accessTokenValidator,
   verifiedUserValidator,
   changePasswordValidator,
+  filterReqBodyMiddleware<ChangePasswordRequestBody>(['password']),
   wrapRequestHandler(changePasswordController)
 );
 usersRouter.get('/me', accessTokenValidator, wrapRequestHandler(getMeController));
@@ -86,6 +97,13 @@ usersRouter.delete(
   verifiedUserValidator,
   addressExistValidator,
   wrapRequestHandler(deleteAddressController)
+);
+usersRouter.put(
+  '/roles',
+  accessTokenValidator,
+  rolesValidator,
+  filterReqBodyMiddleware<UpdateRolesRequestBody>(['roles']),
+  wrapRequestHandler(updateRolesController)
 );
 
 export default usersRouter;

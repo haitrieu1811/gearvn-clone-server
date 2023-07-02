@@ -536,3 +536,19 @@ export const addressExistValidator = validate(
     ['params']
   )
 );
+
+export const rolesValidator = validate(
+  checkSchema(
+    {
+      roles: {
+        notEmpty: {
+          errorMessage: USERS_MESSAGES.ROLE_IS_REQUIRED
+        },
+        isArray: {
+          errorMessage: USERS_MESSAGES.ROLE_MUST_BE_AN_ARRAY
+        }
+      }
+    },
+    ['body']
+  )
+);

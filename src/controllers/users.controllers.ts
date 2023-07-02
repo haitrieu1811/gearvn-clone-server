@@ -18,6 +18,7 @@ import {
   UpdateAddressRequestBody,
   UpdateAddressRequestParams,
   UpdateMeRequestBody,
+  UpdateRolesRequestBody,
   VerifyEmailRequestBody
 } from '~/models/requests/User.requests';
 import User from '~/models/schemas/User.schema';
@@ -143,5 +144,15 @@ export const deleteAddressController = async (req: Request<DeleteAddressRequestP
   const { address_id } = req.params;
   const { user_id } = req.decoded_authorization as TokenPayload;
   const result = await userService.deleteAddress({ address_id, user_id });
+  return res.json(result);
+};
+
+export const updateRolesController = async (
+  req: Request<ParamsDictionary, any, UpdateRolesRequestBody>,
+  res: Response
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const { roles } = req.body;
+  const result = await userService.updateRoles({ roles, user_id });
   return res.json(result);
 };

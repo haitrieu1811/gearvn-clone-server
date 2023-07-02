@@ -1,12 +1,12 @@
-export enum UserType {
-  Admin,
-  Staff,
-  Guest
+export enum UserStatus {
+  Active,
+  Banned
 }
 
-export enum UserStatus {
-  Normal,
-  Blocked
+export enum UserRole {
+  Admin,
+  Customer,
+  Seller
 }
 
 export enum UserVerifyStatus {

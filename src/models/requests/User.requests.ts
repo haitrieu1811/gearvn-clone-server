@@ -2,7 +2,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import { ParamsDictionary } from 'express-serve-static-core';
 
-import { AddressType, Gender, TokenType, UserVerifyStatus } from '~/constants/enum';
+import { AddressType, Gender, TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
 
 export interface TokenPayload extends JwtPayload {
   user_id: string;
@@ -74,4 +74,8 @@ export interface UpdateAddressRequestParams extends ParamsDictionary {
 
 export interface DeleteAddressRequestParams extends ParamsDictionary {
   address_id: string;
+}
+
+export interface UpdateRolesRequestBody {
+  roles: UserRole[];
 }

@@ -1,6 +1,5 @@
 import { ObjectId } from 'mongodb';
-
-import { UserType, UserStatus, Gender, UserVerifyStatus, AddressType } from '~/constants/enum';
+import { AddressType, Gender, UserRole, UserStatus, UserVerifyStatus } from '~/constants/enum';
 
 export interface Address {
   _id: ObjectId;
@@ -15,15 +14,14 @@ interface UserInterface {
   _id?: ObjectId;
   email: string;
   password: string;
-  type?: UserType;
   status?: UserStatus;
-  roles?: ObjectId[] | [];
+  roles?: UserRole[];
   fullName?: string;
   avatar?: string;
   gender?: Gender;
   verify?: UserVerifyStatus;
   phoneNumber?: string;
-  addresses?: Address[] | [];
+  addresses?: Address[];
   date_of_birth?: Date;
   email_verify_token?: string;
   forgot_password_token?: string;
@@ -36,14 +34,13 @@ class User {
   email: string;
   password: string;
   fullName: string;
-  type: UserType;
   status: UserStatus;
-  roles: ObjectId[] | [];
+  roles: UserRole[];
   avatar: string;
   gender: Gender;
   verify: UserVerifyStatus;
   phoneNumber: string;
-  addresses: Address[] | [];
+  addresses: Address[];
   date_of_birth: Date;
   email_verify_token: string;
   forgot_password_token: string;
@@ -55,9 +52,8 @@ class User {
     this._id = user._id;
     this.email = user.email;
     this.password = user.password;
-    this.type = user.type || UserType.Guest;
-    this.status = user.status || UserStatus.Normal;
-    this.roles = user.roles || [];
+    this.status = user.status || UserStatus.Active;
+    this.roles = user.roles || [UserRole.Customer];
     this.fullName = user.fullName || '';
     this.avatar = user.avatar || '';
     this.gender = user.gender || Gender.Other;

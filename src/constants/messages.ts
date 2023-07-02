@@ -64,5 +64,8 @@ export const USERS_MESSAGES = {
   ADDRESS_ID_MUST_BE_A_STRING: 'Address id must be a string',
   DELETE_ADDRESS_SUCCEED: 'Delete address succeed',
   ADDRESS_NOT_EXIST: 'Address not exist',
-  UPDATE_ADDRESS_SUCCEED: 'Update address succeed'
+  UPDATE_ADDRESS_SUCCEED: 'Update address succeed',
+  ROLE_IS_REQUIRED: 'Roles is required',
+  ROLE_MUST_BE_AN_ARRAY: 'Roles must be an array',
+  UPDATE_ROLES_SUCCEED: 'Update roles succeed'
 } as const;
