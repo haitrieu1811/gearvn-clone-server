@@ -5,10 +5,11 @@ import { ObjectId } from 'mongodb';
 
 class CategoryService {
   async getList() {
-    const result = await databaseService.categories.find({});
+    const result = databaseService.categories.find({});
+    const documents = await result.toArray();
     return {
       message: CATEGORIES_MESSAGES.GET_LIST_SUCCEED,
-      data: result
+      data: documents
     };
   }
 

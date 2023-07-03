@@ -16,6 +16,7 @@ const categoriesRouter = Router();
 categoriesRouter.get('/list', wrapRequestHandler(getListController));
 categoriesRouter.post(
   '/create',
+  accessTokenValidator,
   createValidator,
   filterReqBodyMiddleware<CreateCategoryRequestBody>(['name_vi', 'name_en']),
   wrapRequestHandler(createController)
