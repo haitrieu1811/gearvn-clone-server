@@ -86,3 +86,9 @@ export const CATEGORIES_MESSAGES = {
   CATEGORY_ID_INVALID: 'Category id is invalid',
   DELETE_SUCCEED: 'Delete category succeed'
 } as const;
+
+export const MEDIAS_MESSAGES = {
+  FILE_TYPE_INVALID: 'File type is invalid',
+  IMAGE_FIELD_IS_REQUIRED: 'Image field is required',
+  FILE_NOT_FOUND: 'File not found'
+} as const;
