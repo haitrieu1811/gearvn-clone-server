@@ -15,7 +15,7 @@ interface UserInterface {
   email: string;
   password: string;
   status?: UserStatus;
-  roles?: UserRole[];
+  role?: UserRole;
   fullName?: string;
   avatar?: string;
   gender?: Gender;
@@ -35,7 +35,7 @@ class User {
   password: string;
   fullName: string;
   status: UserStatus;
-  roles: UserRole[];
+  role: UserRole;
   avatar: string;
   gender: Gender;
   verify: UserVerifyStatus;
@@ -53,7 +53,7 @@ class User {
     this.email = user.email;
     this.password = user.password;
     this.status = user.status || UserStatus.Active;
-    this.roles = user.roles || [UserRole.Customer];
+    this.role = user.role || UserRole.Customer;
     this.fullName = user.fullName || '';
     this.avatar = user.avatar || '';
     this.gender = user.gender || Gender.Other;

@@ -154,6 +154,33 @@ class UserService {
     };
   }
 
+  async refreshToken({
+    user_id,
+    verify,
+    refresh_token
+  }: {
+    user_id: string;
+    verify: UserVerifyStatus;
+    refresh_token: string;
+  }) {
+    const [[access_token, new_refresh_token]] = await Promise.all([
+      this.signAccessAndRefreshToken({ user_id, verify }),
+      databaseService.refresh_tokens.deleteOne({ token: refresh_token })
+    ]);
+    await databaseService.refresh_tokens.insertOne(
+      new RefreshToken({ token: new_refresh_token, user_id: new ObjectId(user_id) })
+    );
+    console.log(access_token, new_refresh_token);
+
+    return {
+      message: USERS_MESSAGES.REFRESH_TOKEN_SUCCEED,
+      data: {
+        access_token,
+        refresh_token: new_refresh_token
+      }
+    };
+  }
+
   async verifyEmail(user_id: string) {
     const [[access_token, refresh_token]] = await Promise.all([
       this.signAccessAndRefreshToken({ user_id, verify: UserVerifyStatus.Verified }),
@@ -373,14 +400,14 @@ class UserService {
     };
   }
 
-  async updateRoles({ roles, user_id }: { roles: UserRole[]; user_id: string }) {
+  async updateRoles({ role, user_id }: { role: UserRole; user_id: string }) {
     await databaseService.users.updateOne(
       {
         _id: new ObjectId(user_id)
       },
       {
         $set: {
-          roles
+          role
         },
         $currentDate: {
           updated_at: true
@@ -388,7 +415,7 @@ class UserService {
       }
     );
     return {
-      message: USERS_MESSAGES.UPDATE_ROLES_SUCCEED
+      message: USERS_MESSAGES.UPDATE_ROLE_SUCCEED
     };
   }
 }

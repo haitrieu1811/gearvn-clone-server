@@ -8,6 +8,7 @@ import {
   getMeController,
   loginController,
   logoutController,
+  refreshTokenController,
   registerController,
   resendEmailVerifyController,
   resetPasswordController,
@@ -29,7 +30,7 @@ import {
   loginValidator,
   refreshTokenValidator,
   resetPasswordValidator,
-  rolesValidator,
+  roleValidator,
   updateMeValidator,
   verifiedUserValidator
 } from '~/middlewares/users.middlewares';
@@ -48,6 +49,7 @@ const usersRouter = Router();
 usersRouter.post('/register', RegisterValidator, wrapRequestHandler(registerController));
 usersRouter.post('/login', loginValidator, wrapRequestHandler(loginController));
 usersRouter.post('/logout', accessTokenValidator, refreshTokenValidator, wrapRequestHandler(logoutController));
+usersRouter.post('/refresh-token', refreshTokenValidator, wrapRequestHandler(refreshTokenController));
 usersRouter.post('/verify-email', emailVerifyTokenValidator, wrapRequestHandler(verifyEmailController));
 usersRouter.post('/resend-email-verify', accessTokenValidator, wrapRequestHandler(resendEmailVerifyController));
 usersRouter.post('/forgot-password', forgotPasswordValidator, wrapRequestHandler(forgotPasswordController));
@@ -99,10 +101,10 @@ usersRouter.delete(
   wrapRequestHandler(deleteAddressController)
 );
 usersRouter.put(
-  '/roles',
+  '/role',
   accessTokenValidator,
-  rolesValidator,
-  filterReqBodyMiddleware<UpdateRolesRequestBody>(['roles']),
+  roleValidator,
+  filterReqBodyMiddleware<UpdateRolesRequestBody>(['role']),
   wrapRequestHandler(updateRolesController)
 );
 

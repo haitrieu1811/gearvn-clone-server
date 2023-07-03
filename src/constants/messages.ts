@@ -65,7 +65,22 @@ export const USERS_MESSAGES = {
   DELETE_ADDRESS_SUCCEED: 'Delete address succeed',
   ADDRESS_NOT_EXIST: 'Address not exist',
   UPDATE_ADDRESS_SUCCEED: 'Update address succeed',
-  ROLE_IS_REQUIRED: 'Roles is required',
-  ROLE_MUST_BE_AN_ARRAY: 'Roles must be an array',
-  UPDATE_ROLES_SUCCEED: 'Update roles succeed'
+  ROLE_IS_REQUIRED: 'Role is required',
+  ROLE_MUST_BE_A_NUMBER: 'Role must be a number',
+  ROLE_IS_INVALID: 'Role is invalid',
+  UPDATE_ROLE_SUCCEED: 'Update role succeed',
+  REFRESH_TOKEN_SUCCEED: 'Refresh token succeed'
+} as const;
+
+export const CATEGORIES_MESSAGES = {
+  GET_LIST_SUCCEED: 'Get category list succeed',
+  NAME_IS_REQUIRED: 'Category name is required',
+  NAME_MUST_BE_A_STRING: 'Category name must be a string',
+  NAME_IS_EXIST: 'Category name is exist',
+  CREATE_SUCCEED: 'Create category succeed',
+  CATEGORY_ID_IS_REQUIRED: 'Category id is required',
+  CATEGORY_NOT_EXIST: 'Category not exist',
+  UPDATE_SUCCEED: 'Update category succeed',
+  CATEGORY_ID_INVALID: 'Category id is invalid',
+  DELETE_SUCCEED: 'Delete category succeed'
 } as const;

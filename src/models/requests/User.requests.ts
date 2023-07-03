@@ -77,5 +77,9 @@ export interface DeleteAddressRequestParams extends ParamsDictionary {
 }
 
 export interface UpdateRolesRequestBody {
-  roles: UserRole[];
+  role: UserRole;
+}
+
+export interface RefreshTokenRequestBody {
+  refresh_token: string;
 }

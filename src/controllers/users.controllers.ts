@@ -12,6 +12,7 @@ import {
   ForgotPasswordRequestBody,
   LoginRequestBody,
   LogoutRequestBody,
+  RefreshTokenRequestBody,
   RegisterRequestBody,
   ResetPasswordRequestBody,
   TokenPayload,
@@ -48,6 +49,16 @@ export const loginController = async (req: Request<ParamsDictionary, any, LoginR
 export const logoutController = async (req: Request<ParamsDictionary, any, LogoutRequestBody>, res: Response) => {
   const { refresh_token } = req.body;
   const result = await userService.logout(refresh_token);
+  return res.json(result);
+};
+
+export const refreshTokenController = async (
+  req: Request<ParamsDictionary, any, RefreshTokenRequestBody>,
+  res: Response
+) => {
+  const { user_id, verify } = req.decoded_refresh_token as TokenPayload;
+  const { refresh_token } = req.body;
+  const result = await userService.refreshToken({ user_id, verify, refresh_token });
   return res.json(result);
 };
 
@@ -152,7 +163,7 @@ export const updateRolesController = async (
   res: Response
 ) => {
   const { user_id } = req.decoded_authorization as TokenPayload;
-  const { roles } = req.body;
-  const result = await userService.updateRoles({ roles, user_id });
+  const { role } = req.body;
+  const result = await userService.updateRoles({ role, user_id });
   return res.json(result);
 };

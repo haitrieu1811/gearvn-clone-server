@@ -6,7 +6,7 @@ import capitalize from 'lodash/capitalize';
 import { ObjectId } from 'mongodb';
 
 import { USERS_PROJECTION } from '~/constants/db';
-import { UserVerifyStatus } from '~/constants/enum';
+import { UserRole, UserVerifyStatus } from '~/constants/enum';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { USERS_MESSAGES } from '~/constants/messages';
 import { PHONE_NUMBER_REGEX } from '~/constants/regex';
@@ -537,15 +537,23 @@ export const addressExistValidator = validate(
   )
 );
 
-export const rolesValidator = validate(
+export const roleValidator = validate(
   checkSchema(
     {
-      roles: {
-        notEmpty: {
-          errorMessage: USERS_MESSAGES.ROLE_IS_REQUIRED
-        },
-        isArray: {
-          errorMessage: USERS_MESSAGES.ROLE_MUST_BE_AN_ARRAY
+      role: {
+        custom: {
+          options: (value: number) => {
+            if (!value) {
+              throw new Error(USERS_MESSAGES.ROLE_IS_REQUIRED);
+            }
+            if (typeof value !== 'number') {
+              throw new Error(USERS_MESSAGES.ROLE_MUST_BE_A_NUMBER);
+            }
+            if (!(value in UserRole)) {
+              throw new Error(USERS_MESSAGES.ROLE_IS_INVALID);
+            }
+            return true;
+          }
         }
       }
     },
