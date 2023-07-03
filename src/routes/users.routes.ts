@@ -27,6 +27,7 @@ import {
   emailVerifyTokenValidator,
   forgotPasswordTokenValidator,
   forgotPasswordValidator,
+  limitAddressValidator,
   loginValidator,
   refreshTokenValidator,
   resetPasswordValidator,
@@ -80,6 +81,7 @@ usersRouter.post(
   '/address',
   accessTokenValidator,
   verifiedUserValidator,
+  limitAddressValidator,
   addressValidator,
   filterReqBodyMiddleware<AddAddressRequestBody>(['province', 'district', 'ward', 'street', 'type']),
   wrapRequestHandler(addAddressController)

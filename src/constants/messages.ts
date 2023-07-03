@@ -69,7 +69,9 @@ export const USERS_MESSAGES = {
   ROLE_MUST_BE_A_NUMBER: 'Role must be a number',
   ROLE_IS_INVALID: 'Role is invalid',
   UPDATE_ROLE_SUCCEED: 'Update role succeed',
-  REFRESH_TOKEN_SUCCEED: 'Refresh token succeed'
+  REFRESH_TOKEN_SUCCEED: 'Refresh token succeed',
+  ADDRESS_ID_INVALID: 'Address id is invalid',
+  ADDRESS_MAXIMUM: 'Each user has a maximum of 3 addresses'
 } as const;
 
 export const CATEGORIES_MESSAGES = {

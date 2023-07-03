@@ -517,6 +517,12 @@ export const addressExistValidator = validate(
                 status: HTTP_STATUS.BAD_REQUEST
               });
             }
+            if (!ObjectId.isValid(value)) {
+              throw new ErrorWithStatus({
+                message: USERS_MESSAGES.ADDRESS_ID_INVALID,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
             const { user_id } = req.decoded_authorization as TokenPayload;
             const address = await databaseService.users.findOne({
               _id: new ObjectId(user_id),
@@ -536,6 +542,28 @@ export const addressExistValidator = validate(
     ['params']
   )
 );
+
+export const limitAddressValidator = async (req: Request, res: any, next: NextFunction) => {
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) });
+  if (!user) {
+    return next(
+      new ErrorWithStatus({
+        message: USERS_MESSAGES.USER_NOT_FOUND,
+        status: HTTP_STATUS.NOT_FOUND
+      })
+    );
+  }
+  if (user.addresses.length >= 3) {
+    return next(
+      new ErrorWithStatus({
+        message: USERS_MESSAGES.ADDRESS_MAXIMUM,
+        status: HTTP_STATUS.FORBIDDEN
+      })
+    );
+  }
+  next();
+};
 
 export const roleValidator = validate(
   checkSchema(
