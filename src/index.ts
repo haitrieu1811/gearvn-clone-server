@@ -8,6 +8,7 @@ import staticRouter from './routes/static.routes';
 import usersRouter from './routes/users.routes';
 import databaseService from './services/database.services';
 import { initFolders } from './utils/file';
+import productsRouter from './routes/products.routes';
 config();
 initFolders();
 
@@ -19,6 +20,7 @@ const port = process.env.PORT;
 app.use(express.json());
 app.use('/users', usersRouter);
 app.use('/categories', categoriesRouter);
+app.use('/products', productsRouter);
 app.use('/medias', mediasRouter);
 app.use('/static', staticRouter);
 app.use(defaultErrorHandler);

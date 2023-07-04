@@ -1,7 +1,11 @@
 import { config } from 'dotenv';
 import { Collection, Db, MongoClient } from 'mongodb';
+import Brand from '~/models/schemas/Brand.schema';
 
 import Category from '~/models/schemas/Category.schema';
+import Image from '~/models/schemas/Image.schema';
+import Media from '~/models/schemas/Media.schema';
+import Product from '~/models/schemas/Product.schema';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import User from '~/models/schemas/User.schema';
 config();
@@ -37,6 +41,22 @@ class DatabaseService {
 
   get categories(): Collection<Category> {
     return this.db.collection(process.env.DB_CATEGORIES_COLLECTION as string);
+  }
+
+  get images(): Collection<Image> {
+    return this.db.collection(process.env.DB_IMAGES_COLLECTION as string);
+  }
+
+  get brands(): Collection<Brand> {
+    return this.db.collection(process.env.DB_BRANDS_COLLECTION as string);
+  }
+
+  get products(): Collection<Product> {
+    return this.db.collection(process.env.DB_PRODUCTS_COLLECTION as string);
+  }
+
+  get medias(): Collection<Media> {
+    return this.db.collection(process.env.DB_MEDIAS_COLLECTION as string);
   }
 }
 

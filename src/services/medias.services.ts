@@ -1,14 +1,14 @@
 import { Request } from 'express';
+import fs from 'fs';
 import path from 'path';
 import sharp from 'sharp';
-import fs from 'fs';
 
-import { handleUploadImage } from '~/utils/file';
-import { Media } from '~/models/Others';
-import { getNameFromFullname } from '~/utils/file';
+import { isProduction } from '~/constants/config';
 import { UPLOAD_IMAGE_DIR } from '~/constants/dir';
 import { MediaType } from '~/constants/enum';
-import { isProduction } from '~/constants/config';
+import { MEDIAS_MESSAGES } from '~/constants/messages';
+import { Media } from '~/models/Others';
+import { handleUploadImage } from '~/utils/file';
 
 class MediaService {
   async handleUploadImage(req: Request) {
@@ -20,6 +20,7 @@ class MediaService {
         await sharp(image.filepath).jpeg().toFile(newPath);
         fs.unlinkSync(image.filepath);
         return {
+          name: newName,
           url: isProduction
             ? `${process.env.HOST}/static/image/${newName}`
             : `http://localhost:${process.env.PORT}/static/image/${newName}`,
@@ -27,7 +28,12 @@ class MediaService {
         };
       })
     );
-    return result;
+    return {
+      message: MEDIAS_MESSAGES.UPLOAD_IMAGE_SUCCEED,
+      data: {
+        images: result
+      }
+    };
   }
 }
 

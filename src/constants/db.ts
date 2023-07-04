@@ -8,3 +8,11 @@ export const USERS_PROJECTION = {
   created_at: 0,
   updated_at: 0
 };
+
+export const PRODUCTS_LIST_PROJECTION = {
+  general_info: 0,
+  description: 0,
+  images: 0,
+  specifications: 0,
+  user_id: 0
+};
