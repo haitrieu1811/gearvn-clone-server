@@ -72,7 +72,8 @@ export const USERS_MESSAGES = {
   REFRESH_TOKEN_SUCCEED: 'Refresh token succeed',
   ADDRESS_ID_INVALID: 'Address id is invalid',
   ADDRESS_MAXIMUM: 'Each user has a maximum of 3 addresses',
-  ADDRESS_TYPE_IS_INVALID: 'Address type is invalid'
+  ADDRESS_TYPE_IS_INVALID: 'Address type is invalid',
+  PERMISSION_DENIED: 'Permission denied'
 } as const;
 
 export const CATEGORIES_MESSAGES = {
@@ -157,4 +158,8 @@ export const PURCHASES_MESSAGES = {
   CHECKOUT_SUCCEED: 'Checkout succeed',
   GET_CART_LIST_SUCCEED: 'Get cart list succeed',
   DELETE_ALL_PURCHASE_SUCCEED: 'Delete all purchase succeed'
+} as const;
+
+export const ORDERS_MESSAGES = {
+  GET_ALL_ORDERS_SUCCEED: 'Get all orders succeed'
 } as const;

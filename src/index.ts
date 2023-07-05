@@ -10,6 +10,7 @@ import staticRouter from './routes/static.routes';
 import usersRouter from './routes/users.routes';
 import databaseService from './services/database.services';
 import { initFolders } from './utils/file';
+import ordersRouter from './routes/orders.routes';
 config();
 initFolders();
 
@@ -24,6 +25,7 @@ app.use('/categories', categoriesRouter);
 app.use('/products', productsRouter);
 app.use('/medias', mediasRouter);
 app.use('/purchases', purchasesRouter);
+app.use('/orders', ordersRouter);
 app.use('/static', staticRouter);
 app.use(defaultErrorHandler);
 
