@@ -34,6 +34,12 @@ export enum OrderStatus {
   Cancelled
 }
 
+export enum PurchaseStatus {
+  All,
+  InCart,
+  Ordered
+}
+
 export enum BlogStatus {
   Pending,
   Resolved,

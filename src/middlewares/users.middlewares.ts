@@ -6,7 +6,7 @@ import capitalize from 'lodash/capitalize';
 import { ObjectId } from 'mongodb';
 
 import { USERS_PROJECTION } from '~/constants/db';
-import { UserRole, UserVerifyStatus } from '~/constants/enum';
+import { AddressType, UserRole, UserVerifyStatus } from '~/constants/enum';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { USERS_MESSAGES } from '~/constants/messages';
 import { PHONE_NUMBER_REGEX } from '~/constants/regex';
@@ -97,12 +97,46 @@ const imageSchema: ParamSchema = {
   }
 };
 
-const addressIdSchema: ParamSchema = {
+export const provinceSchema: ParamSchema = {
   notEmpty: {
-    errorMessage: USERS_MESSAGES.ADDRESS_ID_IS_REQUIRED
+    errorMessage: USERS_MESSAGES.PROVINCE_IS_REQUIRED
   },
   isString: {
-    errorMessage: USERS_MESSAGES.ADDRESS_ID_MUST_BE_A_STRING
+    errorMessage: USERS_MESSAGES.PROVINCE_MUST_BE_A_STRING
+  }
+};
+
+export const districtSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: USERS_MESSAGES.DISTRICT_IS_REQUIRED
+  },
+  isString: {
+    errorMessage: USERS_MESSAGES.DISTRICT_MUST_BE_A_STRING
+  }
+};
+
+export const wardSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: USERS_MESSAGES.WARD_IS_REQUIRED
+  },
+  isString: {
+    errorMessage: USERS_MESSAGES.WARD_MUST_BE_A_STRING
+  }
+};
+
+export const streetSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: USERS_MESSAGES.STREET_IS_REQUIRED
+  },
+  isString: {
+    errorMessage: USERS_MESSAGES.STREET_MUST_BE_A_STRING
+  },
+  isLength: {
+    options: {
+      min: 1,
+      max: 250
+    },
+    errorMessage: USERS_MESSAGES.STREET_LENGTH
   }
 };
 
@@ -454,51 +488,29 @@ export const updateMeValidator = validate(
 
 export const addressValidator = validate(
   checkSchema({
-    province: {
-      notEmpty: {
-        errorMessage: USERS_MESSAGES.PROVINCE_IS_REQUIRED
-      },
-      isString: {
-        errorMessage: USERS_MESSAGES.PROVINCE_MUST_BE_A_STRING
-      }
-    },
-    district: {
-      notEmpty: {
-        errorMessage: USERS_MESSAGES.DISTRICT_IS_REQUIRED
-      },
-      isString: {
-        errorMessage: USERS_MESSAGES.DISTRICT_MUST_BE_A_STRING
-      }
-    },
-    ward: {
-      notEmpty: {
-        errorMessage: USERS_MESSAGES.WARD_IS_REQUIRED
-      },
-      isString: {
-        errorMessage: USERS_MESSAGES.WARD_MUST_BE_A_STRING
-      }
-    },
-    street: {
-      notEmpty: {
-        errorMessage: USERS_MESSAGES.STREET_IS_REQUIRED
-      },
-      isString: {
-        errorMessage: USERS_MESSAGES.STREET_MUST_BE_A_STRING
-      },
-      isLength: {
-        options: {
-          min: 1,
-          max: 250
-        },
-        errorMessage: USERS_MESSAGES.ADDRESS_DETAIL_LENGTH
-      }
-    },
+    province: provinceSchema,
+    district: districtSchema,
+    ward: wardSchema,
+    street: streetSchema,
     type: {
-      notEmpty: {
-        errorMessage: USERS_MESSAGES.ADDRESS_TYPE_IS_REQUIRED
-      },
-      isInt: {
-        errorMessage: USERS_MESSAGES.ADDRESS_TYPE_MUST_BE_A_INTEGER
+      custom: {
+        options: (value: number) => {
+          if (!value) {
+            throw new Error(USERS_MESSAGES.ADDRESS_TYPE_IS_REQUIRED);
+          }
+          if (!Number.isInteger(value)) {
+            throw new ErrorWithStatus({
+              message: USERS_MESSAGES.ADDRESS_TYPE_MUST_BE_A_INTEGER,
+              status: HTTP_STATUS.BAD_REQUEST
+            });
+          }
+          if (!(value in AddressType)) {
+            throw new ErrorWithStatus({
+              message: USERS_MESSAGES.ADDRESS_TYPE_IS_INVALID,
+              status: HTTP_STATUS.BAD_REQUEST
+            });
+          }
+        }
       }
     }
   })

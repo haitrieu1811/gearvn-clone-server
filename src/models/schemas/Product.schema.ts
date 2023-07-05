@@ -1,7 +1,5 @@
 import { ObjectId } from 'mongodb';
 
-import { ImageType } from './Image.schema';
-
 export interface ProductType {
   _id?: ObjectId;
   name_vi: string;

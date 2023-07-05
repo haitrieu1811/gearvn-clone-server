@@ -51,9 +51,9 @@ export const USERS_MESSAGES = {
   PROVINCE_IS_REQUIRED: 'Province is required',
   DISTRICT_IS_REQUIRED: 'District is required',
   WARD_IS_REQUIRED: 'Ward is required',
-  STREET_IS_REQUIRED: 'Address detail is required',
-  STREET_MUST_BE_A_STRING: 'Address detail must be a string',
-  ADDRESS_DETAIL_LENGTH: 'Address detail must length from 1 to 250 characters',
+  STREET_IS_REQUIRED: 'Street is required',
+  STREET_MUST_BE_A_STRING: 'Street must be a string',
+  STREET_LENGTH: 'Street must length from 1 to 250 characters',
   ADDRESS_TYPE_IS_REQUIRED: 'Address type is required',
   PROVINCE_MUST_BE_A_STRING: 'Province must be a string',
   DISTRICT_MUST_BE_A_STRING: 'District must be a string',
@@ -71,7 +71,8 @@ export const USERS_MESSAGES = {
   UPDATE_ROLE_SUCCEED: 'Update role succeed',
   REFRESH_TOKEN_SUCCEED: 'Refresh token succeed',
   ADDRESS_ID_INVALID: 'Address id is invalid',
-  ADDRESS_MAXIMUM: 'Each user has a maximum of 3 addresses'
+  ADDRESS_MAXIMUM: 'Each user has a maximum of 3 addresses',
+  ADDRESS_TYPE_IS_INVALID: 'Address type is invalid'
 } as const;
 
 export const CATEGORIES_MESSAGES = {
@@ -136,4 +137,24 @@ export const PRODUCTS_MESSAGES = {
   DELETE_PRODUCT_SUCCEED: 'Delete product succeed',
   GET_PRODUCT_LIST_SUCCEED: 'Get product list succeed',
   GET_PRODUCT_DETAIL_SUCCEED: 'Get product detail succeed'
+} as const;
+
+export const PURCHASES_MESSAGES = {
+  ADD_TO_CART_SUCCEED: 'Add product to cart succeed',
+  UPDATE_PURCHASE_SUCCEED: 'Update purchase succeed',
+  DELETE_PURCHASE_SUCCEED: 'Delete purchase succeed',
+  CHECKOUT_PURCHASE_SUCCEED: 'Checkout succeed',
+  BUY_COUNT_IS_REQUIRED: 'Buy count is required',
+  BUY_COUNT_MUST_BE_A_INTEGER: 'Buy count must be a integer',
+  BUY_COUNT_MUST_BE_GREATER_THAN_0: 'Buy count must be greater than 0',
+  PURCHASE_ID_IS_REQUIRED: 'Purchase id is required',
+  PURCHASE_ID_IS_INVALID: 'Purchase id is invalid',
+  PURCHASE_NOT_FOUND: 'Purchase not found',
+  PURCHASE_IDS_IS_REQUIRED: 'Purchase ids is required',
+  PURCHASE_IDS_MUST_BE_AN_ARRAY: 'Purchase ids must be an array',
+  PURCHASE_IDS_INVALID: 'Purchase ids is invalid',
+  PURCHASE_IDS_LENGTH: 'Purchase ids must have at least 1 item',
+  CHECKOUT_SUCCEED: 'Checkout succeed',
+  GET_CART_LIST_SUCCEED: 'Get cart list succeed',
+  DELETE_ALL_PURCHASE_SUCCEED: 'Delete all purchase succeed'
 } as const;

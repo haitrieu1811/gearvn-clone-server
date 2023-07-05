@@ -169,7 +169,6 @@ class ProductService {
   }
 
   async getProductDetail(product_id: string) {
-    // const product = await databaseService.products.findOne({ _id: new ObjectId(product_id) });
     const product = await databaseService.products
       .aggregate([
         {

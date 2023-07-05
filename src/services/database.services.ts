@@ -3,9 +3,10 @@ import { Collection, Db, MongoClient } from 'mongodb';
 import Brand from '~/models/schemas/Brand.schema';
 
 import Category from '~/models/schemas/Category.schema';
-import Image from '~/models/schemas/Image.schema';
 import Media from '~/models/schemas/Media.schema';
+import Order from '~/models/schemas/Order.schema';
 import Product from '~/models/schemas/Product.schema';
+import Purchase from '~/models/schemas/Purchase.schema';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import User from '~/models/schemas/User.schema';
 config();
@@ -43,10 +44,6 @@ class DatabaseService {
     return this.db.collection(process.env.DB_CATEGORIES_COLLECTION as string);
   }
 
-  get images(): Collection<Image> {
-    return this.db.collection(process.env.DB_IMAGES_COLLECTION as string);
-  }
-
   get brands(): Collection<Brand> {
     return this.db.collection(process.env.DB_BRANDS_COLLECTION as string);
   }
@@ -57,6 +54,14 @@ class DatabaseService {
 
   get medias(): Collection<Media> {
     return this.db.collection(process.env.DB_MEDIAS_COLLECTION as string);
+  }
+
+  get purchases(): Collection<Purchase> {
+    return this.db.collection(process.env.DB_PURCHASES_COLLECTION as string);
+  }
+
+  get orders(): Collection<Order> {
+    return this.db.collection(process.env.DB_ORDERS_COLLECTION as string);
   }
 }
 

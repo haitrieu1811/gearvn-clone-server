@@ -6,6 +6,7 @@ import { PRODUCTS_MESSAGES } from '~/constants/messages';
 import { ErrorWithStatus } from '~/models/Errors';
 import databaseService from '~/services/database.services';
 import { validate } from '~/utils/validation';
+import { productIdSchema } from './common.middlewares';
 
 const brandNameSchema: ParamSchema = {
   notEmpty: {
@@ -182,32 +183,7 @@ export const addImageValidator = validate(
 export const checkProductExist = validate(
   checkSchema(
     {
-      product_id: {
-        custom: {
-          options: async (value: string) => {
-            if (!value) {
-              throw new ErrorWithStatus({
-                message: PRODUCTS_MESSAGES.PRODUCT_ID_IS_REQUIRED,
-                status: HTTP_STATUS.BAD_REQUEST
-              });
-            }
-            if (!ObjectId.isValid(value)) {
-              throw new ErrorWithStatus({
-                message: PRODUCTS_MESSAGES.PRODUCT_ID_IS_INVALID,
-                status: HTTP_STATUS.BAD_REQUEST
-              });
-            }
-            const product = await databaseService.products.findOne({ _id: new ObjectId(value) });
-            if (!product) {
-              throw new ErrorWithStatus({
-                message: PRODUCTS_MESSAGES.PRODUCT_NOT_FOUND,
-                status: HTTP_STATUS.NOT_FOUND
-              });
-            }
-            return true;
-          }
-        }
-      }
+      product_id: productIdSchema
     },
     ['params']
   )

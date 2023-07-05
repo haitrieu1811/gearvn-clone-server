@@ -4,11 +4,12 @@ import express from 'express';
 import { defaultErrorHandler } from './middlewares/error.middlewares';
 import categoriesRouter from './routes/categories.routes';
 import mediasRouter from './routes/medias.routes';
+import productsRouter from './routes/products.routes';
+import purchasesRouter from './routes/purchases.routes';
 import staticRouter from './routes/static.routes';
 import usersRouter from './routes/users.routes';
 import databaseService from './services/database.services';
 import { initFolders } from './utils/file';
-import productsRouter from './routes/products.routes';
 config();
 initFolders();
 
@@ -22,6 +23,7 @@ app.use('/users', usersRouter);
 app.use('/categories', categoriesRouter);
 app.use('/products', productsRouter);
 app.use('/medias', mediasRouter);
+app.use('/purchases', purchasesRouter);
 app.use('/static', staticRouter);
 app.use(defaultErrorHandler);
 
