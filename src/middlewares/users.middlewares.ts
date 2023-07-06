@@ -219,9 +219,8 @@ export const refreshTokenValidator = validate(
 );
 
 export const adminRoleValidator = async (req: Request, res: any, next: NextFunction) => {
-  const { user_id } = req.decoded_authorization as TokenPayload;
-  const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) });
-  const isAdmin = user?.role === UserRole.Admin;
+  const { role } = req.decoded_authorization as TokenPayload;
+  const isAdmin = role === UserRole.Admin;
   if (!isAdmin) {
     return next(
       new ErrorWithStatus({

@@ -1,12 +1,12 @@
-import { JwtPayload } from 'jsonwebtoken';
-import { ObjectId } from 'mongodb';
 import { ParamsDictionary } from 'express-serve-static-core';
+import { JwtPayload } from 'jsonwebtoken';
 
 import { AddressType, Gender, TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
 
 export interface TokenPayload extends JwtPayload {
   user_id: string;
   verify: UserVerifyStatus;
+  role: UserRole;
   token_type: TokenType;
 }
 

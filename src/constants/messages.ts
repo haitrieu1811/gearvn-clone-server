@@ -161,5 +161,30 @@ export const PURCHASES_MESSAGES = {
 } as const;
 
 export const ORDERS_MESSAGES = {
-  GET_ALL_ORDERS_SUCCEED: 'Get all orders succeed'
+  GET_ALL_ORDERS_SUCCEED: 'Get all orders succeed',
+  GET_ORDERS_LIST_SUCCEED: 'Get order list succeed',
+  ORDER_ID_IS_REQUIRED: 'Order id is required',
+  ORDER_ID_IS_INVALID: 'Order id is invalid',
+  ORDER_NOT_FOUND: 'Order not found',
+  STATUS_IS_REQUIRED: 'Status is required',
+  STATUS_IS_INVALID: 'Status is invalid',
+  UPDATE_ORDER_STATUS_SUCCEED: 'Update order status succeed',
+  DELETE_ORDER_SUCCEED: 'Delete order succeed'
+} as const;
+
+export const BLOGS_MESSAGES = {
+  CREATE_BLOG_SUCCEED: 'Create blog succeed',
+  THUMBNAIL_IS_REQUIRED: 'Thumbnail is required',
+  THUMBNAIL_MUST_BE_A_STRING: 'Thumbnail must be a string',
+  NAME_IS_REQUIRED: 'Name is required',
+  NAME_MUST_BE_A_STRING: 'Name must be a string',
+  CONTENT_IS_REQUIRED: 'Content is required',
+  CONTENT_MUST_BE_A_STRING: 'Content must be a string',
+  STATUS_IS_REQUIRED: 'Blog status is required',
+  STATUS_IS_INVALID: 'Blog status is in valid',
+  UPDATE_BLOG_SUCCEED: 'Update blog succeed',
+  BLOG_ID_IS_REQUIRED: 'Blog id is required',
+  BLOG_ID_IS_INVALID: 'Blog id is invalid',
+  BLOG_NOT_FOUND: 'Blog not found',
+  DELETE_BLOG_SUCCEED: 'Delete blog succeed'
 } as const;

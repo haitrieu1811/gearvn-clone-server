@@ -103,7 +103,12 @@ class ProductService {
 
   async createProduct({ payload, user_id }: { payload: CreateProductRequestBody; user_id: string }) {
     const { insertedId } = await databaseService.products.insertOne(
-      new Product({ ...payload, user_id: new ObjectId(user_id) })
+      new Product({
+        ...payload,
+        brand_id: new ObjectId(payload.brand_id),
+        category_id: new ObjectId(payload.category_id),
+        user_id: new ObjectId(user_id)
+      })
     );
     const product = await databaseService.products.findOne({ _id: new ObjectId(insertedId) });
     return {

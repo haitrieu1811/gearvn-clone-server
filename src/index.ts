@@ -11,6 +11,7 @@ import usersRouter from './routes/users.routes';
 import databaseService from './services/database.services';
 import { initFolders } from './utils/file';
 import ordersRouter from './routes/orders.routes';
+import blogsRouter from './routes/blogs.routes';
 config();
 initFolders();
 
@@ -26,6 +27,7 @@ app.use('/products', productsRouter);
 app.use('/medias', mediasRouter);
 app.use('/purchases', purchasesRouter);
 app.use('/orders', ordersRouter);
+app.use('/blogs', blogsRouter);
 app.use('/static', staticRouter);
 app.use(defaultErrorHandler);
 

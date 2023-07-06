@@ -34,8 +34,8 @@ export const registerController = async (req: Request<ParamsDictionary, any, Reg
 
 export const loginController = async (req: Request<ParamsDictionary, any, LoginRequestBody>, res: Response) => {
   const user = req.user as User;
-  const { _id, verify } = user;
-  const result = await userService.login({ user_id: _id?.toString() as string, verify });
+  const { _id, verify, role } = user;
+  const result = await userService.login({ user_id: _id?.toString() as string, verify, role });
   return res.json({
     message: USERS_MESSAGES.LOGIN_SUCCEED,
     data: {
@@ -56,9 +56,9 @@ export const refreshTokenController = async (
   req: Request<ParamsDictionary, any, RefreshTokenRequestBody>,
   res: Response
 ) => {
-  const { user_id, verify } = req.decoded_refresh_token as TokenPayload;
+  const { user_id, verify, role } = req.decoded_refresh_token as TokenPayload;
   const { refresh_token } = req.body;
-  const result = await userService.refreshToken({ user_id, verify, refresh_token });
+  const result = await userService.refreshToken({ user_id, verify, refresh_token, role });
   return res.json(result);
 };
 
@@ -66,13 +66,13 @@ export const verifyEmailController = async (
   req: Request<ParamsDictionary, any, VerifyEmailRequestBody>,
   res: Response
 ) => {
-  const { user_id } = req.decoded_email_verify_token as TokenPayload;
-  const result = await userService.verifyEmail(user_id);
+  const { user_id, role } = req.decoded_email_verify_token as TokenPayload;
+  const result = await userService.verifyEmail({ user_id, role });
   return res.json(result);
 };
 
 export const resendEmailVerifyController = async (req: Request, res: Response) => {
-  const { user_id } = req.decoded_authorization as TokenPayload;
+  const { user_id, role } = req.decoded_authorization as TokenPayload;
   const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) });
   if (!user) {
     return res.status(HTTP_STATUS.NOT_FOUND).json({
@@ -84,7 +84,7 @@ export const resendEmailVerifyController = async (req: Request, res: Response) =
       message: USERS_MESSAGES.EMAIL_VERIFY_BEFORE
     });
   }
-  const result = await userService.resendEmailVerify(user_id);
+  const result = await userService.resendEmailVerify({ user_id, role });
   return res.json(result);
 };
 
@@ -101,9 +101,9 @@ export const resetPasswordController = async (
   req: Request<ParamsDictionary, any, ResetPasswordRequestBody>,
   res: Response
 ) => {
-  const { user_id, verify } = req.decoded_forgot_password_token as TokenPayload;
+  const { user_id, verify, role } = req.decoded_forgot_password_token as TokenPayload;
   const { password } = req.body;
-  const result = await userService.resetPassword({ password, user_id, verify });
+  const result = await userService.resetPassword({ password, user_id, verify, role });
   return res.json(result);
 };
 

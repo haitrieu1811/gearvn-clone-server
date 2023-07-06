@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
 import { Collection, Db, MongoClient } from 'mongodb';
+import Blog from '~/models/schemas/Blog.schema';
 import Brand from '~/models/schemas/Brand.schema';
 
 import Category from '~/models/schemas/Category.schema';
@@ -62,6 +63,10 @@ class DatabaseService {
 
   get orders(): Collection<Order> {
     return this.db.collection(process.env.DB_ORDERS_COLLECTION as string);
+  }
+
+  get blogs(): Collection<Blog> {
+    return this.db.collection(process.env.DB_BLOGS_COLLECTION as string);
   }
 }
 

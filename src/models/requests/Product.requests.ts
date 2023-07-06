@@ -1,9 +1,6 @@
 import { ParamsDictionary } from 'express-serve-static-core';
 import { ObjectId } from 'mongodb';
 
-import { ImageType } from '../schemas/Image.schema';
-import { MediaType } from '~/constants/enum';
-
 export interface CreateBrandRequestBody {
   name: string;
 }

@@ -1,21 +1,21 @@
 import { config } from 'dotenv';
 import { ObjectId, WithId } from 'mongodb';
 
-import User from '~/models/schemas/User.schema';
-import databaseService from './database.services';
-import { USERS_MESSAGES } from '~/constants/messages';
-import { hashPassword } from '~/utils/crypto';
-import { TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
-import { signToken } from '~/utils/jwt';
-import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import { USERS_PROJECTION } from '~/constants/db';
+import { TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
+import { USERS_MESSAGES } from '~/constants/messages';
 import { AddAddressRequestBody, UpdateAddressRequestBody, UpdateMeRequestBody } from '~/models/requests/User.requests';
-import { Address } from '~/models/schemas/User.schema';
+import RefreshToken from '~/models/schemas/RefreshToken.schema';
+import User from '~/models/schemas/User.schema';
+import { hashPassword } from '~/utils/crypto';
+import { signToken } from '~/utils/jwt';
+import databaseService from './database.services';
 config();
 
 interface SignToken {
   user_id: string;
   verify: UserVerifyStatus;
+  role: UserRole;
 }
 
 class UserService {
@@ -27,11 +27,12 @@ class UserService {
     };
   }
 
-  async signAccessToken({ user_id, verify }: SignToken) {
+  async signAccessToken({ user_id, verify, role }: SignToken) {
     return signToken({
       payload: {
         user_id,
         verify,
+        role,
         token_type: TokenType.Access
       },
       privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string,
@@ -41,11 +42,12 @@ class UserService {
     });
   }
 
-  async signRefreshToken({ user_id, verify }: SignToken) {
+  async signRefreshToken({ user_id, verify, role }: SignToken) {
     return signToken({
       payload: {
         user_id,
         verify,
+        role,
         token_type: TokenType.Refresh
       },
       privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string,
@@ -55,15 +57,19 @@ class UserService {
     });
   }
 
-  async signAccessAndRefreshToken({ user_id, verify }: SignToken) {
-    return Promise.all([this.signAccessToken({ user_id, verify }), this.signRefreshToken({ user_id, verify })]);
+  async signAccessAndRefreshToken({ user_id, verify, role }: SignToken) {
+    return Promise.all([
+      this.signAccessToken({ user_id, verify, role }),
+      this.signRefreshToken({ user_id, verify, role })
+    ]);
   }
 
-  async signEmailVerifyToken({ user_id, verify }: SignToken) {
+  async signEmailVerifyToken({ user_id, verify, role }: SignToken) {
     return signToken({
       payload: {
         user_id,
         verify,
+        role,
         token_type: TokenType.EmailVerify
       },
       privateKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string,
@@ -73,11 +79,12 @@ class UserService {
     });
   }
 
-  async signForgotPasswordToken({ user_id, verify }: SignToken) {
+  async signForgotPasswordToken({ user_id, verify, role }: SignToken) {
     return signToken({
       payload: {
         user_id,
         verify,
+        role,
         token_type: TokenType.ForgotPassword
       },
       privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string,
@@ -98,11 +105,13 @@ class UserService {
     const [[access_token, refresh_token], email_verify_token] = await Promise.all([
       this.signAccessAndRefreshToken({
         user_id: user_id.toString(),
-        verify: UserVerifyStatus.Unverified
+        verify: UserVerifyStatus.Unverified,
+        role: UserRole.Customer
       }),
       this.signEmailVerifyToken({
         user_id: user_id.toString(),
-        verify: UserVerifyStatus.Unverified
+        verify: UserVerifyStatus.Unverified,
+        role: UserRole.Customer
       })
     ]);
     // Thêm user vào collection
@@ -138,8 +147,8 @@ class UserService {
     };
   }
 
-  async login({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({ user_id, verify });
+  async login({ user_id, verify, role }: { user_id: string; verify: UserVerifyStatus; role: UserRole }) {
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({ user_id, verify, role });
     await this.insertRefreshToken({ token: refresh_token, user_id });
     return {
       access_token,
@@ -157,14 +166,16 @@ class UserService {
   async refreshToken({
     user_id,
     verify,
+    role,
     refresh_token
   }: {
     user_id: string;
     verify: UserVerifyStatus;
+    role: UserRole;
     refresh_token: string;
   }) {
     const [[access_token, new_refresh_token]] = await Promise.all([
-      this.signAccessAndRefreshToken({ user_id, verify }),
+      this.signAccessAndRefreshToken({ user_id, verify, role }),
       databaseService.refresh_tokens.deleteOne({ token: refresh_token })
     ]);
     await databaseService.refresh_tokens.insertOne(
@@ -181,9 +192,9 @@ class UserService {
     };
   }
 
-  async verifyEmail(user_id: string) {
+  async verifyEmail({ user_id, role }: { user_id: string; role: UserRole }) {
     const [[access_token, refresh_token]] = await Promise.all([
-      this.signAccessAndRefreshToken({ user_id, verify: UserVerifyStatus.Verified }),
+      this.signAccessAndRefreshToken({ user_id, verify: UserVerifyStatus.Verified, role }),
       databaseService.users.updateOne(
         {
           _id: new ObjectId(user_id)
@@ -209,8 +220,8 @@ class UserService {
     };
   }
 
-  async resendEmailVerify(user_id: string) {
-    const email_verify_token = await this.signEmailVerifyToken({ user_id, verify: UserVerifyStatus.Unverified });
+  async resendEmailVerify({ user_id, role }: { user_id: string; role: UserRole }) {
+    const email_verify_token = await this.signEmailVerifyToken({ user_id, verify: UserVerifyStatus.Unverified, role });
     await databaseService.users.updateOne(
       {
         _id: new ObjectId(user_id)
@@ -232,10 +243,11 @@ class UserService {
 
   async forgotPassword(email: string) {
     const user = await databaseService.users.findOne({ email });
-    const { _id, verify } = user as WithId<User>;
+    const { _id, verify, role } = user as WithId<User>;
     const forgot_password_token = await this.signForgotPasswordToken({
       user_id: _id.toString(),
-      verify
+      verify,
+      role
     });
     await databaseService.users.updateOne({ _id }, { $set: { forgot_password_token } });
     console.log('>>> Gửi email khôi phục mật khẩu: ', forgot_password_token);
@@ -244,9 +256,19 @@ class UserService {
     };
   }
 
-  async resetPassword({ password, user_id, verify }: { password: string; user_id: string; verify: UserVerifyStatus }) {
+  async resetPassword({
+    password,
+    user_id,
+    verify,
+    role
+  }: {
+    password: string;
+    user_id: string;
+    verify: UserVerifyStatus;
+    role: UserRole;
+  }) {
     const [[access_token, refresh_token]] = await Promise.all([
-      this.signAccessAndRefreshToken({ user_id, verify }),
+      this.signAccessAndRefreshToken({ user_id, verify, role }),
       databaseService.users.updateOne(
         {
           _id: new ObjectId(user_id)
