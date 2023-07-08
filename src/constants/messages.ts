@@ -1,4 +1,5 @@
 export const USERS_MESSAGES = {
+  EMAIL_LENGTH: 'Email must length from 5 to 160 characters',
   VALIDATION_ERROR: 'Validation error',
   FULLNAME_MUST_BE_A_STRING: 'Fullname must be a string',
   EMAIL_MUST_BE_A_STRING: 'Email must be a string',

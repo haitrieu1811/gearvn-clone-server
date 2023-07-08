@@ -19,9 +19,9 @@ export class ErrorWithStatus {
 }
 
 export class EntityError extends ErrorWithStatus {
-  errors: ErrorsType;
+  data: ErrorsType;
   constructor({ message = USERS_MESSAGES.VALIDATION_ERROR, errors }: { message?: string; errors: ErrorsType }) {
     super({ message, status: HTTP_STATUS.UNPROCESSABLE_ENTITY });
-    this.errors = errors;
+    this.data = errors;
   }
 }

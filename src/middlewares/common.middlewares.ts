@@ -1,12 +1,14 @@
+import { config } from 'dotenv';
 import { NextFunction, Request, Response } from 'express';
+import { ParamSchema } from 'express-validator';
 import pick from 'lodash/pick';
 import { ObjectId } from 'mongodb';
-import { ParamSchema } from 'express-validator';
 
-import { ErrorWithStatus } from '~/models/Errors';
-import { PRODUCTS_MESSAGES } from '~/constants/messages';
-import databaseService from '~/services/database.services';
 import HTTP_STATUS from '~/constants/httpStatus';
+import { PRODUCTS_MESSAGES } from '~/constants/messages';
+import { ErrorWithStatus } from '~/models/Errors';
+import databaseService from '~/services/database.services';
+config();
 
 type FilterKeys<T> = Array<keyof T>;
 
@@ -42,4 +44,11 @@ export const productIdSchema: ParamSchema = {
       return true;
     }
   }
+};
+
+export const corsMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('Access-Control-Allow-Origin', process.env.CLIENT_URL as string);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization');
+  next();
 };

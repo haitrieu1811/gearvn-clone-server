@@ -29,6 +29,13 @@ const emailSchema: ParamSchema = {
   isEmail: {
     errorMessage: USERS_MESSAGES.EMAIL_IS_INVALID
   },
+  isLength: {
+    options: {
+      min: 5,
+      max: 160
+    },
+    errorMessage: USERS_MESSAGES.EMAIL_LENGTH
+  },
   custom: {
     options: async (value) => {
       const { isExist } = await userService.checkEmailExist(value);

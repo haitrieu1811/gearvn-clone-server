@@ -12,15 +12,16 @@ import databaseService from './services/database.services';
 import { initFolders } from './utils/file';
 import ordersRouter from './routes/orders.routes';
 import blogsRouter from './routes/blogs.routes';
+import { corsMiddleware } from './middlewares/common.middlewares';
 config();
 initFolders();
 
 databaseService.connect();
-
 const app = express();
 const port = process.env.PORT;
 
 app.use(express.json());
+app.use(corsMiddleware);
 app.use('/users', usersRouter);
 app.use('/categories', categoriesRouter);
 app.use('/products', productsRouter);
