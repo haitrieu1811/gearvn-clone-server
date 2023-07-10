@@ -10,6 +10,7 @@ import {
   ChangePasswordRequestBody,
   DeleteAddressRequestParams,
   ForgotPasswordRequestBody,
+  GetUsersRequestQuery,
   LoginRequestBody,
   LogoutRequestBody,
   RefreshTokenRequestBody,
@@ -165,5 +166,15 @@ export const updateRolesController = async (
   const { user_id } = req.decoded_authorization as TokenPayload;
   const { role } = req.body;
   const result = await userService.updateRoles({ role, user_id });
+  return res.json(result);
+};
+
+export const getUsersController = async (
+  req: Request<ParamsDictionary, any, any, GetUsersRequestQuery>,
+  res: Response
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const { query } = req;
+  const result = await userService.getUsers({ user_id, query });
   return res.json(result);
 };

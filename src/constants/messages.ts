@@ -74,7 +74,9 @@ export const USERS_MESSAGES = {
   ADDRESS_ID_INVALID: 'Address id is invalid',
   ADDRESS_MAXIMUM: 'Each user has a maximum of 3 addresses',
   ADDRESS_TYPE_IS_INVALID: 'Address type is invalid',
-  PERMISSION_DENIED: 'Permission denied'
+  PERMISSION_DENIED: 'Permission denied',
+  EXPIRE_ACCESS_TOKEN_MUST_BE_A_INTEGER: 'Expire access token must be a integer',
+  GET_USERS_LIST_SUCCEED: 'Get users list succeed'
 } as const;
 
 export const CATEGORIES_MESSAGES = {

@@ -147,6 +147,21 @@ export const streetSchema: ParamSchema = {
   }
 };
 
+export const expireTokenSchema: ParamSchema = {
+  optional: true,
+  custom: {
+    options: (value: number) => {
+      if (!Number.isInteger(value)) {
+        throw new ErrorWithStatus({
+          message: USERS_MESSAGES.EXPIRE_ACCESS_TOKEN_MUST_BE_A_INTEGER,
+          status: HTTP_STATUS.BAD_REQUEST
+        });
+      }
+      return true;
+    }
+  }
+};
+
 export const accessTokenValidator = validate(
   checkSchema(
     {

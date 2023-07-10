@@ -83,3 +83,8 @@ export interface UpdateRolesRequestBody {
 export interface RefreshTokenRequestBody {
   refresh_token: string;
 }
+
+export interface GetUsersRequestQuery {
+  page?: string;
+  limit?: string;
+}

@@ -4,7 +4,12 @@ import { ObjectId, WithId } from 'mongodb';
 import { USERS_PROJECTION } from '~/constants/db';
 import { TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
 import { USERS_MESSAGES } from '~/constants/messages';
-import { AddAddressRequestBody, UpdateAddressRequestBody, UpdateMeRequestBody } from '~/models/requests/User.requests';
+import {
+  AddAddressRequestBody,
+  GetUsersRequestQuery,
+  UpdateAddressRequestBody,
+  UpdateMeRequestBody
+} from '~/models/requests/User.requests';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import User from '~/models/schemas/User.schema';
 import { hashPassword } from '~/utils/crypto';
@@ -181,8 +186,6 @@ class UserService {
     await databaseService.refresh_tokens.insertOne(
       new RefreshToken({ token: new_refresh_token, user_id: new ObjectId(user_id) })
     );
-    console.log(access_token, new_refresh_token);
-
     return {
       message: USERS_MESSAGES.REFRESH_TOKEN_SUCCEED,
       data: {
@@ -438,6 +441,44 @@ class UserService {
     );
     return {
       message: USERS_MESSAGES.UPDATE_ROLE_SUCCEED
+    };
+  }
+
+  async getUsers({ user_id, query }: { user_id: string; query: GetUsersRequestQuery }) {
+    const total = await databaseService.users.countDocuments();
+    const limit = Number(query.limit) || 10;
+    const pageSize = Math.ceil(total / limit);
+    const page = Number(query.page) || 1;
+    const skip = (page - 1) * limit;
+    const result = await databaseService.users
+      .aggregate([
+        {
+          $match: {
+            _id: {
+              $not: {
+                $eq: new ObjectId(user_id)
+              }
+            }
+          }
+        },
+        {
+          $project: USERS_PROJECTION
+        }
+      ])
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+    return {
+      message: USERS_MESSAGES.GET_USERS_LIST_SUCCEED,
+      data: {
+        users: result,
+        pagination: {
+          total: result.length,
+          page,
+          limit,
+          page_size: pageSize
+        }
+      }
     };
   }
 }

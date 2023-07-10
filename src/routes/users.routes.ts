@@ -6,6 +6,7 @@ import {
   deleteAddressController,
   forgotPasswordController,
   getMeController,
+  getUsersController,
   loginController,
   logoutController,
   refreshTokenController,
@@ -23,6 +24,7 @@ import {
   accessTokenValidator,
   addressExistValidator,
   addressValidator,
+  adminRoleValidator,
   changePasswordValidator,
   emailVerifyTokenValidator,
   forgotPasswordTokenValidator,
@@ -49,7 +51,7 @@ const usersRouter = Router();
 
 usersRouter.post('/register', RegisterValidator, wrapRequestHandler(registerController));
 usersRouter.post('/login', loginValidator, wrapRequestHandler(loginController));
-usersRouter.post('/logout', accessTokenValidator, refreshTokenValidator, wrapRequestHandler(logoutController));
+usersRouter.post('/logout', refreshTokenValidator, wrapRequestHandler(logoutController));
 usersRouter.post('/refresh-token', refreshTokenValidator, wrapRequestHandler(refreshTokenController));
 usersRouter.post('/verify-email', emailVerifyTokenValidator, wrapRequestHandler(verifyEmailController));
 usersRouter.post('/resend-email-verify', accessTokenValidator, wrapRequestHandler(resendEmailVerifyController));
@@ -109,5 +111,6 @@ usersRouter.put(
   filterReqBodyMiddleware<UpdateRolesRequestBody>(['role']),
   wrapRequestHandler(updateRolesController)
 );
+usersRouter.get('/list', accessTokenValidator, adminRoleValidator, wrapRequestHandler(getUsersController));
 
 export default usersRouter;
