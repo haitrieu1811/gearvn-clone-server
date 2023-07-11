@@ -1,17 +1,28 @@
 import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 
-import categoryService from '~/services/categories.services';
 import {
   CreateCategoryRequestBody,
   DeleteCategoryRequestParams,
+  GetCategoriesRequestQuery,
+  GetCategoryRequestParams,
   UpdateCategoryRequestBody,
   UpdateCategoryRequestParams
 } from '~/models/requests/Category.requests';
-import databaseService from '~/services/database.services';
+import categoryService from '~/services/categories.services';
 
-export const getListController = async (req: Request, res: Response) => {
-  const result = await categoryService.getList();
+export const getListController = async (
+  req: Request<ParamsDictionary, any, any, GetCategoriesRequestQuery>,
+  res: Response
+) => {
+  const { query } = req;
+  const result = await categoryService.getList(query);
+  return res.json(result);
+};
+
+export const getOneController = async (req: Request<GetCategoryRequestParams, any, any>, res: Response) => {
+  const { category_id } = req.params;
+  const result = await categoryService.getOne(category_id);
   return res.json(result);
 };
 

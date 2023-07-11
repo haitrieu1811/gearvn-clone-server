@@ -1,8 +1,12 @@
 import { config } from 'dotenv';
 import { ObjectId, WithId } from 'mongodb';
+import pick from 'lodash/pick';
+import omitBy from 'lodash/omitBy';
+import isUndefined from 'lodash/isUndefined';
+import isNaN from 'lodash/isNaN';
 
 import { USERS_PROJECTION } from '~/constants/db';
-import { TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
+import { Gender, TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
 import { USERS_MESSAGES } from '~/constants/messages';
 import {
   AddAddressRequestBody,
@@ -445,26 +449,36 @@ class UserService {
   }
 
   async getUsers({ user_id, query }: { user_id: string; query: GetUsersRequestQuery }) {
-    const total = await databaseService.users.countDocuments();
+    const queryConfig = omitBy(
+      {
+        gender: Number(query.gender),
+        status: Number(query.status),
+        role: Number(query.role)
+      },
+      isNaN
+    );
+    const total = await databaseService.users.countDocuments({
+      _id: {
+        $not: { $eq: new ObjectId(user_id) }
+      }
+    });
     const limit = Number(query.limit) || 10;
     const pageSize = Math.ceil(total / limit);
     const page = Number(query.page) || 1;
     const skip = (page - 1) * limit;
     const result = await databaseService.users
-      .aggregate([
+      .find(
         {
-          $match: {
-            _id: {
-              $not: {
-                $eq: new ObjectId(user_id)
-              }
-            }
-          }
+          _id: {
+            $ne: new ObjectId(user_id)
+          },
+          ...queryConfig
         },
         {
-          $project: USERS_PROJECTION
+          projection: USERS_PROJECTION,
+          ignoreUndefined: true
         }
-      ])
+      )
       .skip(skip)
       .limit(limit)
       .toArray();

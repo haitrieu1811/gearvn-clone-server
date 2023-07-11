@@ -1,15 +1,39 @@
-import { CATEGORIES_MESSAGES } from '~/constants/messages';
-import Category, { CategoryType } from '~/models/schemas/Category.schema';
-import databaseService from './database.services';
 import { ObjectId } from 'mongodb';
 
+import { CATEGORIES_MESSAGES } from '~/constants/messages';
+import { GetCategoriesRequestQuery } from '~/models/requests/Category.requests';
+import Category, { CategoryType } from '~/models/schemas/Category.schema';
+import databaseService from './database.services';
+
 class CategoryService {
-  async getList() {
-    const result = databaseService.categories.find({});
-    const documents = await result.toArray();
+  async getList(query: GetCategoriesRequestQuery) {
+    const total = await databaseService.categories.countDocuments();
+    const limit = Number(query.limit) || 10;
+    const pageSize = Math.ceil(total / limit);
+    const page = Number(query.page) || 1;
+    const skip = (page - 1) * limit;
+    const categories = await databaseService.categories.find({}).skip(skip).limit(limit).toArray();
     return {
       message: CATEGORIES_MESSAGES.GET_LIST_SUCCEED,
-      data: documents
+      data: {
+        categories,
+        pagination: {
+          total,
+          page,
+          limit,
+          page_size: pageSize
+        }
+      }
+    };
+  }
+
+  async getOne(category_id: string) {
+    const category = await databaseService.categories.findOne({ _id: new ObjectId(category_id) });
+    return {
+      message: CATEGORIES_MESSAGES.GET_CATEGORY_SUCCEED,
+      data: {
+        category
+      }
     };
   }
 

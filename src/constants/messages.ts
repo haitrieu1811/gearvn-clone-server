@@ -86,10 +86,12 @@ export const CATEGORIES_MESSAGES = {
   NAME_IS_EXIST: 'Category name is exist',
   CREATE_SUCCEED: 'Create category succeed',
   CATEGORY_ID_IS_REQUIRED: 'Category id is required',
-  CATEGORY_NOT_EXIST: 'Category not exist',
+  CATEGORY_NOT_FOUND: 'Category not found',
   UPDATE_SUCCEED: 'Update category succeed',
   CATEGORY_ID_INVALID: 'Category id is invalid',
-  DELETE_SUCCEED: 'Delete category succeed'
+  DELETE_SUCCEED: 'Delete category succeed',
+  CATEGORY_NAME_LENGTH: 'Category name must length from 1 to 160 characters',
+  GET_CATEGORY_SUCCEED: 'Get category succeed'
 } as const;
 
 export const MEDIAS_MESSAGES = {

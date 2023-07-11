@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   createController,
   deleteController,
+  getOneController,
   getListController,
   updateController
 } from '~/controllers/categories.controllers';
@@ -14,6 +15,7 @@ import { wrapRequestHandler } from '~/utils/handler';
 const categoriesRouter = Router();
 
 categoriesRouter.get('/list', wrapRequestHandler(getListController));
+categoriesRouter.get('/:category_id', categoryExistValidator, wrapRequestHandler(getOneController));
 categoriesRouter.post(
   '/create',
   accessTokenValidator,

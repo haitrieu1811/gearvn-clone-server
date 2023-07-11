@@ -1,7 +1,7 @@
 import { ParamsDictionary } from 'express-serve-static-core';
 import { JwtPayload } from 'jsonwebtoken';
 
-import { AddressType, Gender, TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
+import { AddressType, Gender, TokenType, UserRole, UserStatus, UserVerifyStatus } from '~/constants/enum';
 
 export interface TokenPayload extends JwtPayload {
   user_id: string;
@@ -87,4 +87,7 @@ export interface RefreshTokenRequestBody {
 export interface GetUsersRequestQuery {
   page?: string;
   limit?: string;
+  gender?: Gender;
+  status?: UserStatus;
+  role?: UserRole;
 }
