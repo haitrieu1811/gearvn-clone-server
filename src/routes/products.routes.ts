@@ -7,6 +7,8 @@ import {
   deleteBrandController,
   deleteImageController,
   deleteProductController,
+  getBrandController,
+  getBrandsController,
   getProductDetailController,
   getProductListController,
   updateBrandController,
@@ -20,6 +22,8 @@ import {
   checkProductExist,
   createBrandValidator,
   createProductValidator,
+  deleteBrandValidator,
+  deleteProductValidator,
   updateBrandValidator,
   updateProductValidator
 } from '~/middlewares/products.middlewares';
@@ -29,6 +33,9 @@ import { wrapRequestHandler } from '~/utils/handler';
 
 const productsRouter = Router();
 
+// Brand
+productsRouter.get('/brand', wrapRequestHandler(getBrandsController));
+productsRouter.get('/brand/:brand_id', checkBrandExistValidator, wrapRequestHandler(getBrandController));
 productsRouter.post('/brand', accessTokenValidator, createBrandValidator, wrapRequestHandler(createBrandController));
 productsRouter.put(
   '/brand/:brand_id',
@@ -37,12 +44,8 @@ productsRouter.put(
   updateBrandValidator,
   wrapRequestHandler(updateBrandController)
 );
-productsRouter.delete(
-  '/brand/:brand_id',
-  accessTokenValidator,
-  checkBrandExistValidator,
-  wrapRequestHandler(deleteBrandController)
-);
+productsRouter.delete('/brand', accessTokenValidator, deleteBrandValidator, wrapRequestHandler(deleteBrandController));
+// Image
 productsRouter.post(
   '/image/:product_id',
   accessTokenValidator,
@@ -56,6 +59,7 @@ productsRouter.delete(
   checkMediaExistValidator,
   wrapRequestHandler(deleteImageController)
 );
+// Product
 productsRouter.post(
   '/create',
   accessTokenValidator,
@@ -95,12 +99,7 @@ productsRouter.patch(
   ]),
   wrapRequestHandler(updateProductController)
 );
-productsRouter.delete(
-  '/delete/:product_id',
-  accessTokenValidator,
-  checkProductExist,
-  wrapRequestHandler(deleteProductController)
-);
+productsRouter.delete('/', accessTokenValidator, deleteProductValidator, wrapRequestHandler(deleteProductController));
 productsRouter.get('/list', wrapRequestHandler(getProductListController));
 productsRouter.get('/detail/:product_id', checkProductExist, wrapRequestHandler(getProductDetailController));
 

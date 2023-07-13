@@ -9,6 +9,7 @@ import {
   AddAddressRequestBody,
   ChangePasswordRequestBody,
   DeleteAddressRequestParams,
+  DeleteUserRequestBody,
   ForgotPasswordRequestBody,
   GetUsersRequestQuery,
   LoginRequestBody,
@@ -25,6 +26,7 @@ import {
 } from '~/models/requests/User.requests';
 import User from '~/models/schemas/User.schema';
 import databaseService from '~/services/database.services';
+import productService from '~/services/products.services';
 import userService from '~/services/users.services';
 
 export const registerController = async (req: Request<ParamsDictionary, any, RegisterRequestBody>, res: Response) => {
@@ -176,5 +178,14 @@ export const getUsersController = async (
   const { user_id } = req.decoded_authorization as TokenPayload;
   const { query } = req;
   const result = await userService.getUsers({ user_id, query });
+  return res.json(result);
+};
+
+export const deleteUserController = async (
+  req: Request<ParamsDictionary, any, DeleteUserRequestBody>,
+  res: Response
+) => {
+  const { user_ids } = req.body;
+  const result = await userService.deleteUser(user_ids);
   return res.json(result);
 };

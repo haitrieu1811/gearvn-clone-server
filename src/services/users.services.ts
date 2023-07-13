@@ -449,50 +449,64 @@ class UserService {
   }
 
   async getUsers({ user_id, query }: { user_id: string; query: GetUsersRequestQuery }) {
+    const { page, limit, gender, role, status } = query;
     const queryConfig = omitBy(
       {
-        gender: Number(query.gender),
-        status: Number(query.status),
-        role: Number(query.role)
+        gender: Number(gender),
+        status: Number(status),
+        role: Number(role)
       },
       isNaN
     );
-    const total = await databaseService.users.countDocuments({
-      _id: {
-        $not: { $eq: new ObjectId(user_id) }
-      }
-    });
-    const limit = Number(query.limit) || 10;
-    const pageSize = Math.ceil(total / limit);
-    const page = Number(query.page) || 1;
-    const skip = (page - 1) * limit;
-    const result = await databaseService.users
-      .find(
-        {
-          _id: {
-            $ne: new ObjectId(user_id)
-          },
-          ...queryConfig
-        },
-        {
-          projection: USERS_PROJECTION,
-          ignoreUndefined: true
+    const _limit = Number(limit) || 10;
+    const _page = Number(page) || 1;
+    const skip = (_page - 1) * _limit;
+    const [total, users] = await Promise.all([
+      databaseService.users.countDocuments({
+        _id: {
+          $not: { $eq: new ObjectId(user_id) }
         }
-      )
-      .skip(skip)
-      .limit(limit)
-      .toArray();
+      }),
+      databaseService.users
+        .find(
+          {
+            _id: {
+              $ne: new ObjectId(user_id)
+            },
+            ...queryConfig
+          },
+          {
+            projection: USERS_PROJECTION
+          }
+        )
+        .skip(skip)
+        .limit(_limit)
+        .toArray()
+    ]);
+    const pageSize = Math.ceil(total / _limit);
     return {
       message: USERS_MESSAGES.GET_USERS_LIST_SUCCEED,
       data: {
-        users: result,
+        users,
         pagination: {
-          total: result.length,
-          page,
-          limit,
+          total: users.length,
+          page: _page,
+          limit: _limit,
           page_size: pageSize
         }
       }
+    };
+  }
+
+  async deleteUser(user_ids: ObjectId[]) {
+    const _user_ids = user_ids.map((id) => new ObjectId(id));
+    const { deletedCount } = await databaseService.users.deleteMany({
+      _id: {
+        $in: _user_ids
+      }
+    });
+    return {
+      message: `Delete ${deletedCount} user succeed`
     };
   }
 }

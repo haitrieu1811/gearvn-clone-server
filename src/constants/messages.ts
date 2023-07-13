@@ -76,7 +76,11 @@ export const USERS_MESSAGES = {
   ADDRESS_TYPE_IS_INVALID: 'Address type is invalid',
   PERMISSION_DENIED: 'Permission denied',
   EXPIRE_ACCESS_TOKEN_MUST_BE_A_INTEGER: 'Expire access token must be a integer',
-  GET_USERS_LIST_SUCCEED: 'Get users list succeed'
+  GET_USERS_LIST_SUCCEED: 'Get users list succeed',
+  USER_IDS_IS_REQUIRED: 'User ids is required',
+  USER_IDS_MUST_BE_AN_ARRAY: 'User ids must be an array',
+  USER_IDS_NOT_EMPTY: 'User ids not empty',
+  USER_IDS_IS_INVALID: 'User ids is invalid'
 } as const;
 
 export const CATEGORIES_MESSAGES = {
@@ -118,9 +122,9 @@ export const PRODUCTS_MESSAGES = {
   CREATE_PRODUCT_SUCCEED: 'Create product succeed',
   BRAND_ID_IS_REQUIRED: 'Brand id is required',
   BRAND_ID_MUST_BE_A_STRING: 'Brand id must be a string',
-  CATEGORY_ID_IS_REQUIRED: 'Category id is required',
+  CATEGORY_IDS_IS_REQUIRED: 'Category ids is required',
   CATEGORY_MUST_BE_A_STRING: 'Category id must be a string',
-  CATEGORY_ID_IS_INVALID: 'Category id is invalid',
+  CATEGORY_IDS_IS_INVALID: 'Has at least one invalid category id',
   CATEGORY_NOT_FOUND: 'Category not found',
   PRODUCT_THUMBNAIL_IS_REQUIRED: 'Product thumbnail is required',
   PRODUCT_THUMBNAIL_MUST_BE_A_STRING: 'Product thumbnail must be a string',
@@ -142,7 +146,22 @@ export const PRODUCTS_MESSAGES = {
   IMAGES_IS_REQUIRED: 'Images is required',
   DELETE_PRODUCT_SUCCEED: 'Delete product succeed',
   GET_PRODUCT_LIST_SUCCEED: 'Get product list succeed',
-  GET_PRODUCT_DETAIL_SUCCEED: 'Get product detail succeed'
+  GET_PRODUCT_DETAIL_SUCCEED: 'Get product detail succeed',
+  GET_BRANDS_SUCCEED: 'Get brands list succeed',
+  GET_BRAND_SUCCEED: 'Get brand succeed',
+  CATEGORY_ID_IS_REQUIRED: 'Category id is required',
+  CATEGORY_ID_IS_INVALID: 'Category id is invalid',
+  CATEGORY_IDS_MUST_BE_AN_ARRAY: 'Category ids must be an array',
+  CATEGORY_IDS_NOT_EMPTY: 'Category ids not empty',
+  BRAND_IDS_IS_REQUIRED: 'Brand ids is required',
+  BRAND_IDS_MUST_BE_AN_ARRAY: 'Brand ids must be an array',
+  BRAND_IDS_IS_INVALID: 'Brand ids is invalid',
+  BRAND_IDS_NOT_EMPTY: 'Brand ids not empty',
+  PRODUCT_IDS_IS_REQUIRED: 'Product ids is required',
+  PRODUCT_IDS_MUST_BE_AN_ARRAY: 'Product ids must be an array',
+  PRODUCT_IDS_NOT_EMPTY: 'Product ids not empty',
+  PRODUCT_IDS_IS_INVALID: 'Product ids is invalid',
+  PRICE_AFTER_DISCOUNT_MUST_LESS_THAN: 'Must be less than the init price'
 } as const;
 
 export const PURCHASES_MESSAGES = {

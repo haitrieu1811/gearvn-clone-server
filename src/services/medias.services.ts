@@ -31,7 +31,7 @@ class MediaService {
     return {
       message: MEDIAS_MESSAGES.UPLOAD_IMAGE_SUCCEED,
       data: {
-        images: result
+        medias: result
       }
     };
   }

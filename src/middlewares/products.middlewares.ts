@@ -226,7 +226,7 @@ export const createProductValidator = validate(
         notEmpty: {
           errorMessage: PRODUCTS_MESSAGES.PRODUCT_THUMBNAIL_IS_REQUIRED
         },
-        isURL: {
+        isString: {
           errorMessage: PRODUCTS_MESSAGES.PRODUCT_THUMBNAIL_MUST_BE_A_STRING
         },
         trim: true
@@ -243,6 +243,14 @@ export const createProductValidator = validate(
         optional: true,
         isNumeric: {
           errorMessage: PRODUCTS_MESSAGES.PRODUCT_PRICE_MUST_BE_A_NUMBER
+        },
+        custom: {
+          options: (value: number, { req }) => {
+            if (value > req.body.price) {
+              new Error(PRODUCTS_MESSAGES.PRICE_AFTER_DISCOUNT_MUST_LESS_THAN);
+            }
+            return true;
+          }
         }
       },
       general_info: {
@@ -372,6 +380,86 @@ export const updateProductValidator = validate(
           errorMessage: PRODUCTS_MESSAGES.PRODUCT_SPECIFICATIONS_MUST_BE_A_STRING
         },
         trim: true
+      }
+    },
+    ['body']
+  )
+);
+
+export const deleteBrandValidator = validate(
+  checkSchema(
+    {
+      brand_ids: {
+        custom: {
+          options: (value: ObjectId[]) => {
+            if (!value) {
+              throw new ErrorWithStatus({
+                message: PRODUCTS_MESSAGES.BRAND_IDS_IS_REQUIRED,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            if (!Array.isArray(value)) {
+              throw new ErrorWithStatus({
+                message: PRODUCTS_MESSAGES.BRAND_IDS_MUST_BE_AN_ARRAY,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            if (value.length <= 0) {
+              throw new ErrorWithStatus({
+                message: PRODUCTS_MESSAGES.BRAND_IDS_NOT_EMPTY,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            const isValid = value.every((item) => ObjectId.isValid(item));
+            if (!isValid) {
+              throw new ErrorWithStatus({
+                message: PRODUCTS_MESSAGES.BRAND_IDS_IS_INVALID,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            return true;
+          }
+        }
+      }
+    },
+    ['body']
+  )
+);
+
+export const deleteProductValidator = validate(
+  checkSchema(
+    {
+      product_ids: {
+        custom: {
+          options: (value: ObjectId[]) => {
+            if (!value) {
+              throw new ErrorWithStatus({
+                message: PRODUCTS_MESSAGES.PRODUCT_IDS_IS_REQUIRED,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            if (!Array.isArray(value)) {
+              throw new ErrorWithStatus({
+                message: PRODUCTS_MESSAGES.PRODUCT_IDS_MUST_BE_AN_ARRAY,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            if (value.length <= 0) {
+              throw new ErrorWithStatus({
+                message: PRODUCTS_MESSAGES.PRODUCT_IDS_NOT_EMPTY,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            const isValid = value.every((item) => ObjectId.isValid(item));
+            if (!isValid) {
+              throw new ErrorWithStatus({
+                message: PRODUCTS_MESSAGES.PRODUCT_IDS_IS_INVALID,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            return true;
+          }
+        }
       }
     },
     ['body']

@@ -42,7 +42,7 @@ class Product {
     this.name_en = product.name_en || '';
     this.thumbnail = product.thumbnail;
     this.price = product.price;
-    this.price_after_discount = product.price_after_discount || 0;
+    this.price_after_discount = product.price_after_discount || product.price;
     this.general_info = product.general_info || '';
     this.description = product.description || '';
     this.images = product.images || [];

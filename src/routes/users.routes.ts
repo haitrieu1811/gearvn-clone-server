@@ -16,7 +16,8 @@ import {
   updateAddressController,
   updateMeController,
   updateRolesController,
-  verifyEmailController
+  verifyEmailController,
+  deleteUserController
 } from '~/controllers/users.controllers';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import {
@@ -26,6 +27,7 @@ import {
   addressValidator,
   adminRoleValidator,
   changePasswordValidator,
+  deleteUserValidator,
   emailVerifyTokenValidator,
   forgotPasswordTokenValidator,
   forgotPasswordValidator,
@@ -112,5 +114,6 @@ usersRouter.put(
   wrapRequestHandler(updateRolesController)
 );
 usersRouter.get('/list', accessTokenValidator, adminRoleValidator, wrapRequestHandler(getUsersController));
+usersRouter.delete('/', accessTokenValidator, deleteUserValidator, wrapRequestHandler(deleteUserController));
 
 export default usersRouter;

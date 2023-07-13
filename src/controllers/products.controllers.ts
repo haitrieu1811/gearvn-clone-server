@@ -6,9 +6,11 @@ import {
   AddImageRequestParams,
   CreateBrandRequestBody,
   CreateProductRequestBody,
-  DeleteBrandRequestParams,
+  DeleteBrandRequestBody,
   DeleteImageRequestParams,
-  DeleteProductRequestParams,
+  DeleteProductRequestBody,
+  GetBrandRequestParams,
+  GetBrandsRequestQuery,
   GetProductDetailRequestParams,
   GetProductListRequestQuery,
   UpdateBrandRequestBody,
@@ -18,6 +20,22 @@ import {
 } from '~/models/requests/Product.requests';
 import { TokenPayload } from '~/models/requests/User.requests';
 import productService from '~/services/products.services';
+
+// Brand
+export const getBrandsController = async (
+  req: Request<ParamsDictionary, any, any, GetBrandsRequestQuery>,
+  res: Response
+) => {
+  const { query } = req;
+  const result = await productService.getBrands(query);
+  return res.json(result);
+};
+
+export const getBrandController = async (req: Request<GetBrandRequestParams>, res: Response) => {
+  const { brand_id } = req.params;
+  const result = await productService.getBrand(brand_id);
+  return res.json(result);
+};
 
 export const createBrandController = async (
   req: Request<ParamsDictionary, any, CreateBrandRequestBody>,
@@ -38,12 +56,16 @@ export const updateBrandController = async (
   return res.json(result);
 };
 
-export const deleteBrandController = async (req: Request<DeleteBrandRequestParams>, res: Response) => {
-  const { brand_id } = req.params;
-  const result = await productService.deleteBrand(brand_id);
+export const deleteBrandController = async (
+  req: Request<ParamsDictionary, any, DeleteBrandRequestBody>,
+  res: Response
+) => {
+  const { brand_ids } = req.body;
+  const result = await productService.deleteBrand(brand_ids);
   return res.json(result);
 };
 
+// Image
 export const addImageController = async (
   req: Request<AddImageRequestParams, any, AddImageRequestBody>,
   res: Response
@@ -60,6 +82,7 @@ export const deleteImageController = async (req: Request<DeleteImageRequestParam
   return res.json(result);
 };
 
+// Product
 export const createProductController = async (
   req: Request<ParamsDictionary, any, CreateProductRequestBody>,
   res: Response
@@ -80,9 +103,12 @@ export const updateProductController = async (
   return res.json(result);
 };
 
-export const deleteProductController = async (req: Request<DeleteProductRequestParams>, res: Response) => {
-  const { product_id } = req.params;
-  const result = await productService.deleteProduct(product_id);
+export const deleteProductController = async (
+  req: Request<ParamsDictionary, any, DeleteProductRequestBody>,
+  res: Response
+) => {
+  const { product_ids } = req.body;
+  const result = await productService.deleteProduct(product_ids);
   return res.json(result);
 };
 

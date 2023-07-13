@@ -2,7 +2,7 @@ import { ParamSchema, checkSchema } from 'express-validator';
 import { ObjectId } from 'mongodb';
 import HTTP_STATUS from '~/constants/httpStatus';
 
-import { CATEGORIES_MESSAGES } from '~/constants/messages';
+import { CATEGORIES_MESSAGES, PRODUCTS_MESSAGES } from '~/constants/messages';
 import { ErrorWithStatus } from '~/models/Errors';
 import databaseService from '~/services/database.services';
 import { validate } from '~/utils/validation';
@@ -98,6 +98,46 @@ export const updateValidator = validate(
       name_en: {
         ...nameEnSchema,
         optional: true
+      }
+    },
+    ['body']
+  )
+);
+
+export const deleteValidator = validate(
+  checkSchema(
+    {
+      category_ids: {
+        custom: {
+          options: (value: ObjectId[]) => {
+            if (!value) {
+              throw new ErrorWithStatus({
+                message: PRODUCTS_MESSAGES.CATEGORY_IDS_IS_REQUIRED,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            if (!Array.isArray(value)) {
+              throw new ErrorWithStatus({
+                message: PRODUCTS_MESSAGES.CATEGORY_IDS_MUST_BE_AN_ARRAY,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            if (value.length <= 0) {
+              throw new ErrorWithStatus({
+                message: PRODUCTS_MESSAGES.CATEGORY_IDS_NOT_EMPTY,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            const isValid = value.every((id) => ObjectId.isValid(id));
+            if (!isValid) {
+              throw new ErrorWithStatus({
+                message: PRODUCTS_MESSAGES.CATEGORY_IDS_IS_INVALID,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            return true;
+          }
+        }
       }
     },
     ['body']

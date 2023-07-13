@@ -7,20 +7,23 @@ import databaseService from './database.services';
 
 class CategoryService {
   async getList(query: GetCategoriesRequestQuery) {
-    const total = await databaseService.categories.countDocuments();
-    const limit = Number(query.limit) || 10;
-    const pageSize = Math.ceil(total / limit);
-    const page = Number(query.page) || 1;
-    const skip = (page - 1) * limit;
-    const categories = await databaseService.categories.find({}).skip(skip).limit(limit).toArray();
+    const { page, limit } = query;
+    const _limit = Number(limit) || 10;
+    const _page = Number(page) || 1;
+    const skip = (_page - 1) * _limit;
+    const [total, categories] = await Promise.all([
+      databaseService.categories.countDocuments(),
+      databaseService.categories.find({}).skip(skip).limit(_limit).toArray()
+    ]);
+    const pageSize = Math.ceil(total / _limit);
     return {
       message: CATEGORIES_MESSAGES.GET_LIST_SUCCEED,
       data: {
         categories,
         pagination: {
           total,
-          page,
-          limit,
+          page: _page,
+          limit: _limit,
           page_size: pageSize
         }
       }
@@ -67,10 +70,15 @@ class CategoryService {
     };
   }
 
-  async delete(category_id: string) {
-    await databaseService.categories.deleteOne({ _id: new ObjectId(category_id) });
+  async delete(category_ids: ObjectId[]) {
+    const _category_ids = category_ids.map((id) => new ObjectId(id));
+    const { deletedCount } = await databaseService.categories.deleteMany({
+      _id: {
+        $in: _category_ids
+      }
+    });
     return {
-      message: CATEGORIES_MESSAGES.DELETE_SUCCEED
+      message: `Xóa ${deletedCount} danh mục thành công`
     };
   }
 }

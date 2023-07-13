@@ -3,7 +3,7 @@ import { ParamsDictionary } from 'express-serve-static-core';
 
 import {
   CreateCategoryRequestBody,
-  DeleteCategoryRequestParams,
+  DeleteCategoriesRequestBody,
   GetCategoriesRequestQuery,
   GetCategoryRequestParams,
   UpdateCategoryRequestBody,
@@ -45,8 +45,11 @@ export const updateController = async (
   return res.json(result);
 };
 
-export const deleteController = async (req: Request<DeleteCategoryRequestParams>, res: Response) => {
-  const { category_id } = req.params;
-  const result = await categoryService.delete(category_id);
+export const deleteController = async (
+  req: Request<ParamsDictionary, any, DeleteCategoriesRequestBody>,
+  res: Response
+) => {
+  const { category_ids } = req.body;
+  const result = await categoryService.delete(category_ids);
   return res.json(result);
 };

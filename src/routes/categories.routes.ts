@@ -2,11 +2,16 @@ import { Router } from 'express';
 import {
   createController,
   deleteController,
-  getOneController,
   getListController,
+  getOneController,
   updateController
 } from '~/controllers/categories.controllers';
-import { categoryExistValidator, createValidator, updateValidator } from '~/middlewares/categories.middlewares';
+import {
+  categoryExistValidator,
+  createValidator,
+  deleteValidator,
+  updateValidator
+} from '~/middlewares/categories.middlewares';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import { accessTokenValidator } from '~/middlewares/users.middlewares';
 import { CreateCategoryRequestBody, UpdateCategoryRequestBody } from '~/models/requests/Category.requests';
@@ -31,11 +36,6 @@ categoriesRouter.patch(
   filterReqBodyMiddleware<UpdateCategoryRequestBody>(['name_vi', 'name_en']),
   wrapRequestHandler(updateController)
 );
-categoriesRouter.delete(
-  '/delete/:category_id',
-  accessTokenValidator,
-  categoryExistValidator,
-  wrapRequestHandler(deleteController)
-);
+categoriesRouter.delete('/', accessTokenValidator, deleteValidator, wrapRequestHandler(deleteController));
 
 export default categoriesRouter;

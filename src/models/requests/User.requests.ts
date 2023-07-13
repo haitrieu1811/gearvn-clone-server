@@ -1,5 +1,6 @@
 import { ParamsDictionary } from 'express-serve-static-core';
 import { JwtPayload } from 'jsonwebtoken';
+import { ObjectId } from 'mongodb';
 
 import { AddressType, Gender, TokenType, UserRole, UserStatus, UserVerifyStatus } from '~/constants/enum';
 
@@ -90,4 +91,8 @@ export interface GetUsersRequestQuery {
   gender?: Gender;
   status?: UserStatus;
   role?: UserRole;
+}
+
+export interface DeleteUserRequestBody {
+  user_ids: ObjectId[];
 }
