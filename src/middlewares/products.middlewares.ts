@@ -45,10 +45,7 @@ const brandIdSchema: ParamSchema = {
       }
       const brand = await databaseService.brands.findOne({ _id: new ObjectId(value) });
       if (!brand) {
-        throw new ErrorWithStatus({
-          message: PRODUCTS_MESSAGES.BRAND_NOT_FOUND,
-          status: HTTP_STATUS.NOT_FOUND
-        });
+        throw new Error(PRODUCTS_MESSAGES.BRAND_NOT_FOUND);
       }
       return true;
     }
@@ -73,10 +70,7 @@ const categoryIdSchema: ParamSchema = {
       }
       const category = await databaseService.categories.findOne({ _id: new ObjectId(value) });
       if (!category) {
-        throw new ErrorWithStatus({
-          message: PRODUCTS_MESSAGES.CATEGORY_NOT_FOUND,
-          status: HTTP_STATUS.NOT_FOUND
-        });
+        throw new Error(PRODUCTS_MESSAGES.CATEGORY_NOT_FOUND);
       }
       return true;
     }
@@ -223,9 +217,7 @@ export const createProductValidator = validate(
         }
       },
       thumbnail: {
-        notEmpty: {
-          errorMessage: PRODUCTS_MESSAGES.PRODUCT_THUMBNAIL_IS_REQUIRED
-        },
+        optional: true,
         isString: {
           errorMessage: PRODUCTS_MESSAGES.PRODUCT_THUMBNAIL_MUST_BE_A_STRING
         },

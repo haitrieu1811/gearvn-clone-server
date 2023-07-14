@@ -4,7 +4,7 @@ export interface ProductType {
   _id?: ObjectId;
   name_vi: string;
   name_en?: string;
-  thumbnail: string;
+  thumbnail?: string;
   price: number;
   price_after_discount?: number;
   general_info?: string;
@@ -40,7 +40,7 @@ class Product {
     this._id = product._id;
     this.name_vi = product.name_vi;
     this.name_en = product.name_en || '';
-    this.thumbnail = product.thumbnail;
+    this.thumbnail = product.thumbnail || '';
     this.price = product.price;
     this.price_after_discount = product.price_after_discount || product.price;
     this.general_info = product.general_info || '';
