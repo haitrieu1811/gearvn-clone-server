@@ -293,7 +293,7 @@ class ProductService {
     return {
       message: PRODUCTS_MESSAGES.GET_PRODUCT_DETAIL_SUCCEED,
       data: {
-        product
+        product: product[0]
       }
     };
   }
