@@ -27,7 +27,7 @@ import {
   updateBrandValidator,
   updateProductValidator
 } from '~/middlewares/products.middlewares';
-import { accessTokenValidator } from '~/middlewares/users.middlewares';
+import { accessTokenValidator, adminRoleValidator } from '~/middlewares/users.middlewares';
 import { CreateProductRequestBody, UpdateProductRequestBody } from '~/models/requests/Product.requests';
 import { wrapRequestHandler } from '~/utils/handler';
 
@@ -61,7 +61,7 @@ productsRouter.delete(
 );
 // Product
 productsRouter.post(
-  '/create',
+  '/',
   accessTokenValidator,
   createProductValidator,
   filterReqBodyMiddleware<CreateProductRequestBody>([
@@ -80,7 +80,7 @@ productsRouter.post(
   wrapRequestHandler(createProductController)
 );
 productsRouter.patch(
-  '/update/:product_id',
+  '/:product_id',
   accessTokenValidator,
   checkProductExist,
   updateProductValidator,
@@ -99,8 +99,14 @@ productsRouter.patch(
   ]),
   wrapRequestHandler(updateProductController)
 );
-productsRouter.delete('/', accessTokenValidator, deleteProductValidator, wrapRequestHandler(deleteProductController));
-productsRouter.get('/list', wrapRequestHandler(getProductListController));
-productsRouter.get('/detail/:product_id', checkProductExist, wrapRequestHandler(getProductDetailController));
+productsRouter.delete(
+  '/',
+  accessTokenValidator,
+  adminRoleValidator,
+  deleteProductValidator,
+  wrapRequestHandler(deleteProductController)
+);
+productsRouter.get('/', wrapRequestHandler(getProductListController));
+productsRouter.get('/:product_id', checkProductExist, wrapRequestHandler(getProductDetailController));
 
 export default productsRouter;

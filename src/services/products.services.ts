@@ -1,6 +1,5 @@
 import { ObjectId } from 'mongodb';
 
-import { PRODUCTS_LIST_PROJECTION } from '~/constants/db';
 import { MediaType } from '~/constants/enum';
 import { PRODUCTS_MESSAGES } from '~/constants/messages';
 import {
@@ -168,25 +167,23 @@ class ProductService {
   }
 
   async updateProduct({ payload, product_id }: { payload: UpdateProductRequestBody; product_id: string }) {
-    const result = await databaseService.products.findOneAndUpdate(
-      { _id: new ObjectId(product_id) },
+    await databaseService.products.findOneAndUpdate(
+      {
+        _id: new ObjectId(product_id)
+      },
       {
         $set: {
-          ...payload
+          ...payload,
+          category_id: new ObjectId(payload.category_id),
+          brand_id: new ObjectId(payload.brand_id)
         },
         $currentDate: {
           updated_at: true
         }
-      },
-      {
-        returnDocument: 'after'
       }
     );
     return {
-      message: PRODUCTS_MESSAGES.UPDATE_PRODUCT_SUCCEED,
-      data: {
-        product: result.value
-      }
+      message: PRODUCTS_MESSAGES.UPDATE_PRODUCT_SUCCEED
     };
   }
 
@@ -270,22 +267,6 @@ class ProductService {
         {
           $match: {
             _id: { $eq: new ObjectId(product_id) }
-          }
-        },
-        {
-          $lookup: {
-            from: 'medias',
-            localField: 'images',
-            foreignField: '_id',
-            as: 'images'
-          }
-        },
-        {
-          $project: {
-            'images._id': 0,
-            'images.type': 0,
-            'images.created_at': 0,
-            'images.updated_at': 0
           }
         }
       ])
