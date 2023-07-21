@@ -161,7 +161,8 @@ export const PRODUCTS_MESSAGES = {
   PRODUCT_IDS_MUST_BE_AN_ARRAY: 'Product ids must be an array',
   PRODUCT_IDS_NOT_EMPTY: 'Product ids not empty',
   PRODUCT_IDS_IS_INVALID: 'Product ids is invalid',
-  PRICE_AFTER_DISCOUNT_MUST_LESS_THAN: 'Must be less than the init price'
+  PRICE_AFTER_DISCOUNT_MUST_LESS_THAN: 'Must be less than the init price',
+  IMAGES_ITEM_MUST_BE_A_STRING: 'Image item must be a string'
 } as const;
 
 export const PURCHASES_MESSAGES = {
@@ -210,5 +211,11 @@ export const BLOGS_MESSAGES = {
   BLOG_ID_IS_REQUIRED: 'Blog id is required',
   BLOG_ID_IS_INVALID: 'Blog id is invalid',
   BLOG_NOT_FOUND: 'Blog not found',
-  DELETE_BLOG_SUCCEED: 'Delete blog succeed'
+  DELETE_BLOG_SUCCEED: 'Delete blog succeed',
+  GET_BLOG_LIST_SUCCEED: 'Get blog list succeed',
+  GET_BLOG_DETAIL_SUCCEED: 'Get blog detail succeed',
+  BLOG_IDS_IS_REQUIRED: 'Blog ids is required',
+  BLOG_IDS_MUST_BE_AN_ARRAY: 'Blog ids must be an array',
+  BLOG_IDS_NOT_EMPTY: 'Blog ids not empty',
+  BLOG_IDS_IS_INVALID: 'Blog ids is invalid'
 } as const;

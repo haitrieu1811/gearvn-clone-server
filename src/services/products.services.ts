@@ -1,5 +1,8 @@
+import fs from 'fs';
 import { ObjectId } from 'mongodb';
+import path from 'path';
 
+import { UPLOAD_IMAGE_DIR } from '~/constants/dir';
 import { MediaType } from '~/constants/enum';
 import { PRODUCTS_MESSAGES } from '~/constants/messages';
 import {
@@ -14,7 +17,7 @@ import Product from '~/models/schemas/Product.schema';
 import databaseService from './database.services';
 
 class ProductService {
-  // Brand
+  // Lấy danh sách nhãn hiệu
   async getBrands(query: GetBrandsRequestQuery) {
     const { limit, page } = query;
     const _limit = Number(limit) || 10;
@@ -39,6 +42,7 @@ class ProductService {
     };
   }
 
+  // Lấy thông tin chi tiết một nhãn hiệu
   async getBrand(brand_id: string) {
     const brand = await databaseService.brands.findOne({ _id: new ObjectId(brand_id) });
     return {
@@ -49,6 +53,7 @@ class ProductService {
     };
   }
 
+  // Tạo nhãn hiệu mới
   async createBrand(name: string) {
     await databaseService.brands.insertOne(new Brand({ name }));
     return {
@@ -56,6 +61,7 @@ class ProductService {
     };
   }
 
+  // Cập nhật nhãn hiệu
   async updateBrand({ name, brand_id }: { name: string; brand_id: string }) {
     await databaseService.brands.updateOne(
       { _id: new ObjectId(brand_id) },
@@ -73,6 +79,7 @@ class ProductService {
     };
   }
 
+  // Xóa nhãn hiệu
   async deleteBrand(brand_ids: ObjectId[]) {
     const _brand_ids = brand_ids.map((id) => new ObjectId(id));
 
@@ -94,7 +101,7 @@ class ProductService {
     };
   }
 
-  // Image
+  // Thêm hình ảnh sản phẩm
   async addImage({ images, product_id }: { images: string[]; product_id: string }) {
     const dataInsert = images.map((image) => {
       return new Media({
@@ -103,7 +110,7 @@ class ProductService {
       });
     });
     const { insertedIds } = await databaseService.medias.insertMany(dataInsert);
-    const product = await databaseService.products.findOneAndUpdate(
+    await databaseService.products.findOneAndUpdate(
       { _id: new ObjectId(product_id) },
       {
         $push: {
@@ -114,22 +121,17 @@ class ProductService {
         $currentDate: {
           updated_at: true
         }
-      },
-      {
-        returnDocument: 'after'
       }
     );
     return {
-      message: PRODUCTS_MESSAGES.ADD_IMAGE_SUCCEED,
-      data: {
-        insertedIds: Object.values(insertedIds),
-        product: product.value
-      }
+      message: PRODUCTS_MESSAGES.ADD_IMAGE_SUCCEED
     };
   }
 
+  // Xóa hình ảnh sản phẩm
   async deleteImage(media_id: string) {
-    await Promise.all([
+    const [image] = await Promise.all([
+      databaseService.medias.findOne({ _id: new ObjectId(media_id) }),
       databaseService.medias.deleteOne({ _id: new ObjectId(media_id) }),
       databaseService.products.updateOne(
         {
@@ -146,14 +148,20 @@ class ProductService {
         }
       )
     ]);
+    if (image) {
+      const imagePath = path.resolve(UPLOAD_IMAGE_DIR, image.name);
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    }
     return {
       message: PRODUCTS_MESSAGES.DELETE_IMAGE_SUCCEED
     };
   }
 
-  // Product
+  // Tạo sản phẩm mới
   async createProduct({ payload, user_id }: { payload: CreateProductRequestBody; user_id: string }) {
-    await databaseService.products.insertOne(
+    const { insertedId } = await databaseService.products.insertOne(
       new Product({
         ...payload,
         brand_id: new ObjectId(payload.brand_id),
@@ -162,12 +170,16 @@ class ProductService {
       })
     );
     return {
-      message: PRODUCTS_MESSAGES.CREATE_PRODUCT_SUCCEED
+      message: PRODUCTS_MESSAGES.CREATE_PRODUCT_SUCCEED,
+      data: {
+        insertedId
+      }
     };
   }
 
+  // Cập nhật sản phẩm cũ
   async updateProduct({ payload, product_id }: { payload: UpdateProductRequestBody; product_id: string }) {
-    await databaseService.products.findOneAndUpdate(
+    const { value } = await databaseService.products.findOneAndUpdate(
       {
         _id: new ObjectId(product_id)
       },
@@ -182,11 +194,20 @@ class ProductService {
         }
       }
     );
+    if (value) {
+      if (value.thumbnail !== payload.thumbnail) {
+        const thumbnailPath = path.resolve(UPLOAD_IMAGE_DIR, value.thumbnail);
+        if (fs.existsSync(thumbnailPath)) {
+          fs.unlinkSync(thumbnailPath);
+        }
+      }
+    }
     return {
       message: PRODUCTS_MESSAGES.UPDATE_PRODUCT_SUCCEED
     };
   }
 
+  // Xóa sản phẩm
   async deleteProduct(product_ids: ObjectId[]) {
     const _product_ids = product_ids.map((id) => new ObjectId(id));
     const { deletedCount } = await databaseService.products.deleteMany({
@@ -199,6 +220,7 @@ class ProductService {
     };
   }
 
+  // Lấy danh sách các sản phẩm
   async getListProduct(query: GetProductListRequestQuery) {
     const { page, limit } = query;
     const _page = Number(page) || 1;
@@ -225,6 +247,14 @@ class ProductService {
             }
           },
           {
+            $lookup: {
+              from: 'medias',
+              localField: 'images',
+              foreignField: '_id',
+              as: 'images'
+            }
+          },
+          {
             $unwind: '$brand'
           },
           {
@@ -232,13 +262,16 @@ class ProductService {
           },
           {
             $project: {
-              user_id: 0,
-              specifications: 0,
-              images: 0,
-              general_info: 0,
-              description: 0,
-              category_id: 0,
-              brand_id: 0
+              _id: 1,
+              name_vi: 1,
+              name_en: 1,
+              thumbnail: 1,
+              price: 1,
+              price_after_discount: 1,
+              category: 1,
+              brand: 1,
+              created_at: 1,
+              updated_at: 1
             }
           }
         ])
@@ -261,12 +294,39 @@ class ProductService {
     };
   }
 
+  // Lấy thông tin chi tiết của sản phẩm
   async getProductDetail(product_id: string) {
     const product = await databaseService.products
       .aggregate([
         {
           $match: {
             _id: { $eq: new ObjectId(product_id) }
+          }
+        },
+        {
+          $lookup: {
+            from: 'medias',
+            localField: 'images',
+            foreignField: '_id',
+            as: 'images'
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+            name_vi: 1,
+            name_en: 1,
+            thumbnail: 1,
+            images: 1,
+            price: 1,
+            price_after_discount: 1,
+            general_info: 1,
+            description: 1,
+            category_id: 1,
+            brand_id: 1,
+            specifications: 1,
+            created_at: 1,
+            updated_at: 1
           }
         }
       ])

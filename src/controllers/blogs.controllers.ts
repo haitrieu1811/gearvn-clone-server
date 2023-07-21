@@ -3,7 +3,9 @@ import { ParamsDictionary } from 'express-serve-static-core';
 
 import {
   CreateBlogRequestBody,
-  DeleteBlogRequestParams,
+  DeleteBlogRequestBody,
+  GetBlogDetailRequestParams,
+  GetBlogListRequestQuery,
   UpdateBlogRequestBody,
   UpdateBlogRequestParams
 } from '~/models/requests/Blog.requests';
@@ -30,8 +32,25 @@ export const updateBlogController = async (
   return res.json(result);
 };
 
-export const deleteBlogController = async (req: Request<DeleteBlogRequestParams>, res: Response) => {
+export const deleteBlogController = async (
+  req: Request<ParamsDictionary, any, DeleteBlogRequestBody>,
+  res: Response
+) => {
+  const { blog_ids } = req.body;
+  const result = await blogService.delete(blog_ids);
+  return res.json(result);
+};
+
+export const getBlogListController = async (
+  req: Request<ParamsDictionary, any, any, GetBlogListRequestQuery>,
+  res: Response
+) => {
+  const result = await blogService.getList(req.query);
+  return res.json(result);
+};
+
+export const getBlogDetailController = async (req: Request<GetBlogDetailRequestParams>, res: Response) => {
   const { blog_id } = req.params;
-  const result = await blogService.delete(blog_id);
+  const result = await blogService.getDetail(blog_id);
   return res.json(result);
 };

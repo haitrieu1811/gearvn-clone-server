@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 
 import { BLOGS_MESSAGES } from '~/constants/messages';
-import { CreateBlogRequestBody, UpdateBlogRequestBody } from '~/models/requests/Blog.requests';
+import { CreateBlogRequestBody, GetBlogListRequestQuery, UpdateBlogRequestBody } from '~/models/requests/Blog.requests';
 import Blog from '~/models/schemas/Blog.schema';
 import databaseService from './database.services';
 
@@ -19,7 +19,7 @@ class BlogService {
   }
 
   async update({ payload, blog_id }: { payload: UpdateBlogRequestBody; blog_id: string }) {
-    const blog = await databaseService.blogs.findOneAndUpdate(
+    await databaseService.blogs.findOneAndUpdate(
       {
         _id: new ObjectId(blog_id)
       },
@@ -30,23 +30,68 @@ class BlogService {
         $currentDate: {
           updated_at: true
         }
-      },
-      {
-        returnDocument: 'after'
       }
     );
     return {
-      message: BLOGS_MESSAGES.UPDATE_BLOG_SUCCEED,
+      message: BLOGS_MESSAGES.UPDATE_BLOG_SUCCEED
+    };
+  }
+
+  async delete(blog_ids: string[]) {
+    const _blog_ids = blog_ids.map((id) => new ObjectId(id));
+    const { deletedCount } = await databaseService.blogs.deleteMany({
+      _id: {
+        $in: _blog_ids
+      }
+    });
+    return {
+      message: `Delete ${deletedCount} blog succeed`
+    };
+  }
+
+  async getList(query: GetBlogListRequestQuery) {
+    const { page, limit } = query;
+    const _page = Number(page) || 1;
+    const _limit = Number(limit) || 10;
+    const skip = (_page - 1) * _limit;
+    const [blogs, total] = await Promise.all([
+      databaseService.blogs
+        .find(
+          {},
+          {
+            projection: {
+              status: 0,
+              user_id: 0
+            }
+          }
+        )
+        .skip(skip)
+        .limit(_limit)
+        .toArray(),
+      databaseService.blogs.countDocuments()
+    ]);
+    const pageSize = Math.ceil(total / _limit);
+    return {
+      message: BLOGS_MESSAGES.GET_BLOG_LIST_SUCCEED,
       data: {
-        blog: blog.value
+        blogs,
+        pagination: {
+          total,
+          page: _page,
+          limit: _limit,
+          page_size: pageSize
+        }
       }
     };
   }
 
-  async delete(blog_id: string) {
-    await databaseService.blogs.deleteOne({ _id: new ObjectId(blog_id) });
+  async getDetail(blog_id: string) {
+    const blog = await databaseService.blogs.findOne({ _id: new ObjectId(blog_id) });
     return {
-      message: BLOGS_MESSAGES.DELETE_BLOG_SUCCEED
+      message: BLOGS_MESSAGES.GET_BLOG_DETAIL_SUCCEED,
+      data: {
+        blog
+      }
     };
   }
 }

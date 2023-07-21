@@ -133,3 +133,43 @@ export const updateBlogValidator = validate(
     ['body']
   )
 );
+
+export const deleteBlogValidator = validate(
+  checkSchema(
+    {
+      blog_ids: {
+        custom: {
+          options: (value: ObjectId[]) => {
+            if (!value) {
+              throw new ErrorWithStatus({
+                message: BLOGS_MESSAGES.BLOG_IDS_IS_REQUIRED,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            if (!Array.isArray(value)) {
+              throw new ErrorWithStatus({
+                message: BLOGS_MESSAGES.BLOG_IDS_MUST_BE_AN_ARRAY,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            if (value.length <= 0) {
+              throw new ErrorWithStatus({
+                message: BLOGS_MESSAGES.BLOG_IDS_NOT_EMPTY,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            const isValid = value.every((id) => ObjectId.isValid(id));
+            if (!isValid) {
+              throw new ErrorWithStatus({
+                message: BLOGS_MESSAGES.BLOG_IDS_IS_INVALID,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            return true;
+          }
+        }
+      }
+    },
+    ['body']
+  )
+);

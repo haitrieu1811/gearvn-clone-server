@@ -18,7 +18,13 @@ class MediaService {
         const newName = `${image.newFilename}.jpg`;
         const newPath = path.resolve(UPLOAD_IMAGE_DIR, newName);
         await sharp(image.filepath).jpeg().toFile(newPath);
-        fs.unlinkSync(image.filepath);
+        fs.unlink(image.filepath, (err) => {
+          if (err) {
+            console.error('Lỗi xóa tệp', err);
+          } else {
+            console.log('Đã xóa tệp', image.filepath);
+          }
+        });
         return {
           name: newName,
           url: isProduction

@@ -49,7 +49,6 @@ export interface CreateProductRequestBody {
   price_after_discount?: number;
   general_info?: string;
   description?: string;
-  images?: ObjectId[];
   brand_id: ObjectId;
   category_id: ObjectId;
   specifications?: string;

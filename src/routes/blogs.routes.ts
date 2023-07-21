@@ -1,7 +1,18 @@
 import { Router } from 'express';
 
-import { createBlogController, deleteBlogController, updateBlogController } from '~/controllers/blogs.controllers';
-import { blogExistValidator, createBlogValidator, updateBlogValidator } from '~/middlewares/blogs.middlewares';
+import {
+  createBlogController,
+  deleteBlogController,
+  getBlogDetailController,
+  getBlogListController,
+  updateBlogController
+} from '~/controllers/blogs.controllers';
+import {
+  blogExistValidator,
+  createBlogValidator,
+  deleteBlogValidator,
+  updateBlogValidator
+} from '~/middlewares/blogs.middlewares';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import { accessTokenValidator, adminRoleValidator, verifiedUserValidator } from '~/middlewares/users.middlewares';
 import { CreateBlogRequestBody, UpdateBlogRequestBody } from '~/models/requests/Blog.requests';
@@ -36,12 +47,14 @@ blogsRouter.patch(
   wrapRequestHandler(updateBlogController)
 );
 blogsRouter.delete(
-  '/:blog_id',
+  '/',
   accessTokenValidator,
   verifiedUserValidator,
   adminRoleValidator,
-  blogExistValidator,
+  deleteBlogValidator,
   wrapRequestHandler(deleteBlogController)
 );
+blogsRouter.get('/', wrapRequestHandler(getBlogListController));
+blogsRouter.get('/:blog_id', blogExistValidator, wrapRequestHandler(getBlogDetailController));
 
 export default blogsRouter;

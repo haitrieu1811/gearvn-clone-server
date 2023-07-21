@@ -22,6 +22,15 @@ export interface UpdateBlogRequestParams extends ParamsDictionary {
   blog_id: string;
 }
 
-export interface DeleteBlogRequestParams extends ParamsDictionary {
+export interface GetBlogListRequestQuery {
+  page?: string;
+  limit?: string;
+}
+
+export interface GetBlogDetailRequestParams extends ParamsDictionary {
   blog_id: string;
+}
+
+export interface DeleteBlogRequestBody {
+  blog_ids: string[];
 }

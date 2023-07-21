@@ -54,7 +54,7 @@ productsRouter.post(
   wrapRequestHandler(addImageController)
 );
 productsRouter.delete(
-  '/image/:image_id',
+  '/image/:media_id',
   accessTokenValidator,
   checkMediaExistValidator,
   wrapRequestHandler(deleteImageController)
@@ -69,7 +69,6 @@ productsRouter.post(
     'category_id',
     'description',
     'general_info',
-    'images',
     'name_en',
     'name_vi',
     'price',
