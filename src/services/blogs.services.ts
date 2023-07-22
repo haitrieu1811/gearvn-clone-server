@@ -67,6 +67,9 @@ class BlogService {
         )
         .skip(skip)
         .limit(_limit)
+        .sort({
+          created_at: -1
+        })
         .toArray(),
       databaseService.blogs.countDocuments()
     ]);
