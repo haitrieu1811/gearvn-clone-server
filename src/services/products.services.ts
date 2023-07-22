@@ -1,6 +1,8 @@
 import fs from 'fs';
 import { ObjectId } from 'mongodb';
 import path from 'path';
+import omitBy from 'lodash/omitBy';
+import isUndefined from 'lodash/isUndefined';
 
 import { UPLOAD_IMAGE_DIR } from '~/constants/dir';
 import { MediaType } from '~/constants/enum';
@@ -222,14 +224,39 @@ class ProductService {
 
   // Lấy danh sách các sản phẩm
   async getListProduct(query: GetProductListRequestQuery) {
-    const { page, limit } = query;
+    const { page, limit, category, brand } = query;
     const _page = Number(page) || 1;
-    const _limit = Number(limit) || 2;
+    const _limit = Number(limit) || 10;
     const skip = (_page - 1) * _limit;
+    const categoryArray = category ? category.split('-') : [];
+    const brandArray = brand ? brand.split('-') : [];
+    const queryConfig = omitBy(
+      {
+        category_id: category
+          ? {
+              $in: categoryArray.map((category) => new ObjectId(category))
+            }
+          : undefined,
+
+        brand_id: brand
+          ? {
+              $in: brandArray.map((brand) => new ObjectId(brand))
+            }
+          : undefined
+      },
+      isUndefined
+    );
     const [total, products] = await Promise.all([
-      databaseService.products.countDocuments(),
+      databaseService.products.countDocuments({
+        ...queryConfig
+      }),
       databaseService.products
         .aggregate([
+          {
+            $match: {
+              ...queryConfig
+            }
+          },
           {
             $lookup: {
               from: 'brands',

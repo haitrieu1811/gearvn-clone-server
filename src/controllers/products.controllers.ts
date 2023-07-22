@@ -21,7 +21,7 @@ import {
 import { TokenPayload } from '~/models/requests/User.requests';
 import productService from '~/services/products.services';
 
-// Brand
+// Lấy danh sách nhãn hiệu
 export const getBrandsController = async (
   req: Request<ParamsDictionary, any, any, GetBrandsRequestQuery>,
   res: Response
@@ -31,12 +31,14 @@ export const getBrandsController = async (
   return res.json(result);
 };
 
+// Lấy thông tin chi tiết nhãn hiệu
 export const getBrandController = async (req: Request<GetBrandRequestParams>, res: Response) => {
   const { brand_id } = req.params;
   const result = await productService.getBrand(brand_id);
   return res.json(result);
 };
 
+// Tạo mới nhãn hiệu
 export const createBrandController = async (
   req: Request<ParamsDictionary, any, CreateBrandRequestBody>,
   res: Response
@@ -46,6 +48,7 @@ export const createBrandController = async (
   return res.json(result);
 };
 
+// Cập nhật nhãn hiệu
 export const updateBrandController = async (
   req: Request<UpdateBrandRequestParams, any, UpdateBrandRequestBody>,
   res: Response
@@ -56,6 +59,7 @@ export const updateBrandController = async (
   return res.json(result);
 };
 
+// Xóa nhãn hiệu
 export const deleteBrandController = async (
   req: Request<ParamsDictionary, any, DeleteBrandRequestBody>,
   res: Response
@@ -65,7 +69,7 @@ export const deleteBrandController = async (
   return res.json(result);
 };
 
-// Image
+// Thêm hình ảnh sản phẩm
 export const addImageController = async (
   req: Request<AddImageRequestParams, any, AddImageRequestBody>,
   res: Response
@@ -76,13 +80,14 @@ export const addImageController = async (
   return res.json(result);
 };
 
+// Xóa hình ảnh sản phẩm
 export const deleteImageController = async (req: Request<DeleteImageRequestParams>, res: Response) => {
   const { media_id } = req.params;
   const result = await productService.deleteImage(media_id);
   return res.json(result);
 };
 
-// Product
+// Tạo mới sản phẩm
 export const createProductController = async (
   req: Request<ParamsDictionary, any, CreateProductRequestBody>,
   res: Response
@@ -93,6 +98,7 @@ export const createProductController = async (
   return res.json(result);
 };
 
+// Cập nhật thông tin sản phẩm
 export const updateProductController = async (
   req: Request<UpdateProductRequestParams, any, UpdateProductRequestBody>,
   res: Response
@@ -103,6 +109,7 @@ export const updateProductController = async (
   return res.json(result);
 };
 
+// Xóa sản phẩm
 export const deleteProductController = async (
   req: Request<ParamsDictionary, any, DeleteProductRequestBody>,
   res: Response
@@ -112,6 +119,7 @@ export const deleteProductController = async (
   return res.json(result);
 };
 
+// Lấy danh sách sản phẩm
 export const getProductListController = async (
   req: Request<ParamsDictionary, any, any, GetProductListRequestQuery>,
   res: Response
@@ -121,6 +129,7 @@ export const getProductListController = async (
   return res.json(result);
 };
 
+// Lấy thông tin chi tiết sản phẩm
 export const getProductDetailController = async (req: Request<GetProductDetailRequestParams>, res: Response) => {
   const { product_id } = req.params;
   const result = await productService.getProductDetail(product_id);

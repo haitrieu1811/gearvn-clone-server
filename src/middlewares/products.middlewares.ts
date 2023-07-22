@@ -77,6 +77,7 @@ const categoryIdSchema: ParamSchema = {
   }
 };
 
+// Tạo nhãn hiệu
 export const createBrandValidator = validate(
   checkSchema(
     {
@@ -86,6 +87,7 @@ export const createBrandValidator = validate(
   )
 );
 
+// Cập nhật nhãn hiệu
 export const updateBrandValidator = validate(
   checkSchema(
     {
@@ -95,6 +97,7 @@ export const updateBrandValidator = validate(
   )
 );
 
+// Kiểm tra nhãn hiệu có tồn tại trên DB không
 export const checkBrandExistValidator = validate(
   checkSchema(
     {
@@ -123,6 +126,7 @@ export const checkBrandExistValidator = validate(
   )
 );
 
+// Kiểm tra hình ảnh - video có tồn tại trên DB không
 export const checkMediaExistValidator = validate(
   checkSchema(
     {
@@ -158,6 +162,7 @@ export const checkMediaExistValidator = validate(
   )
 );
 
+// Thêm hình ảnh sản phẩm
 export const addImageValidator = validate(
   checkSchema(
     {
@@ -192,6 +197,7 @@ export const addImageValidator = validate(
   )
 );
 
+// Kiểm tra sản phẩm có tồn tại không
 export const checkProductExist = validate(
   checkSchema(
     {
@@ -201,6 +207,7 @@ export const checkProductExist = validate(
   )
 );
 
+// Tạo mới sản phẩm
 export const createProductValidator = validate(
   checkSchema(
     {
@@ -297,6 +304,7 @@ export const createProductValidator = validate(
   )
 );
 
+// Cập nhật sản phẩm
 export const updateProductValidator = validate(
   checkSchema(
     {
@@ -396,6 +404,7 @@ export const updateProductValidator = validate(
   )
 );
 
+// Xóa nhãn hiệu
 export const deleteBrandValidator = validate(
   checkSchema(
     {
@@ -436,6 +445,7 @@ export const deleteBrandValidator = validate(
   )
 );
 
+// Xóa sản phẩm
 export const deleteProductValidator = validate(
   checkSchema(
     {

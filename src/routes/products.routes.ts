@@ -33,10 +33,16 @@ import { wrapRequestHandler } from '~/utils/handler';
 
 const productsRouter = Router();
 
-// Brand
+// Lấy danh sách các nhãn hiệu
 productsRouter.get('/brand', wrapRequestHandler(getBrandsController));
+
+// Lấy thông tin chi tiết của một nhãn hiệu
 productsRouter.get('/brand/:brand_id', checkBrandExistValidator, wrapRequestHandler(getBrandController));
+
+// Tạo mới nhãn hiệu
 productsRouter.post('/brand', accessTokenValidator, createBrandValidator, wrapRequestHandler(createBrandController));
+
+// Cập nhật nhãn hiệu
 productsRouter.put(
   '/brand/:brand_id',
   accessTokenValidator,
@@ -44,8 +50,11 @@ productsRouter.put(
   updateBrandValidator,
   wrapRequestHandler(updateBrandController)
 );
+
+// Xóa nhãn hiệu
 productsRouter.delete('/brand', accessTokenValidator, deleteBrandValidator, wrapRequestHandler(deleteBrandController));
-// Image
+
+// Thêm hình ảnh sản phẩm
 productsRouter.post(
   '/image/:product_id',
   accessTokenValidator,
@@ -53,13 +62,15 @@ productsRouter.post(
   addImageValidator,
   wrapRequestHandler(addImageController)
 );
+
+// Xóa hình ảnh sản phẩm
 productsRouter.delete(
   '/image/:media_id',
   accessTokenValidator,
   checkMediaExistValidator,
   wrapRequestHandler(deleteImageController)
 );
-// Product
+// Thêm mới sản phẩm
 productsRouter.post(
   '/',
   accessTokenValidator,
@@ -78,6 +89,8 @@ productsRouter.post(
   ]),
   wrapRequestHandler(createProductController)
 );
+
+// Cập nhật thông tin sản phẩm
 productsRouter.patch(
   '/:product_id',
   accessTokenValidator,
@@ -98,6 +111,8 @@ productsRouter.patch(
   ]),
   wrapRequestHandler(updateProductController)
 );
+
+// Xóa sản phẩm
 productsRouter.delete(
   '/',
   accessTokenValidator,
@@ -105,7 +120,11 @@ productsRouter.delete(
   deleteProductValidator,
   wrapRequestHandler(deleteProductController)
 );
+
+// Lấy danh sách sản phẩm
 productsRouter.get('/', wrapRequestHandler(getProductListController));
+
+// Lấy thông tin chi tiết một sản phẩm
 productsRouter.get('/:product_id', checkProductExist, wrapRequestHandler(getProductDetailController));
 
 export default productsRouter;
