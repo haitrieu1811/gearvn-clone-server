@@ -339,7 +339,7 @@ class UserService {
 
   async updateMe({ payload, user_id }: { payload: UpdateMeRequestBody; user_id: string }) {
     const _payload = payload.date_of_birth ? { ...payload, date_of_birth: new Date(payload.date_of_birth) } : payload;
-    const user = await databaseService.users.findOneAndUpdate(
+    await databaseService.users.updateOne(
       {
         _id: new ObjectId(user_id)
       },
@@ -350,17 +350,10 @@ class UserService {
         $currentDate: {
           updated_at: true
         }
-      },
-      {
-        returnDocument: 'after',
-        projection: USERS_PROJECTION
       }
     );
     return {
-      message: USERS_MESSAGES.UPDATE_PROFILE_SUCCEED,
-      data: {
-        user: user.value
-      }
+      message: USERS_MESSAGES.UPDATE_PROFILE_SUCCEED
     };
   }
 
