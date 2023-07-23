@@ -8,7 +8,7 @@ import databaseService from './database.services';
 class CategoryService {
   async getList(query: GetCategoriesRequestQuery) {
     const { page, limit } = query;
-    const _limit = Number(limit) || 10;
+    const _limit = Number(limit) || 0;
     const _page = Number(page) || 1;
     const skip = (_page - 1) * _limit;
     const [total, categories] = await Promise.all([
