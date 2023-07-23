@@ -224,10 +224,18 @@ class ProductService {
 
   // Lấy danh sách các sản phẩm
   async getListProduct(query: GetProductListRequestQuery) {
-    const { page, limit, category, brand } = query;
+    const { page, limit, category, brand, sortBy, orderBy } = query;
+    // Sắp xếp
+    const _sortBy = sortBy ? sortBy : 'created_at';
+    const _orderBy = orderBy === 'desc' ? -1 : 1;
+    const sort = {
+      [_sortBy]: _orderBy
+    };
+    // Phân trang
     const _page = Number(page) || 1;
     const _limit = Number(limit) || 10;
     const skip = (_page - 1) * _limit;
+    // Lọc
     const categoryArray = category ? category.split('-') : [];
     const brandArray = brand ? brand.split('-') : [];
     const queryConfig = omitBy(
@@ -237,7 +245,6 @@ class ProductService {
               $in: categoryArray.map((category) => new ObjectId(category))
             }
           : undefined,
-
         brand_id: brand
           ? {
               $in: brandArray.map((brand) => new ObjectId(brand))
@@ -246,6 +253,7 @@ class ProductService {
       },
       isUndefined
     );
+    // Truy vấn
     const [total, products] = await Promise.all([
       databaseService.products.countDocuments({
         ...queryConfig
@@ -300,12 +308,16 @@ class ProductService {
               created_at: 1,
               updated_at: 1
             }
+          },
+          {
+            $sort: sort
           }
         ])
         .skip(skip)
         .limit(_limit)
         .toArray()
     ]);
+    // Số lượng trang
     const pageSize = Math.ceil(total / _limit);
     return {
       message: PRODUCTS_MESSAGES.GET_PRODUCT_LIST_SUCCEED,

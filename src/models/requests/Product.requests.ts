@@ -92,6 +92,8 @@ export interface GetProductListRequestQuery {
   limit?: string;
   category?: string;
   brand?: string;
+  sortBy?: 'price' | 'created_at' | 'price_after_discount';
+  orderBy?: 'asc' | 'desc';
 }
 
 // Lấy thông tin chi tiết sản phẩm (params)
