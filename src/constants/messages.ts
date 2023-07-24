@@ -45,7 +45,7 @@ export const USERS_MESSAGES = {
   GET_ME_SUCCEED: 'Get info me succeed',
   FULLNAME_MUST_LENGTH_FROM_1_TO_100_CHARACTERS: 'Fullname must length from 1 to 100 characters',
   PHONE_NUMBER_INVALID: 'Phone number is invalid',
-  PHONE_NUMBER_IS_EXIST: 'Phone number is exist',
+  PHONE_NUMBER_IS_EXIST: 'Phone number is already exist',
   DATE_OF_BIRTH_MUST_BE_A_ISO8601_STRING: 'Date of birth must be a ISO8601 string',
   IMAGE_URL_MUST_BE_A_STRING: 'Image url must be a string',
   IMAGE_URL_LENGTH: 'Image url must length from 1 to 250 characters',
@@ -80,7 +80,8 @@ export const USERS_MESSAGES = {
   USER_IDS_IS_REQUIRED: 'User ids is required',
   USER_IDS_MUST_BE_AN_ARRAY: 'User ids must be an array',
   USER_IDS_NOT_EMPTY: 'User ids not empty',
-  USER_IDS_IS_INVALID: 'User ids is invalid'
+  USER_IDS_IS_INVALID: 'User ids is invalid',
+  PHONE_NUMBER_IS_REQUIRED: 'Phone number is required'
 } as const;
 
 export const CATEGORIES_MESSAGES = {

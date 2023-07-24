@@ -493,9 +493,12 @@ export const updateMeValidator = validate(
         optional: true,
         custom: {
           options: async (value: string, { req }) => {
-            if (!PHONE_NUMBER_REGEX.test(value)) {
-              throw new Error(USERS_MESSAGES.PHONE_NUMBER_INVALID);
+            if (!value) {
+              throw new Error(USERS_MESSAGES.PHONE_NUMBER_IS_REQUIRED);
             }
+            // if (!PHONE_NUMBER_REGEX.test(value)) {
+            //   throw new Error(USERS_MESSAGES.PHONE_NUMBER_INVALID);
+            // }
             const { user_id } = req.decoded_authorization as TokenPayload;
             const user = await databaseService.users.findOne({ phoneNumber: value });
             if (user && user._id.toString() !== user_id) {
