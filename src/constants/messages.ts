@@ -81,7 +81,8 @@ export const USERS_MESSAGES = {
   USER_IDS_MUST_BE_AN_ARRAY: 'User ids must be an array',
   USER_IDS_NOT_EMPTY: 'User ids not empty',
   USER_IDS_IS_INVALID: 'User ids is invalid',
-  PHONE_NUMBER_IS_REQUIRED: 'Phone number is required'
+  PHONE_NUMBER_IS_REQUIRED: 'Phone number is required',
+  SET_DEFAULT_ADDRESS_SUCCEED: 'Set default address succeed'
 } as const;
 
 export const CATEGORIES_MESSAGES = {

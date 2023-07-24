@@ -59,6 +59,7 @@ export interface AddAddressRequestBody {
   ward: string;
   street: string;
   type: AddressType;
+  isDefault: boolean;
 }
 
 export interface UpdateAddressRequestBody {
@@ -74,6 +75,10 @@ export interface UpdateAddressRequestParams extends ParamsDictionary {
 }
 
 export interface DeleteAddressRequestParams extends ParamsDictionary {
+  address_id: string;
+}
+
+export interface SetDefaultAddressRequestParams extends ParamsDictionary {
   address_id: string;
 }
 

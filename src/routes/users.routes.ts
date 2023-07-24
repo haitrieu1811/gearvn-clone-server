@@ -17,7 +17,8 @@ import {
   updateMeController,
   updateRolesController,
   verifyEmailController,
-  deleteUserController
+  deleteUserController,
+  setDefaultAddressController
 } from '~/controllers/users.controllers';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import {
@@ -105,6 +106,13 @@ usersRouter.delete(
   verifiedUserValidator,
   addressExistValidator,
   wrapRequestHandler(deleteAddressController)
+);
+usersRouter.put(
+  '/address/set-default/:address_id',
+  accessTokenValidator,
+  verifiedUserValidator,
+  addressExistValidator,
+  wrapRequestHandler(setDefaultAddressController)
 );
 usersRouter.put(
   '/role',

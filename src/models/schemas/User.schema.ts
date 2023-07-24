@@ -8,6 +8,7 @@ export interface Address {
   ward: string;
   street: string;
   type: AddressType;
+  isDefault: boolean;
 }
 
 interface UserInterface {

@@ -526,33 +526,37 @@ export const updateMeValidator = validate(
 );
 
 export const addressValidator = validate(
-  checkSchema({
-    province: provinceSchema,
-    district: districtSchema,
-    ward: wardSchema,
-    street: streetSchema,
-    type: {
-      custom: {
-        options: (value: number) => {
-          if (!value) {
-            throw new Error(USERS_MESSAGES.ADDRESS_TYPE_IS_REQUIRED);
-          }
-          if (!Number.isInteger(value)) {
-            throw new ErrorWithStatus({
-              message: USERS_MESSAGES.ADDRESS_TYPE_MUST_BE_A_INTEGER,
-              status: HTTP_STATUS.BAD_REQUEST
-            });
-          }
-          if (!(value in AddressType)) {
-            throw new ErrorWithStatus({
-              message: USERS_MESSAGES.ADDRESS_TYPE_IS_INVALID,
-              status: HTTP_STATUS.BAD_REQUEST
-            });
+  checkSchema(
+    {
+      province: provinceSchema,
+      district: districtSchema,
+      ward: wardSchema,
+      street: streetSchema,
+      type: {
+        notEmpty: {
+          errorMessage: USERS_MESSAGES.ADDRESS_TYPE_IS_REQUIRED
+        },
+        custom: {
+          options: (value: number) => {
+            if (!Number.isInteger(value)) {
+              throw new ErrorWithStatus({
+                message: USERS_MESSAGES.ADDRESS_TYPE_MUST_BE_A_INTEGER,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            if (!(value in AddressType)) {
+              throw new ErrorWithStatus({
+                message: USERS_MESSAGES.ADDRESS_TYPE_IS_INVALID,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            return true;
           }
         }
       }
-    }
-  })
+    },
+    ['body']
+  )
 );
 
 export const addressExistValidator = validate(
@@ -574,9 +578,7 @@ export const addressExistValidator = validate(
                 status: HTTP_STATUS.BAD_REQUEST
               });
             }
-            const { user_id } = req.decoded_authorization as TokenPayload;
             const address = await databaseService.users.findOne({
-              _id: new ObjectId(user_id),
               'addresses._id': new ObjectId(value)
             });
             if (!address) {
@@ -605,6 +607,7 @@ export const limitAddressValidator = async (req: Request, res: any, next: NextFu
       })
     );
   }
+  (req as Request).user = user;
   if (user.addresses.length >= 3) {
     return next(
       new ErrorWithStatus({

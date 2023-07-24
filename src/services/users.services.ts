@@ -28,6 +28,7 @@ interface SignToken {
 }
 
 class UserService {
+  // Kiểm tra email đã tồn tại chưa
   async checkEmailExist(email: string) {
     const user = await databaseService.users.findOne({ email });
     return {
@@ -36,6 +37,7 @@ class UserService {
     };
   }
 
+  // Tạo access token
   async signAccessToken({ user_id, verify, role }: SignToken) {
     return signToken({
       payload: {
@@ -51,6 +53,7 @@ class UserService {
     });
   }
 
+  // Tạo refresh token
   async signRefreshToken({ user_id, verify, role }: SignToken) {
     return signToken({
       payload: {
@@ -66,6 +69,7 @@ class UserService {
     });
   }
 
+  // Tạo access và refresh token
   async signAccessAndRefreshToken({ user_id, verify, role }: SignToken) {
     return Promise.all([
       this.signAccessToken({ user_id, verify, role }),
@@ -73,6 +77,7 @@ class UserService {
     ]);
   }
 
+  // Tạo token xác thực email
   async signEmailVerifyToken({ user_id, verify, role }: SignToken) {
     return signToken({
       payload: {
@@ -88,6 +93,7 @@ class UserService {
     });
   }
 
+  // Tạo token quên mật khẩu
   async signForgotPasswordToken({ user_id, verify, role }: SignToken) {
     return signToken({
       payload: {
@@ -103,10 +109,12 @@ class UserService {
     });
   }
 
+  // Thêm 1 refresh token vào database
   async insertRefreshToken({ token, user_id }: { token: string; user_id: string }) {
     return databaseService.refresh_tokens.insertOne(new RefreshToken({ token, user_id: new ObjectId(user_id) }));
   }
 
+  // Đăng ký
   async register({ email, password }: { email: string; password: string }) {
     // Tạo user_id
     const user_id = new ObjectId();
@@ -156,6 +164,7 @@ class UserService {
     };
   }
 
+  // Đăng nhập
   async login({ user_id, verify, role }: { user_id: string; verify: UserVerifyStatus; role: UserRole }) {
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken({ user_id, verify, role });
     await this.insertRefreshToken({ token: refresh_token, user_id });
@@ -165,6 +174,7 @@ class UserService {
     };
   }
 
+  // Đăng xuất
   async logout(refresh_token: string) {
     await databaseService.refresh_tokens.deleteOne({ token: refresh_token });
     return {
@@ -172,6 +182,7 @@ class UserService {
     };
   }
 
+  // Thực hiện refresh token
   async refreshToken({
     user_id,
     verify,
@@ -199,6 +210,7 @@ class UserService {
     };
   }
 
+  // Xác thực email
   async verifyEmail({ user_id, role }: { user_id: string; role: UserRole }) {
     const [[access_token, refresh_token]] = await Promise.all([
       this.signAccessAndRefreshToken({ user_id, verify: UserVerifyStatus.Verified, role }),
@@ -227,6 +239,7 @@ class UserService {
     };
   }
 
+  // Gửi lại email xác thực
   async resendEmailVerify({ user_id, role }: { user_id: string; role: UserRole }) {
     const email_verify_token = await this.signEmailVerifyToken({ user_id, verify: UserVerifyStatus.Unverified, role });
     await databaseService.users.updateOne(
@@ -248,6 +261,7 @@ class UserService {
     };
   }
 
+  // Quên mật khẩu
   async forgotPassword(email: string) {
     const user = await databaseService.users.findOne({ email });
     const { _id, verify, role } = user as WithId<User>;
@@ -263,6 +277,7 @@ class UserService {
     };
   }
 
+  // Đặt lại mật khẩu
   async resetPassword({
     password,
     user_id,
@@ -301,6 +316,7 @@ class UserService {
     };
   }
 
+  // Đổi mật khẩu
   async changePassword({ password, user_id }: { password: string; user_id: string }) {
     await databaseService.users.updateOne(
       {
@@ -320,6 +336,7 @@ class UserService {
     };
   }
 
+  // Lấy thông tin tài khoản đăng nhập
   async getMe(user_id: string) {
     const me = await databaseService.users.findOne(
       {
@@ -337,9 +354,10 @@ class UserService {
     };
   }
 
+  // Cập nhật thông tin tài khoản đăng nhập
   async updateMe({ payload, user_id }: { payload: UpdateMeRequestBody; user_id: string }) {
     const _payload = payload.date_of_birth ? { ...payload, date_of_birth: new Date(payload.date_of_birth) } : payload;
-    await databaseService.users.updateOne(
+    const { value: user } = await databaseService.users.findOneAndUpdate(
       {
         _id: new ObjectId(user_id)
       },
@@ -350,15 +368,30 @@ class UserService {
         $currentDate: {
           updated_at: true
         }
+      },
+      {
+        returnDocument: 'after',
+        projection: USERS_PROJECTION
       }
     );
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
+      user_id: user?._id.toString() as string,
+      role: user?.role as UserRole,
+      verify: user?.verify as UserVerifyStatus
+    });
     return {
-      message: USERS_MESSAGES.UPDATE_PROFILE_SUCCEED
+      message: USERS_MESSAGES.UPDATE_PROFILE_SUCCEED,
+      data: {
+        access_token,
+        refresh_token,
+        user
+      }
     };
   }
 
+  // Thêm địa chỉ nhận hàng
   async addAddress({ payload, user_id }: { payload: AddAddressRequestBody; user_id: string }) {
-    await databaseService.users.updateOne(
+    const { value: user } = await databaseService.users.findOneAndUpdate(
       {
         _id: new ObjectId(user_id)
       },
@@ -369,25 +402,31 @@ class UserService {
             ...payload
           }
         }
+      },
+      {
+        returnDocument: 'after',
+        projection: USERS_PROJECTION
       }
     );
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
+      user_id: user?._id.toString() as string,
+      role: user?.role as UserRole,
+      verify: user?.verify as UserVerifyStatus
+    });
     return {
-      message: USERS_MESSAGES.ADD_ADDRESS_SUCCEED
+      message: USERS_MESSAGES.ADD_ADDRESS_SUCCEED,
+      data: {
+        access_token,
+        refresh_token,
+        user
+      }
     };
   }
 
-  async updateAddress({
-    payload,
-    address_id,
-    user_id
-  }: {
-    payload: UpdateAddressRequestBody;
-    address_id: string;
-    user_id: string;
-  }) {
-    await databaseService.users.updateOne(
+  // Cập nhật địa chỉ nhận hàng
+  async updateAddress({ payload, address_id }: { payload: UpdateAddressRequestBody; address_id: string }) {
+    const { value: user } = await databaseService.users.findOneAndUpdate(
       {
-        _id: new ObjectId(user_id),
         'addresses._id': new ObjectId(address_id)
       },
       {
@@ -399,15 +438,27 @@ class UserService {
         }
       }
     );
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
+      user_id: user?._id.toString() as string,
+      role: user?.role as UserRole,
+      verify: user?.verify as UserVerifyStatus
+    });
     return {
-      message: USERS_MESSAGES.UPDATE_ADDRESS_SUCCEED
+      message: USERS_MESSAGES.UPDATE_ADDRESS_SUCCEED,
+      data: {
+        access_token,
+        refresh_token,
+        user
+      }
     };
   }
 
-  async deleteAddress({ address_id, user_id }: { address_id: string; user_id: string }) {
-    await databaseService.users.updateOne(
+  // Xóa địa chỉ nhận hàng
+  async deleteAddress(address_id: string) {
+    const { value: user } = await databaseService.users.findOneAndUpdate(
       {
-        _id: new ObjectId(user_id)
+        // _id: new ObjectId(user_id)
+        'addresses._id': new ObjectId(address_id)
       },
       {
         $pull: {
@@ -415,13 +466,77 @@ class UserService {
             _id: new ObjectId(address_id)
           }
         }
+      },
+      {
+        returnDocument: 'after',
+        projection: USERS_PROJECTION
       }
     );
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
+      user_id: user?._id.toString() as string,
+      role: user?.role as UserRole,
+      verify: user?.verify as UserVerifyStatus
+    });
     return {
-      message: USERS_MESSAGES.DELETE_ADDRESS_SUCCEED
+      message: USERS_MESSAGES.DELETE_ADDRESS_SUCCEED,
+      data: {
+        access_token,
+        refresh_token,
+        user
+      }
     };
   }
 
+  // Đặt địa chỉ thành mặc định
+  async setDefaultAddress({ address_id, user_id }: { address_id: string; user_id: string }) {
+    const user = await databaseService.users.findOne({
+      _id: new ObjectId(user_id)
+    });
+    const _addresses = user?.addresses.map((address) => {
+      if (address._id.toString() === address_id) {
+        return {
+          ...address,
+          isDefault: true
+        };
+      }
+      return {
+        ...address,
+        isDefault: false
+      };
+    });
+    const { value: _user } = await databaseService.users.findOneAndUpdate(
+      {
+        _id: new ObjectId(user_id)
+      },
+      {
+        $set: {
+          addresses: _addresses
+        },
+        $currentDate: {
+          updated_at: true
+        }
+      },
+      {
+        returnDocument: 'after',
+        projection: USERS_PROJECTION
+      }
+    );
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
+      user_id: _user?._id.toString() as string,
+      role: _user?.role as UserRole,
+      verify: _user?.verify as UserVerifyStatus
+    });
+    return {
+      message: USERS_MESSAGES.SET_DEFAULT_ADDRESS_SUCCEED,
+      data: {
+        access_token,
+        refresh_token,
+        user: _user
+      }
+    };
+  }
+
+  // Cập nhật quyền tài khoản
   async updateRoles({ role, user_id }: { role: UserRole; user_id: string }) {
     await databaseService.users.updateOne(
       {
@@ -441,6 +556,7 @@ class UserService {
     };
   }
 
+  // Lấy danh sách tài khoản người dùng
   async getUsers({ user_id, query }: { user_id: string; query: GetUsersRequestQuery }) {
     const { page, limit, gender, role, status } = query;
     const queryConfig = omitBy(
@@ -491,6 +607,7 @@ class UserService {
     };
   }
 
+  // Xóa tài khoản
   async deleteUser(user_ids: ObjectId[]) {
     const _user_ids = user_ids.map((id) => new ObjectId(id));
     const { deletedCount } = await databaseService.users.deleteMany({
