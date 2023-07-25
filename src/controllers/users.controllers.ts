@@ -11,6 +11,7 @@ import {
   DeleteAddressRequestParams,
   DeleteUserRequestBody,
   ForgotPasswordRequestBody,
+  GetAddressRequestParams,
   GetUsersRequestQuery,
   LoginRequestBody,
   LogoutRequestBody,
@@ -159,6 +160,13 @@ export const addAddressController = async (
     isDefault
   };
   const result = await userService.addAddress({ payload, user_id });
+  return res.json(result);
+};
+
+// Lấy thông tin địa chỉ nhận hàng
+export const getAddressController = async (req: Request<GetAddressRequestParams>, res: Response) => {
+  const { address_id } = req.params;
+  const result = await userService.getAddress(address_id);
   return res.json(result);
 };
 

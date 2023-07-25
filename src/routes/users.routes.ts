@@ -18,14 +18,15 @@ import {
   updateRolesController,
   verifyEmailController,
   deleteUserController,
-  setDefaultAddressController
+  setDefaultAddressController,
+  getAddressController
 } from '~/controllers/users.controllers';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import {
   RegisterValidator,
   accessTokenValidator,
   addressExistValidator,
-  addressValidator,
+  addAddressValidator,
   adminRoleValidator,
   changePasswordValidator,
   deleteUserValidator,
@@ -38,7 +39,8 @@ import {
   resetPasswordValidator,
   roleValidator,
   updateMeValidator,
-  verifiedUserValidator
+  verifiedUserValidator,
+  updateAddressValidator
 } from '~/middlewares/users.middlewares';
 import {
   AddAddressRequestBody,
@@ -87,17 +89,24 @@ usersRouter.post(
   accessTokenValidator,
   verifiedUserValidator,
   limitAddressValidator,
-  addressValidator,
-  filterReqBodyMiddleware<AddAddressRequestBody>(['province', 'district', 'ward', 'street', 'type']),
+  addAddressValidator,
+  filterReqBodyMiddleware<AddAddressRequestBody>(['province', 'district', 'ward', 'street', 'type', 'isDefault']),
   wrapRequestHandler(addAddressController)
+);
+usersRouter.get(
+  '/address/:address_id',
+  accessTokenValidator,
+  verifiedUserValidator,
+  addressExistValidator,
+  wrapRequestHandler(getAddressController)
 );
 usersRouter.put(
   '/address/:address_id',
   accessTokenValidator,
   verifiedUserValidator,
-  addressValidator,
   addressExistValidator,
-  filterReqBodyMiddleware<UpdateAddressRequestBody>(['province', 'district', 'ward', 'street', 'type']),
+  updateAddressValidator,
+  filterReqBodyMiddleware<UpdateAddressRequestBody>(['province', 'district', 'ward', 'street', 'type', 'isDefault']),
   wrapRequestHandler(updateAddressController)
 );
 usersRouter.delete(

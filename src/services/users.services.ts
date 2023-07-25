@@ -423,6 +423,20 @@ class UserService {
     };
   }
 
+  // Lấy thông tin địa chỉ nhận hàng
+  async getAddress(address_id: string) {
+    const user = await databaseService.users.findOne({
+      'addresses._id': new ObjectId(address_id)
+    });
+    const address = user?.addresses.find((address) => address._id.toString() === address_id);
+    return {
+      message: USERS_MESSAGES.GET_ADDRESS_SUCCEED,
+      data: {
+        address
+      }
+    };
+  }
+
   // Cập nhật địa chỉ nhận hàng
   async updateAddress({ payload, address_id }: { payload: UpdateAddressRequestBody; address_id: string }) {
     const { value: user } = await databaseService.users.findOneAndUpdate(
@@ -435,7 +449,14 @@ class UserService {
             _id: new ObjectId(address_id),
             ...payload
           }
+        },
+        $currentDate: {
+          updated_at: true
         }
+      },
+      {
+        projection: USERS_PROJECTION,
+        returnDocument: 'after'
       }
     );
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken({

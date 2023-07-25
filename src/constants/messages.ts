@@ -82,7 +82,10 @@ export const USERS_MESSAGES = {
   USER_IDS_NOT_EMPTY: 'User ids not empty',
   USER_IDS_IS_INVALID: 'User ids is invalid',
   PHONE_NUMBER_IS_REQUIRED: 'Phone number is required',
-  SET_DEFAULT_ADDRESS_SUCCEED: 'Set default address succeed'
+  SET_DEFAULT_ADDRESS_SUCCEED: 'Set default address succeed',
+  ADDRESS_DEFAULT_VALUE_IS_REQUIRED: 'Address default value is required',
+  ADDRESS_DEFAULT_VALUE_MUST_BE_A_BOOLEAN: 'Address default value must be a boolean',
+  GET_ADDRESS_SUCCEED: 'Get address succeed'
 } as const;
 
 export const CATEGORIES_MESSAGES = {

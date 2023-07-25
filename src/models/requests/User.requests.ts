@@ -62,12 +62,17 @@ export interface AddAddressRequestBody {
   isDefault: boolean;
 }
 
+export interface GetAddressRequestParams extends ParamsDictionary {
+  address_id: string;
+}
+
 export interface UpdateAddressRequestBody {
   province: string;
   district: string;
   ward: string;
   street: string;
   type: AddressType;
+  isDefault: boolean;
 }
 
 export interface UpdateAddressRequestParams extends ParamsDictionary {

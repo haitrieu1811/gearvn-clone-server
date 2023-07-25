@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 import { NextFunction, Request } from 'express';
-import { ParamSchema, check, checkSchema } from 'express-validator';
+import { ParamSchema, checkSchema } from 'express-validator';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import capitalize from 'lodash/capitalize';
 import { ObjectId } from 'mongodb';
@@ -9,7 +9,6 @@ import { USERS_PROJECTION } from '~/constants/db';
 import { AddressType, UserRole, UserVerifyStatus } from '~/constants/enum';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { USERS_MESSAGES } from '~/constants/messages';
-import { PHONE_NUMBER_REGEX } from '~/constants/regex';
 import { ErrorWithStatus } from '~/models/Errors';
 import { TokenPayload } from '~/models/requests/User.requests';
 import databaseService from '~/services/database.services';
@@ -144,6 +143,38 @@ export const streetSchema: ParamSchema = {
       max: 250
     },
     errorMessage: USERS_MESSAGES.STREET_LENGTH
+  }
+};
+
+export const addressTypeSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: USERS_MESSAGES.ADDRESS_TYPE_IS_REQUIRED
+  },
+  custom: {
+    options: (value: number) => {
+      if (!Number.isInteger(value)) {
+        throw new ErrorWithStatus({
+          message: USERS_MESSAGES.ADDRESS_TYPE_MUST_BE_A_INTEGER,
+          status: HTTP_STATUS.BAD_REQUEST
+        });
+      }
+      if (!(value in AddressType)) {
+        throw new ErrorWithStatus({
+          message: USERS_MESSAGES.ADDRESS_TYPE_IS_INVALID,
+          status: HTTP_STATUS.BAD_REQUEST
+        });
+      }
+      return true;
+    }
+  }
+};
+
+export const addressDefaultValueSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: USERS_MESSAGES.ADDRESS_DEFAULT_VALUE_IS_REQUIRED
+  },
+  isBoolean: {
+    errorMessage: USERS_MESSAGES.ADDRESS_DEFAULT_VALUE_MUST_BE_A_BOOLEAN
   }
 };
 
@@ -525,35 +556,29 @@ export const updateMeValidator = validate(
   )
 );
 
-export const addressValidator = validate(
+export const addAddressValidator = validate(
   checkSchema(
     {
       province: provinceSchema,
       district: districtSchema,
       ward: wardSchema,
       street: streetSchema,
-      type: {
-        notEmpty: {
-          errorMessage: USERS_MESSAGES.ADDRESS_TYPE_IS_REQUIRED
-        },
-        custom: {
-          options: (value: number) => {
-            if (!Number.isInteger(value)) {
-              throw new ErrorWithStatus({
-                message: USERS_MESSAGES.ADDRESS_TYPE_MUST_BE_A_INTEGER,
-                status: HTTP_STATUS.BAD_REQUEST
-              });
-            }
-            if (!(value in AddressType)) {
-              throw new ErrorWithStatus({
-                message: USERS_MESSAGES.ADDRESS_TYPE_IS_INVALID,
-                status: HTTP_STATUS.BAD_REQUEST
-              });
-            }
-            return true;
-          }
-        }
-      }
+      type: addressTypeSchema,
+      isDefault: addressDefaultValueSchema
+    },
+    ['body']
+  )
+);
+
+export const updateAddressValidator = validate(
+  checkSchema(
+    {
+      province: provinceSchema,
+      district: districtSchema,
+      ward: wardSchema,
+      street: streetSchema,
+      type: addressTypeSchema,
+      isDefault: addressDefaultValueSchema
     },
     ['body']
   )
