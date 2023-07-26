@@ -23,14 +23,14 @@ const purchasesRouter = Router();
 purchasesRouter.post('/add-to-cart', accessTokenValidator, addToCartValidator, wrapRequestHandler(addToCartController));
 purchasesRouter.get('/get-cart', accessTokenValidator, wrapRequestHandler(getCartListController));
 purchasesRouter.put(
-  '/update/:purchase_id',
+  '/:purchase_id',
   accessTokenValidator,
   checkPurchaseExist,
   updatePurchaseValidator,
   wrapRequestHandler(updatePurchaseController)
 );
 purchasesRouter.delete(
-  '/delete',
+  '/',
   accessTokenValidator,
   deletePurchaseValidator,
   wrapRequestHandler(deletePurchaseController)

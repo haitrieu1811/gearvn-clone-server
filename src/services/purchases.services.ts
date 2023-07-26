@@ -8,15 +8,16 @@ import Purchase from '~/models/schemas/Purchase.schema';
 import databaseService from './database.services';
 
 class PurchaseService {
+  // Thêm sản phẩm vào giỏ hàng
   async addToCart({ payload, user_id }: { payload: AddToCartRequestBody; user_id: string }) {
     const { product_id, buy_count } = payload;
-    const purchase = await databaseService.purchases.findOne({
+    let purchase = await databaseService.purchases.findOne({
       product_id: new ObjectId(product_id),
       user_id: new ObjectId(new ObjectId(user_id)),
       status: PurchaseStatus.InCart
     });
     if (purchase) {
-      await databaseService.purchases.updateOne(
+      const { value } = await databaseService.purchases.findOneAndUpdate(
         {
           product_id: new ObjectId(product_id),
           user_id: new ObjectId(new ObjectId(user_id))
@@ -28,22 +29,33 @@ class PurchaseService {
           $currentDate: {
             updated_at: true
           }
+        },
+        {
+          returnDocument: 'after'
         }
       );
+      purchase = value;
     } else {
-      await databaseService.purchases.insertOne(
+      const { insertedId } = await databaseService.purchases.insertOne(
         new Purchase({
           buy_count,
           product_id: new ObjectId(product_id),
           user_id: new ObjectId(user_id)
         })
       );
+      purchase = await databaseService.purchases.findOne({
+        _id: new ObjectId(insertedId)
+      });
     }
     return {
-      message: PURCHASES_MESSAGES.ADD_TO_CART_SUCCEED
+      message: PURCHASES_MESSAGES.ADD_TO_CART_SUCCEED,
+      data: {
+        purchase
+      }
     };
   }
 
+  // Lấy thông tin giỏ hàng
   async getCartList(user_id: string) {
     const result = await databaseService.purchases
       .aggregate([
@@ -70,7 +82,6 @@ class PurchaseService {
           $project: {
             product_id: 0,
             user_id: 0,
-            'product._id': 0,
             'product.general_info': 0,
             'product.description': 0,
             'product.images': 0,
@@ -79,21 +90,27 @@ class PurchaseService {
             'product.specifications': 0,
             'product.user_id': 0
           }
+        },
+        {
+          $sort: {
+            created_at: -1
+          }
         }
       ])
       .toArray();
     return {
       message: PURCHASES_MESSAGES.GET_CART_LIST_SUCCEED,
       data: {
-        cart_length: result.length,
+        cart_size: result.length,
         cart_list: result
       }
     };
   }
 
+  // Cập nhật sản phẩm trong giỏ hàng
   async updatePurchase({ payload, purchase_id }: { payload: UpdatePurchaseRequestBody; purchase_id: string }) {
     const { buy_count } = payload;
-    const purchase = await databaseService.purchases.findOneAndUpdate(
+    await databaseService.purchases.updateOne(
       {
         _id: new ObjectId(purchase_id)
       },
@@ -104,19 +121,14 @@ class PurchaseService {
         $currentDate: {
           updated_at: true
         }
-      },
-      {
-        returnDocument: 'after'
       }
     );
     return {
-      message: PURCHASES_MESSAGES.UPDATE_PURCHASE_SUCCEED,
-      data: {
-        purchase: purchase.value
-      }
+      message: PURCHASES_MESSAGES.UPDATE_PURCHASE_SUCCEED
     };
   }
 
+  // Xóa sản phẩm trong giỏ hàng
   async deletePurchase(purchase_ids: ObjectId[]) {
     const dataDelete = purchase_ids.map((id) => new ObjectId(id));
     await databaseService.purchases.deleteMany({
@@ -129,6 +141,7 @@ class PurchaseService {
     };
   }
 
+  // Xóa tất cả giỏ hàng
   async deleteAllPurchase(user_id: string) {
     await databaseService.purchases.deleteMany({
       user_id: new ObjectId(user_id),
@@ -139,6 +152,7 @@ class PurchaseService {
     };
   }
 
+  // Đặt hàng
   async checkout({
     purchase_ids,
     user_id,
