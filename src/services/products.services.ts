@@ -227,7 +227,7 @@ class ProductService {
     const { page, limit, category, brand, sortBy, orderBy } = query;
     // Sắp xếp
     const _sortBy = sortBy ? sortBy : 'created_at';
-    const _orderBy = orderBy === 'desc' ? -1 : 1;
+    const _orderBy = orderBy ? (orderBy === 'desc' ? -1 : 1) : -1;
     const sort = {
       [_sortBy]: _orderBy
     };
@@ -238,7 +238,7 @@ class ProductService {
     // Lọc
     const categoryArray = category ? category.split('-') : [];
     const brandArray = brand ? brand.split('-') : [];
-    const queryConfig = omitBy(
+    const match = omitBy(
       {
         category_id: category
           ? {
@@ -255,15 +255,11 @@ class ProductService {
     );
     // Truy vấn
     const [total, products] = await Promise.all([
-      databaseService.products.countDocuments({
-        ...queryConfig
-      }),
+      databaseService.products.countDocuments(match),
       databaseService.products
         .aggregate([
           {
-            $match: {
-              ...queryConfig
-            }
+            $match: match
           },
           {
             $lookup: {
@@ -296,6 +292,9 @@ class ProductService {
             $unwind: '$category'
           },
           {
+            $sort: sort
+          },
+          {
             $project: {
               _id: 1,
               name_vi: 1,
@@ -308,9 +307,6 @@ class ProductService {
               created_at: 1,
               updated_at: 1
             }
-          },
-          {
-            $sort: sort
           }
         ])
         .skip(skip)

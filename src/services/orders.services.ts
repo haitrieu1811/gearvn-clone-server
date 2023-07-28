@@ -1,83 +1,197 @@
+import omitBy from 'lodash/omitBy';
+import isUndefined from 'lodash/isUndefined';
+import { ObjectId } from 'mongodb';
+
 import { GetOrdersRequestQuery } from '~/models/requests/Order.requests';
 import databaseService from './database.services';
 import { ORDERS_MESSAGES } from '~/constants/messages';
-import { ObjectId } from 'mongodb';
 import { OrderStatus } from '~/constants/enum';
 
 class OrderService {
+  // Lấy tất cả thông tin đơn hàng
   async getAll(query: GetOrdersRequestQuery) {
-    const total = await databaseService.orders.countDocuments();
-    const limit = Number(query.limit) || 20;
-    const pageSize = Math.ceil(total / limit);
-    const page = Number(query.page) || 1;
-    const skip = (page - 1) * limit;
-    // const orders = await databaseService.orders.find({}).skip(skip).limit(limit).toArray();
-    const orders = await databaseService.orders
-      .aggregate([
-        {
-          $lookup: {
-            from: 'purchases',
-            localField: 'purchases',
-            foreignField: '_id',
-            as: 'purchases'
+    const { page, limit, status } = query;
+    const _limit = limit ? Number(limit) : 10;
+    const _page = page ? Number(page) : 1;
+    const skip = (_page - 1) * _limit;
+    const [orders, total] = await Promise.all([
+      databaseService.orders
+        .aggregate([
+          {
+            $lookup: {
+              from: 'purchases',
+              localField: 'purchases',
+              foreignField: '_id',
+              as: 'purchases'
+            }
+          },
+          {
+            $lookup: {
+              from: 'products',
+              localField: 'purchases.product_id',
+              foreignField: '_id',
+              as: 'purchases'
+            }
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'user_id',
+              foreignField: '_id',
+              as: 'user'
+            }
+          },
+          {
+            $unwind: '$user'
+          },
+          {
+            $project: {
+              user_id: 0,
+              status: 0,
+              created_at: 0,
+              updated_at: 0,
+              'purchases._id': 0,
+              'purchases.user_id': 0,
+              'purchases.status': 0,
+              'purchases.general_info': 0,
+              'purchases.description': 0,
+              'purchases.images': 0,
+              'purchases.brand_id': 0,
+              'purchases.category_id': 0,
+              'purchases.specifications': 0,
+              'purchases.created_at': 0,
+              'purchases.updated_at': 0,
+              'user.password': 0,
+              'user.status': 0,
+              'user.role': 0,
+              'user.verify': 0,
+              'user.addresses': 0,
+              'user.email_verify_token': 0,
+              'user.forgot_password_token': 0
+            }
           }
-        },
-        {
-          $lookup: {
-            from: 'products',
-            localField: 'purchases.product_id',
-            foreignField: '_id',
-            as: 'purchases'
-          }
-        },
-        {
-          $project: {
-            user_id: 0,
-            status: 0,
-            created_at: 0,
-            updated_at: 0,
-            'purchases._id': 0,
-            'purchases.user_id': 0,
-            'purchases.status': 0,
-            'purchases.general_info': 0,
-            'purchases.description': 0,
-            'purchases.images': 0,
-            'purchases.brand_id': 0,
-            'purchases.category_id': 0,
-            'purchases.specifications': 0,
-            'purchases.created_at': 0,
-            'purchases.updated_at': 0
-          }
-        }
-      ])
-      .skip(skip)
-      .limit(limit)
-      .toArray();
+        ])
+        .skip(skip)
+        .limit(_limit)
+        .toArray(),
+      databaseService.orders.countDocuments()
+    ]);
+    const pageSize = Math.ceil(total / _limit);
     return {
       message: ORDERS_MESSAGES.GET_ALL_ORDERS_SUCCEED,
       data: {
-        orders_size: total,
         orders,
         pagination: {
-          page,
-          limit,
+          total,
+          page: _page,
+          limit: _limit,
           page_size: pageSize
         }
       }
     };
   }
 
+  // Lấy thông tin đơn hàng của tài khoản đang đăng nhập
   async getList({ query, user_id }: { query: GetOrdersRequestQuery; user_id: string }) {
-    const total = await databaseService.orders.countDocuments({ user_id: new ObjectId(user_id) });
-    const limit = Number(query.limit) || 10;
-    const pageSize = Math.ceil(total / limit);
-    const page = Number(query.page) || 1;
-    const skip = (page - 1) * limit;
-    const orders = await databaseService.orders
+    const { page, limit, status } = query;
+    // Lọc theo trạng thái
+    const _status = Number(status) ? Number(status) : undefined;
+    const match = omitBy(
+      {
+        user_id: new ObjectId(user_id),
+        status: _status
+      },
+      isUndefined
+    );
+    // Phân trang
+    const _page = page ? Number(page) : 1;
+    const _limit = limit ? Number(limit) : 10;
+    const skip = (_page - 1) * _limit;
+    const [total, orders] = await Promise.all([
+      databaseService.orders.countDocuments(match),
+      databaseService.orders
+        .aggregate([
+          {
+            $match: match
+          },
+          {
+            $lookup: {
+              from: 'purchases',
+              localField: 'purchases',
+              foreignField: '_id',
+              as: 'purchases'
+            }
+          },
+          {
+            $unwind: '$purchases'
+          },
+          {
+            $lookup: {
+              from: 'products',
+              localField: 'purchases.product_id',
+              foreignField: '_id',
+              as: 'purchases.product'
+            }
+          },
+          {
+            $unwind: '$purchases.product'
+          },
+          {
+            $group: {
+              _id: '$_id',
+              status: { $first: '$status' },
+              purchases: { $push: '$purchases' },
+              created_at: { $first: '$created_at' },
+              updated_at: { $first: '$updated_at' }
+            }
+          },
+          {
+            $project: {
+              'purchases.product_id': 0,
+              'purchases.user_id': 0,
+              'purchases.created_at': 0,
+              'purchases.updated_at': 0,
+              'purchases.status': 0,
+              'purchases.product.general_info': 0,
+              'purchases.product.description': 0,
+              'purchases.product.images': 0,
+              'purchases.product.brand_id': 0,
+              'purchases.product.category_id': 0,
+              'purchases.product.specifications': 0,
+              'purchases.product.user_id': 0
+            }
+          }
+        ])
+        .skip(skip)
+        .limit(_limit)
+        .sort({
+          created_at: -1
+        })
+        .toArray()
+    ]);
+    const pageSize = Math.ceil(total / _limit);
+    return {
+      message: ORDERS_MESSAGES.GET_ORDERS_LIST_SUCCEED,
+      data: {
+        orders,
+        pagination: {
+          total,
+          page: _page,
+          limit: _limit,
+          page_size: pageSize
+        }
+      }
+    };
+  }
+
+  // Lấy thông tin chi tiết đơn hàng
+  async getDetail({ order_id, user_id }: { order_id: string; user_id: string }) {
+    const order = await databaseService.orders
       .aggregate([
         {
           $match: {
-            user_id: { $eq: new ObjectId(user_id) }
+            _id: new ObjectId(order_id),
+            user_id: new ObjectId(user_id)
           }
         },
         {
@@ -89,50 +203,121 @@ class OrderService {
           }
         },
         {
+          $unwind: '$purchases'
+        },
+        {
           $lookup: {
             from: 'products',
             localField: 'purchases.product_id',
             foreignField: '_id',
-            as: 'purchases'
+            as: 'purchases.product'
+          }
+        },
+        {
+          $unwind: '$purchases.product'
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'user_id',
+            foreignField: '_id',
+            as: 'user'
+          }
+        },
+        {
+          $unwind: '$user'
+        },
+        {
+          $addFields: {
+            contact: {
+              province: '$address.province',
+              district: '$address.district',
+              ward: '$address.ward',
+              street: '$address.street',
+              phone_number: '$user.phoneNumber',
+              customer_name: '$user.fullName'
+            }
+          }
+        },
+        {
+          $group: {
+            _id: '$_id',
+            status: { $first: '$status' },
+            total_buy_count: { $sum: '$purchases.buy_count' },
+            total_amount: { $sum: { $multiply: ['$purchases.buy_count', '$purchases.product.price_after_discount'] } },
+            purchases: { $push: '$purchases' },
+            contact: { $first: '$contact' },
+            created_at: { $first: '$created_at' },
+            updated_at: { $first: '$updated_at' }
           }
         },
         {
           $project: {
-            user_id: 0,
-            status: 0,
-            created_at: 0,
-            updated_at: 0,
-            'purchases._id': 0,
+            'purchases.product_id': 0,
             'purchases.user_id': 0,
             'purchases.status': 0,
-            'purchases.general_info': 0,
-            'purchases.description': 0,
-            'purchases.images': 0,
-            'purchases.brand_id': 0,
-            'purchases.category_id': 0,
-            'purchases.specifications': 0,
             'purchases.created_at': 0,
-            'purchases.updated_at': 0
+            'purchases.updated_at': 0,
+            'purchases.product.general_info': 0,
+            'purchases.product.description': 0,
+            'purchases.product.images': 0,
+            'purchases.product.brand_id': 0,
+            'purchases.product.category_id': 0,
+            'purchases.product.specifications': 0,
+            'purchases.product.user_id': 0
           }
         }
       ])
-      .skip(skip)
-      .limit(limit)
       .toArray();
     return {
-      message: ORDERS_MESSAGES.GET_ORDERS_LIST_SUCCEED,
+      message: ORDERS_MESSAGES.GET_ORDER_DETAIL_SUCCEED,
       data: {
-        orders_size: total,
-        orders,
-        pagination: {
-          page,
-          limit,
-          page_size: pageSize
-        }
+        order: order[0]
       }
     };
   }
 
+  // Lấy số lượng đơn hàng
+  async GetQuantity(user_id: string) {
+    const [qty_all, qty_new, qty_processing, qty_delivering, qty_succeed, qty_cancelled] = await Promise.all([
+      databaseService.orders.countDocuments({
+        user_id: new ObjectId(user_id)
+      }),
+      databaseService.orders.countDocuments({
+        user_id: new ObjectId(user_id),
+        status: OrderStatus.New
+      }),
+      databaseService.orders.countDocuments({
+        user_id: new ObjectId(user_id),
+        status: OrderStatus.Processing
+      }),
+      databaseService.orders.countDocuments({
+        user_id: new ObjectId(user_id),
+        status: OrderStatus.Delivering
+      }),
+      databaseService.orders.countDocuments({
+        user_id: new ObjectId(user_id),
+        status: OrderStatus.Succeed
+      }),
+      databaseService.orders.countDocuments({
+        user_id: new ObjectId(user_id),
+        status: OrderStatus.Cancelled
+      })
+    ]);
+    return {
+      message: ORDERS_MESSAGES.GET_ORDERS_QUANTITY_SUCCEED,
+      data: {
+        qty_all,
+        qty_new,
+        qty_processing,
+        qty_delivering,
+        qty_succeed,
+        qty_cancelled
+      }
+    };
+  }
+
+  // Cập nhật trạng thái đơn hàng
   async updateStatus({ status, order_id }: { status: OrderStatus; order_id: string }) {
     await databaseService.orders.updateOne(
       {
@@ -152,6 +337,7 @@ class OrderService {
     };
   }
 
+  // Xóa đơn hàng
   async deleteOrder(order_id: string) {
     await databaseService.orders.deleteOne({ _id: new ObjectId(order_id) });
     return {

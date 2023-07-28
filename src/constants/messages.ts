@@ -199,7 +199,9 @@ export const ORDERS_MESSAGES = {
   STATUS_IS_REQUIRED: 'Status is required',
   STATUS_IS_INVALID: 'Status is invalid',
   UPDATE_ORDER_STATUS_SUCCEED: 'Update order status succeed',
-  DELETE_ORDER_SUCCEED: 'Delete order succeed'
+  DELETE_ORDER_SUCCEED: 'Delete order succeed',
+  GET_ORDERS_QUANTITY_SUCCEED: 'Get orders quantity succeed',
+  GET_ORDER_DETAIL_SUCCEED: 'Get order detail succeed'
 } as const;
 
 export const BLOGS_MESSAGES = {

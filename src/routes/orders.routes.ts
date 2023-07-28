@@ -4,6 +4,8 @@ import {
   deleteOrderController,
   getAllController,
   getListController,
+  getOrderDetailController,
+  getQuantityController,
   updateStatusController
 } from '~/controllers/orders.controllers';
 import { orderExistValidator, updateStatusValidator } from '~/middlewares/orders.middlewares';
@@ -19,7 +21,15 @@ ordersRouter.get(
   adminRoleValidator,
   wrapRequestHandler(getAllController)
 );
-ordersRouter.get('/list', accessTokenValidator, verifiedUserValidator, wrapRequestHandler(getListController));
+ordersRouter.get('/', accessTokenValidator, verifiedUserValidator, wrapRequestHandler(getListController));
+ordersRouter.get('/quantity', accessTokenValidator, verifiedUserValidator, wrapRequestHandler(getQuantityController));
+ordersRouter.get(
+  '/:order_id',
+  accessTokenValidator,
+  verifiedUserValidator,
+  orderExistValidator,
+  wrapRequestHandler(getOrderDetailController)
+);
 ordersRouter.put(
   '/update-status/:order_id',
   accessTokenValidator,

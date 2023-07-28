@@ -6,6 +6,7 @@ import Category, { CategoryType } from '~/models/schemas/Category.schema';
 import databaseService from './database.services';
 
 class CategoryService {
+  // Lấy danh sách danh mục
   async getList(query: GetCategoriesRequestQuery) {
     const { page, limit } = query;
     const _limit = Number(limit) || 0;
@@ -30,6 +31,7 @@ class CategoryService {
     };
   }
 
+  // Lấy thông tin chi tiết 1 danh mục
   async getOne(category_id: string) {
     const category = await databaseService.categories.findOne({ _id: new ObjectId(category_id) });
     return {
@@ -40,6 +42,7 @@ class CategoryService {
     };
   }
 
+  // Tạo mới danh mục
   async create(payload: CategoryType) {
     await databaseService.categories.insertOne(new Category(payload));
     return {
@@ -47,6 +50,7 @@ class CategoryService {
     };
   }
 
+  // Cập nhật danh mục
   async update({ payload, category_id }: { payload: CategoryType; category_id: string }) {
     const result = await databaseService.categories.findOneAndUpdate(
       {
@@ -70,6 +74,7 @@ class CategoryService {
     };
   }
 
+  // Xóa danh mục
   async delete(category_ids: ObjectId[]) {
     const _category_ids = category_ids.map((id) => new ObjectId(id));
     const { deletedCount } = await databaseService.categories.deleteMany({
