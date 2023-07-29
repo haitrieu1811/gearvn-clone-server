@@ -106,3 +106,7 @@ export interface GetUsersRequestQuery {
 export interface DeleteUserRequestBody {
   user_ids: ObjectId[];
 }
+
+export interface AddViewedProductRequestBody {
+  product_id: string;
+}

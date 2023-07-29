@@ -7,6 +7,7 @@ import { USERS_MESSAGES } from '~/constants/messages';
 
 import {
   AddAddressRequestBody,
+  AddViewedProductRequestBody,
   ChangePasswordRequestBody,
   DeleteAddressRequestParams,
   DeleteUserRequestBody,
@@ -225,5 +226,23 @@ export const deleteUserController = async (
 ) => {
   const { user_ids } = req.body;
   const result = await userService.deleteUser(user_ids);
+  return res.json(result);
+};
+
+// Thêm một lịch sử xem sản phẩm
+export const addViewedProductController = async (
+  req: Request<ParamsDictionary, any, AddViewedProductRequestBody>,
+  res: Response
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const { product_id } = req.body;
+  const result = await userService.addViewedProduct({ product_id, user_id });
+  return res.json(result);
+};
+
+// Lấy danh sách lịch sử sản phẩm đã xem của tài khoản đăng nhập
+export const getViewedProductsController = async (req: Request, res: Response) => {
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const result = await userService.getViewedProducts(user_id);
   return res.json(result);
 };

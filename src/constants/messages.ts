@@ -85,7 +85,9 @@ export const USERS_MESSAGES = {
   SET_DEFAULT_ADDRESS_SUCCEED: 'Set default address succeed',
   ADDRESS_DEFAULT_VALUE_IS_REQUIRED: 'Address default value is required',
   ADDRESS_DEFAULT_VALUE_MUST_BE_A_BOOLEAN: 'Address default value must be a boolean',
-  GET_ADDRESS_SUCCEED: 'Get address succeed'
+  GET_ADDRESS_SUCCEED: 'Get address succeed',
+  ADD_OR_UPDATE_VIEWED_PRODUCT_SUCCEED: 'Add or update viewed product succeed',
+  GET_VIEWED_PRODUCTS_SUCCEED: 'Get viewed products succeed'
 } as const;
 
 export const CATEGORIES_MESSAGES = {
@@ -167,7 +169,8 @@ export const PRODUCTS_MESSAGES = {
   PRODUCT_IDS_NOT_EMPTY: 'Product ids not empty',
   PRODUCT_IDS_IS_INVALID: 'Product ids is invalid',
   PRICE_AFTER_DISCOUNT_MUST_LESS_THAN: 'Must be less than the init price',
-  IMAGES_ITEM_MUST_BE_A_STRING: 'Image item must be a string'
+  IMAGES_ITEM_MUST_BE_A_STRING: 'Image item must be a string',
+  PRODUCT_ID_MUST_BE_A_STRING: 'Product id must be a string'
 } as const;
 
 export const PURCHASES_MESSAGES = {

@@ -19,6 +19,7 @@ import User from '~/models/schemas/User.schema';
 import { hashPassword } from '~/utils/crypto';
 import { signToken } from '~/utils/jwt';
 import databaseService from './database.services';
+import ViewedProduct from '~/models/schemas/ViewedProduct.schema';
 config();
 
 interface SignToken {
@@ -638,6 +639,92 @@ class UserService {
     });
     return {
       message: `Delete ${deletedCount} user succeed`
+    };
+  }
+
+  // Thêm một lịch sử xem sản phẩm
+  async addViewedProduct({ product_id, user_id }: { product_id: string; user_id: string }) {
+    const viewedProduct = await databaseService.viewedProducts.findOne({
+      product_id: new ObjectId(product_id),
+      user_id: new ObjectId(user_id)
+    });
+    if (!viewedProduct) {
+      await databaseService.viewedProducts.insertOne(
+        new ViewedProduct({
+          product_id: new ObjectId(product_id),
+          user_id: new ObjectId(user_id)
+        })
+      );
+    } else {
+      await databaseService.viewedProducts.updateOne(
+        {
+          product_id: new ObjectId(product_id),
+          user_id: new ObjectId(user_id)
+        },
+        {
+          $currentDate: {
+            updated_at: true
+          }
+        }
+      );
+    }
+    return {
+      message: USERS_MESSAGES.ADD_OR_UPDATE_VIEWED_PRODUCT_SUCCEED
+    };
+  }
+
+  // Lấy danh sách sản phẩm đã xem
+  async getViewedProducts(user_id: string) {
+    const viewed_products = await databaseService.viewedProducts
+      .aggregate([
+        {
+          $match: {
+            user_id: new ObjectId(user_id)
+          }
+        },
+        {
+          $lookup: {
+            from: 'products',
+            localField: 'product_id',
+            foreignField: '_id',
+            as: 'product'
+          }
+        },
+        {
+          $unwind: '$product'
+        },
+        {
+          $group: {
+            _id: '$_id',
+            product: { $first: '$product' },
+            created_at: { $first: '$created_at' },
+            updated_at: { $first: '$updated_at' }
+          }
+        },
+        {
+          $project: {
+            'product.general_info': 0,
+            'product.description': 0,
+            'product.images': 0,
+            'product.brand_id': 0,
+            'product.category_id': 0,
+            'product.specifications': 0,
+            'product.user_id': 0
+          }
+        },
+        {
+          $sort: {
+            updated_at: -1
+          }
+        }
+      ])
+      .limit(12)
+      .toArray();
+    return {
+      message: USERS_MESSAGES.GET_VIEWED_PRODUCTS_SUCCEED,
+      data: {
+        viewed_products
+      }
     };
   }
 }

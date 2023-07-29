@@ -16,6 +16,7 @@ import userService from '~/services/users.services';
 import { hashPassword } from '~/utils/crypto';
 import { verifyToken } from '~/utils/jwt';
 import { validate } from '~/utils/validation';
+import { productIdSchema } from './common.middlewares';
 config();
 
 const emailSchema: ParamSchema = {
@@ -703,6 +704,15 @@ export const deleteUserValidator = validate(
           }
         }
       }
+    },
+    ['body']
+  )
+);
+
+export const addViewedProductValidator = validate(
+  checkSchema(
+    {
+      product_id: productIdSchema
     },
     ['body']
   )

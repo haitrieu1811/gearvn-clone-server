@@ -10,6 +10,7 @@ import Product from '~/models/schemas/Product.schema';
 import Purchase from '~/models/schemas/Purchase.schema';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import User from '~/models/schemas/User.schema';
+import ViewedProduct from '~/models/schemas/ViewedProduct.schema';
 config();
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@gearvn-clone-cluster.ur6rvkl.mongodb.net/?retryWrites=true&w=majority`;
@@ -67,6 +68,10 @@ class DatabaseService {
 
   get blogs(): Collection<Blog> {
     return this.db.collection(process.env.DB_BLOGS_COLLECTION as string);
+  }
+
+  get viewedProducts(): Collection<ViewedProduct> {
+    return this.db.collection(process.env.DB_VIEWED_PRODUCTS_COLLECTION as string);
   }
 }
 

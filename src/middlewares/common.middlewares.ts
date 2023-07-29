@@ -28,6 +28,12 @@ export const productIdSchema: ParamSchema = {
           status: HTTP_STATUS.BAD_REQUEST
         });
       }
+      if (typeof value !== 'string') {
+        throw new ErrorWithStatus({
+          message: PRODUCTS_MESSAGES.PRODUCT_ID_MUST_BE_A_STRING,
+          status: HTTP_STATUS.BAD_REQUEST
+        });
+      }
       if (!ObjectId.isValid(value)) {
         throw new ErrorWithStatus({
           message: PRODUCTS_MESSAGES.PRODUCT_ID_IS_INVALID,
