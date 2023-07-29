@@ -224,7 +224,7 @@ class ProductService {
 
   // Lấy danh sách các sản phẩm
   async getListProduct(query: GetProductListRequestQuery) {
-    const { page, limit, category, brand, sortBy, orderBy } = query;
+    const { page, limit, category, brand, name, sortBy, orderBy } = query;
     // Sắp xếp
     const _sortBy = sortBy ? sortBy : 'created_at';
     const _orderBy = orderBy ? (orderBy === 'desc' ? -1 : 1) : -1;
@@ -248,6 +248,12 @@ class ProductService {
         brand_id: brand
           ? {
               $in: brandArray.map((brand) => new ObjectId(brand))
+            }
+          : undefined,
+        name_vi: name
+          ? {
+              $regex: name,
+              $options: 'i'
             }
           : undefined
       },
