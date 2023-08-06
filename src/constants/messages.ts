@@ -87,7 +87,8 @@ export const USERS_MESSAGES = {
   ADDRESS_DEFAULT_VALUE_MUST_BE_A_BOOLEAN: 'Address default value must be a boolean',
   GET_ADDRESS_SUCCEED: 'Get address succeed',
   ADD_OR_UPDATE_VIEWED_PRODUCT_SUCCEED: 'Add or update viewed product succeed',
-  GET_VIEWED_PRODUCTS_SUCCEED: 'Get viewed products succeed'
+  GET_VIEWED_PRODUCTS_SUCCEED: 'Get viewed products succeed',
+  GET_QUANTITY_PER_COLLECTION_SUCCEED: 'Get quantity per collection succeed'
 } as const;
 
 export const CATEGORIES_MESSAGES = {

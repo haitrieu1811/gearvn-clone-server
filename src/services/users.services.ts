@@ -17,7 +17,7 @@ import {
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import User from '~/models/schemas/User.schema';
 import { hashPassword } from '~/utils/crypto';
-import { signToken } from '~/utils/jwt';
+import { signToken, verifyToken } from '~/utils/jwt';
 import databaseService from './database.services';
 import ViewedProduct from '~/models/schemas/ViewedProduct.schema';
 config();
@@ -26,6 +26,7 @@ interface SignToken {
   user_id: string;
   verify: UserVerifyStatus;
   role: UserRole;
+  exp?: number;
 }
 
 class UserService {
@@ -55,7 +56,19 @@ class UserService {
   }
 
   // Tạo refresh token
-  async signRefreshToken({ user_id, verify, role }: SignToken) {
+  async signRefreshToken({ user_id, verify, role, exp }: SignToken) {
+    if (exp) {
+      return signToken({
+        payload: {
+          user_id,
+          verify,
+          role,
+          token_type: TokenType.Refresh,
+          exp
+        },
+        privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+      });
+    }
     return signToken({
       payload: {
         user_id,
@@ -71,10 +84,10 @@ class UserService {
   }
 
   // Tạo access và refresh token
-  async signAccessAndRefreshToken({ user_id, verify, role }: SignToken) {
+  async signAccessAndRefreshToken({ user_id, verify, role, exp }: SignToken) {
     return Promise.all([
       this.signAccessToken({ user_id, verify, role }),
-      this.signRefreshToken({ user_id, verify, role })
+      this.signRefreshToken({ user_id, verify, role, exp })
     ]);
   }
 
@@ -111,8 +124,10 @@ class UserService {
   }
 
   // Thêm 1 refresh token vào database
-  async insertRefreshToken({ token, user_id }: { token: string; user_id: string }) {
-    return databaseService.refresh_tokens.insertOne(new RefreshToken({ token, user_id: new ObjectId(user_id) }));
+  async insertRefreshToken({ token, user_id, iat, exp }: { token: string; user_id: string; iat: number; exp: number }) {
+    return databaseService.refresh_tokens.insertOne(
+      new RefreshToken({ token, user_id: new ObjectId(user_id), iat, exp })
+    );
   }
 
   // Đăng ký
@@ -142,6 +157,7 @@ class UserService {
       })
     );
     // Lấy thông tin user mới thêm và insert một refresh_token mới vào collection refresh_tokens
+    const { iat, exp } = await this.decodeRefreshToken(refresh_token);
     const [insertedUser] = await Promise.all([
       databaseService.users.findOne(
         {
@@ -151,7 +167,12 @@ class UserService {
           projection: USERS_PROJECTION
         }
       ),
-      this.insertRefreshToken({ token: refresh_token, user_id: user_id.toString() })
+      this.insertRefreshToken({
+        token: refresh_token,
+        user_id: user_id.toString(),
+        iat,
+        exp
+      })
     ]);
     // Gửi mail
     console.log('>>> Send mail: ', email_verify_token);
@@ -168,7 +189,13 @@ class UserService {
   // Đăng nhập
   async login({ user_id, verify, role }: { user_id: string; verify: UserVerifyStatus; role: UserRole }) {
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken({ user_id, verify, role });
-    await this.insertRefreshToken({ token: refresh_token, user_id });
+    const { iat, exp } = await this.decodeRefreshToken(refresh_token);
+    await this.insertRefreshToken({
+      token: refresh_token,
+      user_id,
+      iat,
+      exp
+    });
     return {
       access_token,
       refresh_token
@@ -183,25 +210,41 @@ class UserService {
     };
   }
 
+  // Giải mã token
+  private decodeRefreshToken(refresh_token: string) {
+    return verifyToken({
+      token: refresh_token,
+      secretOrPublicKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+    });
+  }
+
   // Thực hiện refresh token
   async refreshToken({
     user_id,
     verify,
     role,
-    refresh_token
+    refresh_token,
+    exp
   }: {
     user_id: string;
     verify: UserVerifyStatus;
     role: UserRole;
     refresh_token: string;
+    exp: number;
   }) {
+    // Tạo 1 access_token, 1 refresh_token mới và xóa đi 1 refresh_token cũ trong DB
     const [[access_token, new_refresh_token]] = await Promise.all([
-      this.signAccessAndRefreshToken({ user_id, verify, role }),
+      this.signAccessAndRefreshToken({ user_id, verify, role, exp }),
       databaseService.refresh_tokens.deleteOne({ token: refresh_token })
     ]);
-    await databaseService.refresh_tokens.insertOne(
-      new RefreshToken({ token: new_refresh_token, user_id: new ObjectId(user_id) })
-    );
+    // Giải mã để lấy thời gian hết hạn của token
+    const decoded_refresh_token = await this.decodeRefreshToken(new_refresh_token);
+    await this.insertRefreshToken({
+      token: new_refresh_token,
+      user_id,
+      iat: decoded_refresh_token.iat,
+      exp: decoded_refresh_token.exp
+    });
     return {
       message: USERS_MESSAGES.REFRESH_TOKEN_SUCCEED,
       data: {
@@ -210,7 +253,6 @@ class UserService {
       }
     };
   }
-
   // Xác thực email
   async verifyEmail({ user_id, role }: { user_id: string; role: UserRole }) {
     const [[access_token, refresh_token]] = await Promise.all([
@@ -230,7 +272,13 @@ class UserService {
         }
       )
     ]);
-    await this.insertRefreshToken({ token: refresh_token, user_id });
+    const { iat, exp } = await this.decodeRefreshToken(refresh_token);
+    await this.insertRefreshToken({
+      token: refresh_token,
+      user_id,
+      iat,
+      exp
+    });
     return {
       message: USERS_MESSAGES.VERIFY_EMAIL_SUCCEED,
       data: {
@@ -307,7 +355,13 @@ class UserService {
         }
       )
     ]);
-    await this.insertRefreshToken({ token: refresh_token, user_id });
+    const { iat, exp } = await this.decodeRefreshToken(refresh_token);
+    await this.insertRefreshToken({
+      token: refresh_token,
+      user_id,
+      iat,
+      exp
+    });
     return {
       message: USERS_MESSAGES.RESET_PASSWORD_SUCCEED,
       data: {
@@ -724,6 +778,29 @@ class UserService {
       message: USERS_MESSAGES.GET_VIEWED_PRODUCTS_SUCCEED,
       data: {
         viewed_products
+      }
+    };
+  }
+
+  // Lấy số lượng của mỗi collection
+  async getQuantityPerCollection() {
+    const [users, products, orders, categories, brands, blogs] = await Promise.all([
+      databaseService.users.countDocuments(),
+      databaseService.products.countDocuments(),
+      databaseService.orders.countDocuments(),
+      databaseService.categories.countDocuments(),
+      databaseService.brands.countDocuments(),
+      databaseService.blogs.countDocuments()
+    ]);
+    return {
+      message: USERS_MESSAGES.GET_QUANTITY_PER_COLLECTION_SUCCEED,
+      data: {
+        users,
+        products,
+        orders,
+        categories,
+        brands,
+        blogs
       }
     };
   }

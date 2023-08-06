@@ -21,7 +21,8 @@ import {
   setDefaultAddressController,
   getAddressController,
   addViewedProductController,
-  getViewedProductsController
+  getViewedProductsController,
+  getQuantityPerCollectionController
 } from '~/controllers/users.controllers';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import {
@@ -188,6 +189,15 @@ usersRouter.get(
   accessTokenValidator,
   verifiedUserValidator,
   wrapRequestHandler(getViewedProductsController)
+);
+
+// Lấy số lượng của mỗi collection
+usersRouter.get(
+  '/quantity-per-collection',
+  accessTokenValidator,
+  verifiedUserValidator,
+  adminRoleValidator,
+  wrapRequestHandler(getQuantityPerCollectionController)
 );
 
 export default usersRouter;

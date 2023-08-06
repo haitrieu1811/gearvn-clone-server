@@ -66,9 +66,9 @@ export const refreshTokenController = async (
   req: Request<ParamsDictionary, any, RefreshTokenRequestBody>,
   res: Response
 ) => {
-  const { user_id, verify, role } = req.decoded_refresh_token as TokenPayload;
+  const { user_id, verify, role, exp } = req.decoded_refresh_token as TokenPayload;
   const { refresh_token } = req.body;
-  const result = await userService.refreshToken({ user_id, verify, refresh_token, role });
+  const result = await userService.refreshToken({ user_id, verify, refresh_token, role, exp });
   return res.json(result);
 };
 
@@ -244,5 +244,11 @@ export const addViewedProductController = async (
 export const getViewedProductsController = async (req: Request, res: Response) => {
   const { user_id } = req.decoded_authorization as TokenPayload;
   const result = await userService.getViewedProducts(user_id);
+  return res.json(result);
+};
+
+// Lấy số lượng của mỗi collection
+export const getQuantityPerCollectionController = async (req: Request, res: Response) => {
+  const result = await userService.getQuantityPerCollection();
   return res.json(result);
 };

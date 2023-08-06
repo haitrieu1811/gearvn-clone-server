@@ -9,6 +9,8 @@ export interface TokenPayload extends JwtPayload {
   verify: UserVerifyStatus;
   role: UserRole;
   token_type: TokenType;
+  iat: number;
+  exp: number;
 }
 
 export interface RegisterRequestBody {

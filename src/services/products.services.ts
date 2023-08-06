@@ -226,7 +226,7 @@ class ProductService {
   async getListProduct(query: GetProductListRequestQuery) {
     const { page, limit, category, brand, name, sortBy, orderBy } = query;
     // Sắp xếp
-    const _sortBy = sortBy ? sortBy : 'created_at';
+    const _sortBy = sortBy ? sortBy : 'updated_at';
     const _orderBy = orderBy ? (orderBy === 'desc' ? -1 : 1) : -1;
     const sort = {
       [_sortBy]: _orderBy
