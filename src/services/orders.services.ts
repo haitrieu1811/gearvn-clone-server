@@ -10,10 +10,9 @@ import { OrderStatus } from '~/constants/enum';
 class OrderService {
   // Lấy tất cả thông tin đơn hàng
   async getAll(query: GetOrdersRequestQuery) {
-    const { page, limit, status } = query;
+    const { page, limit } = query;
     const _limit = limit ? Number(limit) : 10;
     const _page = page ? Number(page) : 1;
-    const skip = (_page - 1) * _limit;
     const [orders, total] = await Promise.all([
       databaseService.orders
         .aggregate([
@@ -71,12 +70,12 @@ class OrderService {
             }
           }
         ])
-        .skip(skip)
+        .skip((_page - 1) * _limit)
         .limit(_limit)
         .toArray(),
       databaseService.orders.countDocuments()
     ]);
-    const pageSize = Math.ceil(total / _limit);
+    const page_size = Math.ceil(total / _limit);
     return {
       message: ORDERS_MESSAGES.GET_ALL_ORDERS_SUCCEED,
       data: {
@@ -85,7 +84,7 @@ class OrderService {
           total,
           page: _page,
           limit: _limit,
-          page_size: pageSize
+          page_size
         }
       }
     };
@@ -96,7 +95,7 @@ class OrderService {
     const { page, limit, status } = query;
     // Lọc theo trạng thái
     const _status = Number(status) ? Number(status) : undefined;
-    const match = omitBy(
+    const $match = omitBy(
       {
         user_id: new ObjectId(user_id),
         status: _status
@@ -106,13 +105,12 @@ class OrderService {
     // Phân trang
     const _page = page ? Number(page) : 1;
     const _limit = limit ? Number(limit) : 10;
-    const skip = (_page - 1) * _limit;
     const [total, orders] = await Promise.all([
-      databaseService.orders.countDocuments(match),
+      databaseService.orders.countDocuments($match),
       databaseService.orders
         .aggregate([
           {
-            $match: match
+            $match
           },
           {
             $lookup: {
@@ -139,10 +137,21 @@ class OrderService {
           {
             $group: {
               _id: '$_id',
-              status: { $first: '$status' },
-              purchases: { $push: '$purchases' },
-              created_at: { $first: '$created_at' },
-              updated_at: { $first: '$updated_at' }
+              status: {
+                $first: '$status'
+              },
+              total_amount: {
+                $first: '$total_amount'
+              },
+              purchases: {
+                $push: '$purchases'
+              },
+              created_at: {
+                $first: '$created_at'
+              },
+              updated_at: {
+                $first: '$updated_at'
+              }
             }
           },
           {
@@ -162,11 +171,9 @@ class OrderService {
             }
           }
         ])
-        .skip(skip)
+        .sort({ created_at: -1 })
+        .skip((_page - 1) * _limit)
         .limit(_limit)
-        .sort({
-          created_at: -1
-        })
         .toArray()
     ]);
     const pageSize = Math.ceil(total / _limit);
@@ -203,7 +210,9 @@ class OrderService {
           }
         },
         {
-          $unwind: '$purchases'
+          $unwind: {
+            path: '$purchases'
+          }
         },
         {
           $lookup: {
@@ -214,50 +223,76 @@ class OrderService {
           }
         },
         {
-          $unwind: '$purchases.product'
-        },
-        {
-          $lookup: {
-            from: 'users',
-            localField: 'user_id',
-            foreignField: '_id',
-            as: 'user'
-          }
-        },
-        {
-          $unwind: '$user'
-        },
-        {
-          $addFields: {
-            contact: {
-              province: '$address.province',
-              district: '$address.district',
-              ward: '$address.ward',
-              street: '$address.street',
-              phone_number: '$user.phoneNumber',
-              customer_name: '$user.fullName'
-            }
+          $unwind: {
+            path: '$purchases.product'
           }
         },
         {
           $group: {
             _id: '$_id',
-            status: { $first: '$status' },
-            total_buy_count: { $sum: '$purchases.buy_count' },
-            total_amount: { $sum: { $multiply: ['$purchases.buy_count', '$purchases.product.price_after_discount'] } },
-            purchases: { $push: '$purchases' },
-            contact: { $first: '$contact' },
-            created_at: { $first: '$created_at' },
-            updated_at: { $first: '$updated_at' }
+            purchases: {
+              $push: '$purchases'
+            },
+            customer_gender: {
+              $first: '$customer_gender'
+            },
+            customer_name: {
+              $first: '$customer_name'
+            },
+            customer_phone: {
+              $first: '$customer_phone'
+            },
+            province: {
+              $first: '$province'
+            },
+            district: {
+              $first: '$district'
+            },
+            ward: {
+              $first: '$ward'
+            },
+            street: {
+              $first: '$street'
+            },
+            note: {
+              $first: '$note'
+            },
+            transport_fee: {
+              $first: '$transport_fee'
+            },
+            total_amount: {
+              $first: '$total_amount'
+            },
+            total_amount_reduced: {
+              $first: '$total_amount_reduced'
+            },
+            total_items: {
+              $first: '$total_items'
+            },
+            receive_method: {
+              $first: '$receive_method'
+            },
+            payment_method: {
+              $first: '$payment_method'
+            },
+            status: {
+              $first: '$status'
+            },
+            created_at: {
+              $first: '$created_at'
+            },
+            updated_at: {
+              $first: '$updated_at'
+            }
           }
         },
         {
           $project: {
             'purchases.product_id': 0,
             'purchases.user_id': 0,
-            'purchases.status': 0,
             'purchases.created_at': 0,
             'purchases.updated_at': 0,
+            'purchases.status': 0,
             'purchases.product.general_info': 0,
             'purchases.product.description': 0,
             'purchases.product.images': 0,

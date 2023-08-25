@@ -6,7 +6,39 @@ import { PRODUCTS_MESSAGES } from '~/constants/messages';
 import { ErrorWithStatus } from '~/models/Errors';
 import databaseService from '~/services/database.services';
 import { validate } from '~/utils/validation';
-import { productIdSchema } from './common.middlewares';
+
+export const productIdSchema: ParamSchema = {
+  custom: {
+    options: async (value: string) => {
+      if (!value) {
+        throw new ErrorWithStatus({
+          message: PRODUCTS_MESSAGES.PRODUCT_ID_IS_REQUIRED,
+          status: HTTP_STATUS.BAD_REQUEST
+        });
+      }
+      if (typeof value !== 'string') {
+        throw new ErrorWithStatus({
+          message: PRODUCTS_MESSAGES.PRODUCT_ID_MUST_BE_A_STRING,
+          status: HTTP_STATUS.BAD_REQUEST
+        });
+      }
+      if (!ObjectId.isValid(value)) {
+        throw new ErrorWithStatus({
+          message: PRODUCTS_MESSAGES.PRODUCT_ID_IS_INVALID,
+          status: HTTP_STATUS.BAD_REQUEST
+        });
+      }
+      const product = await databaseService.products.findOne({ _id: new ObjectId(value) });
+      if (!product) {
+        throw new ErrorWithStatus({
+          message: PRODUCTS_MESSAGES.PRODUCT_NOT_FOUND,
+          status: HTTP_STATUS.NOT_FOUND
+        });
+      }
+      return true;
+    }
+  }
+};
 
 const brandNameSchema: ParamSchema = {
   notEmpty: {
@@ -298,6 +330,22 @@ export const createProductValidator = validate(
           errorMessage: PRODUCTS_MESSAGES.PRODUCT_SPECIFICATIONS_MUST_BE_A_STRING
         },
         trim: true
+      },
+      available_count: {
+        notEmpty: {
+          errorMessage: PRODUCTS_MESSAGES.PRODUCT_AVAILABLE_COUNT_IS_REQUIRED
+        },
+        isNumeric: {
+          errorMessage: PRODUCTS_MESSAGES.PRODUCT_AVAILABLE_COUNT_MUST_BE_A_NUMBER
+        },
+        custom: {
+          options: (value: number) => {
+            if (value <= 0) {
+              throw new Error(PRODUCTS_MESSAGES.PRODUCT_AVAILABLE_COUNT_MUST_BE_GREATER_THAN_ZERO);
+            }
+            return true;
+          }
+        }
       }
     },
     ['body']
@@ -398,6 +446,20 @@ export const updateProductValidator = validate(
           errorMessage: PRODUCTS_MESSAGES.PRODUCT_SPECIFICATIONS_MUST_BE_A_STRING
         },
         trim: true
+      },
+      available_count: {
+        optional: true,
+        isNumeric: {
+          errorMessage: PRODUCTS_MESSAGES.PRODUCT_AVAILABLE_COUNT_MUST_BE_A_NUMBER
+        },
+        custom: {
+          options: (value: number) => {
+            if (value <= 0) {
+              throw new Error(PRODUCTS_MESSAGES.PRODUCT_AVAILABLE_COUNT_MUST_BE_GREATER_THAN_ZERO);
+            }
+            return true;
+          }
+        }
       }
     },
     ['body']

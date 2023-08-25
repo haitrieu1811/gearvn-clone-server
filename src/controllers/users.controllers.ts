@@ -1,35 +1,28 @@
 import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 import { ObjectId } from 'mongodb';
+
 import { UserVerifyStatus } from '~/constants/enum';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { USERS_MESSAGES } from '~/constants/messages';
-
 import {
-  AddAddressRequestBody,
   AddViewedProductRequestBody,
   ChangePasswordRequestBody,
-  DeleteAddressRequestParams,
   DeleteUserRequestBody,
   ForgotPasswordRequestBody,
-  GetAddressRequestParams,
   GetUsersRequestQuery,
   LoginRequestBody,
   LogoutRequestBody,
   RefreshTokenRequestBody,
   RegisterRequestBody,
   ResetPasswordRequestBody,
-  SetDefaultAddressRequestParams,
   TokenPayload,
-  UpdateAddressRequestBody,
-  UpdateAddressRequestParams,
   UpdateMeRequestBody,
   UpdateRolesRequestBody,
   VerifyEmailRequestBody
 } from '~/models/requests/User.requests';
 import User from '~/models/schemas/User.schema';
 import databaseService from '~/services/database.services';
-import productService from '~/services/products.services';
 import userService from '~/services/users.services';
 
 // Đăng ký
@@ -145,56 +138,6 @@ export const updateMeController = async (req: Request<ParamsDictionary, any, Upd
   const { user_id } = req.decoded_authorization as TokenPayload;
   const rssult = await userService.updateMe({ payload, user_id });
   return res.json(rssult);
-};
-
-// Thêm địa chỉ nhận hàng
-export const addAddressController = async (
-  req: Request<ParamsDictionary, any, AddAddressRequestBody>,
-  res: Response
-) => {
-  const { user_id } = req.decoded_authorization as TokenPayload;
-  const user = req.user as User;
-  const isDefault = user.addresses.length <= 0 ? true : false;
-  const { body } = req;
-  const payload = {
-    ...body,
-    isDefault
-  };
-  const result = await userService.addAddress({ payload, user_id });
-  return res.json(result);
-};
-
-// Lấy thông tin địa chỉ nhận hàng
-export const getAddressController = async (req: Request<GetAddressRequestParams>, res: Response) => {
-  const { address_id } = req.params;
-  const result = await userService.getAddress(address_id);
-  return res.json(result);
-};
-
-// Cập nhật địa chỉ nhận hàng
-export const updateAddressController = async (
-  req: Request<UpdateAddressRequestParams, any, UpdateAddressRequestBody>,
-  res: Response
-) => {
-  const { body: payload } = req;
-  const { address_id } = req.params;
-  const result = await userService.updateAddress({ payload, address_id });
-  return res.json(result);
-};
-
-// Xóa địa chỉ nhận hàng
-export const deleteAddressController = async (req: Request<DeleteAddressRequestParams, any, any>, res: Response) => {
-  const { address_id } = req.params;
-  const result = await userService.deleteAddress(address_id);
-  return res.json(result);
-};
-
-// Đặt thành địa chỉ mặc định
-export const setDefaultAddressController = async (req: Request<SetDefaultAddressRequestParams>, res: Response) => {
-  const { address_id } = req.params;
-  const { user_id } = req.decoded_authorization as TokenPayload;
-  const result = await userService.setDefaultAddress({ address_id, user_id });
-  return res.json(result);
 };
 
 // Cập nhật quyền tài khoản

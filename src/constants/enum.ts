@@ -57,3 +57,15 @@ export enum MediaType {
   Image,
   Video
 }
+
+export enum ReceiveMethod {
+  AtHome,
+  AtStore,
+  AtPostOffice,
+  Other
+}
+
+export enum PaymentMethod {
+  Cash,
+  Card
+}

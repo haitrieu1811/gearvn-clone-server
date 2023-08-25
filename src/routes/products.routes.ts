@@ -40,12 +40,19 @@ productsRouter.get('/brand', wrapRequestHandler(getBrandsController));
 productsRouter.get('/brand/:brand_id', checkBrandExistValidator, wrapRequestHandler(getBrandController));
 
 // Tạo mới nhãn hiệu
-productsRouter.post('/brand', accessTokenValidator, createBrandValidator, wrapRequestHandler(createBrandController));
+productsRouter.post(
+  '/brand',
+  accessTokenValidator,
+  adminRoleValidator,
+  createBrandValidator,
+  wrapRequestHandler(createBrandController)
+);
 
 // Cập nhật nhãn hiệu
 productsRouter.put(
   '/brand/:brand_id',
   accessTokenValidator,
+  adminRoleValidator,
   checkBrandExistValidator,
   updateBrandValidator,
   wrapRequestHandler(updateBrandController)
@@ -58,6 +65,7 @@ productsRouter.delete('/brand', accessTokenValidator, deleteBrandValidator, wrap
 productsRouter.post(
   '/image/:product_id',
   accessTokenValidator,
+  adminRoleValidator,
   checkProductExist,
   addImageValidator,
   wrapRequestHandler(addImageController)
@@ -67,6 +75,7 @@ productsRouter.post(
 productsRouter.delete(
   '/image/:media_id',
   accessTokenValidator,
+  adminRoleValidator,
   checkMediaExistValidator,
   wrapRequestHandler(deleteImageController)
 );
@@ -74,6 +83,7 @@ productsRouter.delete(
 productsRouter.post(
   '/',
   accessTokenValidator,
+  adminRoleValidator,
   createProductValidator,
   filterReqBodyMiddleware<CreateProductRequestBody>([
     'brand_id',
@@ -94,6 +104,7 @@ productsRouter.post(
 productsRouter.patch(
   '/:product_id',
   accessTokenValidator,
+  adminRoleValidator,
   checkProductExist,
   updateProductValidator,
   filterReqBodyMiddleware<UpdateProductRequestBody>([
@@ -107,7 +118,8 @@ productsRouter.patch(
     'price',
     'price_after_discount',
     'specifications',
-    'thumbnail'
+    'thumbnail',
+    'available_count'
   ]),
   wrapRequestHandler(updateProductController)
 );

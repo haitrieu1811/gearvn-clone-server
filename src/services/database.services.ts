@@ -1,8 +1,11 @@
 import { config } from 'dotenv';
 import { Collection, Db, MongoClient } from 'mongodb';
+import { text } from 'stream/consumers';
+
+import { ENV_CONFIG } from '~/constants/config';
+import Address from '~/models/schemas/Address.schema';
 import Blog from '~/models/schemas/Blog.schema';
 import Brand from '~/models/schemas/Brand.schema';
-
 import Category from '~/models/schemas/Category.schema';
 import Media from '~/models/schemas/Media.schema';
 import Order from '~/models/schemas/Order.schema';
@@ -13,7 +16,7 @@ import User from '~/models/schemas/User.schema';
 import ViewedProduct from '~/models/schemas/ViewedProduct.schema';
 config();
 
-const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@gearvn-clone-cluster.ur6rvkl.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${ENV_CONFIG.DB_USERNAME}:${ENV_CONFIG.DB_PASSWORD}@gearvn-clone-cluster.ur6rvkl.mongodb.net/?retryWrites=true&w=majority`;
 
 class DatabaseService {
   private client: MongoClient;
@@ -21,7 +24,7 @@ class DatabaseService {
 
   constructor() {
     this.client = new MongoClient(uri);
-    this.db = this.client.db(process.env.DB_NAME);
+    this.db = this.client.db(ENV_CONFIG.DB_NAME);
   }
 
   async connect() {
@@ -34,44 +37,78 @@ class DatabaseService {
     }
   }
 
+  async indexUsers() {
+    const isExist = await this.users.indexExists(['email_1', 'addresses_1']);
+    if (!isExist) {
+      await this.users.createIndex({ email: 1 }, { unique: true });
+      await this.users.createIndex({ addresses: 1 });
+    }
+  }
+
+  async indexPurchases() {
+    const isExist = await this.purchases.indexExists(['product_id_1_user_id_1_status_1']);
+    if (!isExist) {
+      await this.purchases.createIndex({ product_id: 1, user_id: 1, status: 1 });
+    }
+  }
+
+  async indexProducts() {
+    const isExist = await this.products.indexExists(['name_vi_text_name_en_text']);
+    if (!isExist) {
+      await this.products.createIndex({ name_vi: 'text', name_en: 'text' });
+    }
+  }
+
+  async indexRefreshTokens() {
+    const isExist = await this.refresh_tokens.indexExists(['token_1', 'exp_1']);
+    if (!isExist) {
+      await this.refresh_tokens.createIndex({ token: 1 }, { unique: true });
+      await this.refresh_tokens.createIndex({ exp: 1 }, { expireAfterSeconds: 0 });
+    }
+  }
+
   get users(): Collection<User> {
-    return this.db.collection(process.env.DB_USERS_COLLECTION as string);
+    return this.db.collection(ENV_CONFIG.DB_USERS_COLLECTION);
   }
 
   get refresh_tokens(): Collection<RefreshToken> {
-    return this.db.collection(process.env.DB_REFRESH_TOKENS_COLLECTION as string);
+    return this.db.collection(ENV_CONFIG.DB_REFRESH_TOKENS_COLLECTION);
   }
 
   get categories(): Collection<Category> {
-    return this.db.collection(process.env.DB_CATEGORIES_COLLECTION as string);
+    return this.db.collection(ENV_CONFIG.DB_CATEGORIES_COLLECTION);
   }
 
   get brands(): Collection<Brand> {
-    return this.db.collection(process.env.DB_BRANDS_COLLECTION as string);
+    return this.db.collection(ENV_CONFIG.DB_BRANDS_COLLECTION);
   }
 
   get products(): Collection<Product> {
-    return this.db.collection(process.env.DB_PRODUCTS_COLLECTION as string);
+    return this.db.collection(ENV_CONFIG.DB_PRODUCTS_COLLECTION);
   }
 
   get medias(): Collection<Media> {
-    return this.db.collection(process.env.DB_MEDIAS_COLLECTION as string);
+    return this.db.collection(ENV_CONFIG.DB_MEDIAS_COLLECTION);
   }
 
   get purchases(): Collection<Purchase> {
-    return this.db.collection(process.env.DB_PURCHASES_COLLECTION as string);
+    return this.db.collection(ENV_CONFIG.DB_PURCHASES_COLLECTION);
   }
 
   get orders(): Collection<Order> {
-    return this.db.collection(process.env.DB_ORDERS_COLLECTION as string);
+    return this.db.collection(ENV_CONFIG.DB_ORDERS_COLLECTION);
   }
 
   get blogs(): Collection<Blog> {
-    return this.db.collection(process.env.DB_BLOGS_COLLECTION as string);
+    return this.db.collection(ENV_CONFIG.DB_BLOGS_COLLECTION);
   }
 
   get viewedProducts(): Collection<ViewedProduct> {
-    return this.db.collection(process.env.DB_VIEWED_PRODUCTS_COLLECTION as string);
+    return this.db.collection(ENV_CONFIG.DB_VIEWED_PRODUCTS_COLLECTION);
+  }
+
+  get addresses(): Collection<Address> {
+    return this.db.collection(ENV_CONFIG.DB_ADDRESSES_COLLECTION);
   }
 }
 

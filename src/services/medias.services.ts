@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import sharp from 'sharp';
 
-import { isProduction } from '~/constants/config';
+import { ENV_CONFIG, isProduction } from '~/constants/config';
 import { UPLOAD_IMAGE_DIR } from '~/constants/dir';
 import { MediaType } from '~/constants/enum';
 import { MEDIAS_MESSAGES } from '~/constants/messages';
@@ -28,8 +28,8 @@ class MediaService {
         return {
           name: newName,
           url: isProduction
-            ? `${process.env.HOST}/static/image/${newName}`
-            : `http://localhost:${process.env.PORT}/static/image/${newName}`,
+            ? `${ENV_CONFIG.HOST}/static/image/${newName}`
+            : `http://localhost:${ENV_CONFIG.PORT}/static/image/${newName}`,
           type: MediaType.Image
         };
       })

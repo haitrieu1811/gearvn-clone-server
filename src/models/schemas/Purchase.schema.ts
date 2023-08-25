@@ -3,9 +3,11 @@ import { PurchaseStatus } from '~/constants/enum';
 
 interface PurchaseInterface {
   _id?: ObjectId;
-  buy_count: number;
   product_id: ObjectId;
   user_id: ObjectId;
+  unit_price: number;
+  unit_price_after_discount: number;
+  buy_count: number;
   status?: PurchaseStatus;
   created_at?: Date;
   updated_at?: Date;
@@ -13,23 +15,36 @@ interface PurchaseInterface {
 
 class Purchase {
   _id?: ObjectId;
-  buy_count: number;
   product_id: ObjectId;
   user_id: ObjectId;
+  unit_price: number;
+  unit_price_after_discount: number;
+  buy_count: number;
   status: PurchaseStatus;
   created_at: Date;
   updated_at: Date;
 
-  constructor(purchase: PurchaseInterface) {
+  constructor({
+    _id,
+    unit_price,
+    unit_price_after_discount,
+    buy_count,
+    product_id,
+    user_id,
+    status,
+    created_at,
+    updated_at
+  }: PurchaseInterface) {
     const date = new Date();
-
-    this._id = purchase._id;
-    this.buy_count = purchase.buy_count;
-    this.product_id = purchase.product_id;
-    this.user_id = purchase.user_id;
-    this.status = purchase.status || PurchaseStatus.InCart;
-    this.created_at = date;
-    this.updated_at = date;
+    this._id = _id;
+    this.unit_price = unit_price;
+    this.unit_price_after_discount = unit_price_after_discount;
+    this.buy_count = buy_count;
+    this.product_id = product_id;
+    this.user_id = user_id;
+    this.status = status || PurchaseStatus.InCart;
+    this.created_at = created_at || date;
+    this.updated_at = updated_at || date;
   }
 }
 

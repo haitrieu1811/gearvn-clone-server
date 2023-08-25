@@ -8,6 +8,7 @@ import {
   getCartListController,
   updatePurchaseController
 } from '~/controllers/purchases.controllers';
+import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import {
   addToCartValidator,
   checkPurchaseExist,
@@ -15,16 +16,29 @@ import {
   deletePurchaseValidator,
   updatePurchaseValidator
 } from '~/middlewares/purchases.middlewares';
-import { accessTokenValidator } from '~/middlewares/users.middlewares';
+import { accessTokenValidator, verifiedUserValidator } from '~/middlewares/users.middlewares';
+import { CheckoutRequestBody } from '~/models/requests/Purchase.requests';
 import { wrapRequestHandler } from '~/utils/handler';
 
 const purchasesRouter = Router();
 
-purchasesRouter.post('/add-to-cart', accessTokenValidator, addToCartValidator, wrapRequestHandler(addToCartController));
-purchasesRouter.get('/get-cart', accessTokenValidator, wrapRequestHandler(getCartListController));
+purchasesRouter.post(
+  '/add-to-cart',
+  accessTokenValidator,
+  verifiedUserValidator,
+  addToCartValidator,
+  wrapRequestHandler(addToCartController)
+);
+purchasesRouter.get(
+  '/get-cart',
+  accessTokenValidator,
+  verifiedUserValidator,
+  wrapRequestHandler(getCartListController)
+);
 purchasesRouter.put(
   '/:purchase_id',
   accessTokenValidator,
+  verifiedUserValidator,
   checkPurchaseExist,
   updatePurchaseValidator,
   wrapRequestHandler(updatePurchaseController)
@@ -32,10 +46,40 @@ purchasesRouter.put(
 purchasesRouter.delete(
   '/',
   accessTokenValidator,
+  verifiedUserValidator,
   deletePurchaseValidator,
   wrapRequestHandler(deletePurchaseController)
 );
-purchasesRouter.delete('/delete-all', accessTokenValidator, wrapRequestHandler(deleteAllPurchaseController));
-purchasesRouter.post('/checkout', accessTokenValidator, checkoutValidator, wrapRequestHandler(checkoutController));
+purchasesRouter.delete(
+  '/delete-all',
+  accessTokenValidator,
+  verifiedUserValidator,
+  wrapRequestHandler(deleteAllPurchaseController)
+);
+purchasesRouter.post(
+  '/checkout',
+  accessTokenValidator,
+  verifiedUserValidator,
+  checkoutValidator,
+  filterReqBodyMiddleware<CheckoutRequestBody>([
+    'customer_gender',
+    'customer_name',
+    'customer_phone',
+    'district',
+    'note',
+    'payment_method',
+    'province',
+    'purchases',
+    'receive_method',
+    'status',
+    'street',
+    'total_amount',
+    'total_amount_reduced',
+    'total_items',
+    'transport_fee',
+    'ward'
+  ]),
+  wrapRequestHandler(checkoutController)
+);
 
 export default purchasesRouter;

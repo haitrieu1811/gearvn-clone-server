@@ -1,56 +1,45 @@
 import { Router } from 'express';
 
 import {
-  addAddressController,
+  addViewedProductController,
   changePasswordController,
-  deleteAddressController,
+  deleteUserController,
   forgotPasswordController,
   getMeController,
+  getQuantityPerCollectionController,
   getUsersController,
+  getViewedProductsController,
   loginController,
   logoutController,
   refreshTokenController,
   registerController,
   resendEmailVerifyController,
   resetPasswordController,
-  updateAddressController,
   updateMeController,
   updateRolesController,
-  verifyEmailController,
-  deleteUserController,
-  setDefaultAddressController,
-  getAddressController,
-  addViewedProductController,
-  getViewedProductsController,
-  getQuantityPerCollectionController
+  verifyEmailController
 } from '~/controllers/users.controllers';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import {
   RegisterValidator,
   accessTokenValidator,
-  addressExistValidator,
-  addAddressValidator,
+  addViewedProductValidator,
   adminRoleValidator,
   changePasswordValidator,
   deleteUserValidator,
   emailVerifyTokenValidator,
   forgotPasswordTokenValidator,
   forgotPasswordValidator,
-  limitAddressValidator,
   loginValidator,
   refreshTokenValidator,
   resetPasswordValidator,
   roleValidator,
   updateMeValidator,
-  verifiedUserValidator,
-  updateAddressValidator,
-  addViewedProductValidator
+  verifiedUserValidator
 } from '~/middlewares/users.middlewares';
 import {
-  AddAddressRequestBody,
   ChangePasswordRequestBody,
   ResetPasswordRequestBody,
-  UpdateAddressRequestBody,
   UpdateMeRequestBody,
   UpdateRolesRequestBody
 } from '~/models/requests/User.requests';
@@ -108,55 +97,6 @@ usersRouter.patch(
   updateMeValidator,
   filterReqBodyMiddleware<UpdateMeRequestBody>(['avatar', 'date_of_birth', 'fullName', 'gender', 'phoneNumber']),
   wrapRequestHandler(updateMeController)
-);
-
-// Tạo mới một địa chỉ cho tài khoản
-usersRouter.post(
-  '/address',
-  accessTokenValidator,
-  verifiedUserValidator,
-  limitAddressValidator,
-  addAddressValidator,
-  filterReqBodyMiddleware<AddAddressRequestBody>(['province', 'district', 'ward', 'street', 'type', 'isDefault']),
-  wrapRequestHandler(addAddressController)
-);
-
-// Lấy thông tin chi tiết một địa chỉ của tài khoản
-usersRouter.get(
-  '/address/:address_id',
-  accessTokenValidator,
-  verifiedUserValidator,
-  addressExistValidator,
-  wrapRequestHandler(getAddressController)
-);
-
-// Cập nhật thông tin một địa chỉ của tài khoản
-usersRouter.put(
-  '/address/:address_id',
-  accessTokenValidator,
-  verifiedUserValidator,
-  addressExistValidator,
-  updateAddressValidator,
-  filterReqBodyMiddleware<UpdateAddressRequestBody>(['province', 'district', 'ward', 'street', 'type', 'isDefault']),
-  wrapRequestHandler(updateAddressController)
-);
-
-// Xóa một địa chỉ của tài khoản
-usersRouter.delete(
-  '/address/:address_id',
-  accessTokenValidator,
-  verifiedUserValidator,
-  addressExistValidator,
-  wrapRequestHandler(deleteAddressController)
-);
-
-// Đặt một địa chỉ thành địa chỉ mặc định
-usersRouter.put(
-  '/address/set-default/:address_id',
-  accessTokenValidator,
-  verifiedUserValidator,
-  addressExistValidator,
-  wrapRequestHandler(setDefaultAddressController)
 );
 
 // Cập nhật quyền cho tài khoản

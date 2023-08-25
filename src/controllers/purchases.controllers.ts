@@ -9,7 +9,6 @@ import {
   UpdatePurchaseRequestParams
 } from '~/models/requests/Purchase.requests';
 import { TokenPayload } from '~/models/requests/User.requests';
-import { OrderAddress } from '~/models/schemas/Order.schema';
 import purchaseService from '~/services/purchases.services';
 
 export const addToCartController = async (req: Request<ParamsDictionary, any, AddToCartRequestBody>, res: Response) => {
@@ -52,8 +51,6 @@ export const deleteAllPurchaseController = async (req: Request, res: Response) =
 
 export const checkoutController = async (req: Request<ParamsDictionary, any, CheckoutRequestBody>, res: Response) => {
   const { user_id } = req.decoded_authorization as TokenPayload;
-  const { purchase_ids, province, district, ward, street } = req.body;
-  const address: OrderAddress = { province, district, ward, street };
-  const result = await purchaseService.checkout({ purchase_ids, user_id, address });
+  const result = await purchaseService.checkout(req.body, user_id);
   return res.json(result);
 };

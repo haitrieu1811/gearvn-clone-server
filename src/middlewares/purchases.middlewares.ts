@@ -1,13 +1,20 @@
 import { ParamSchema, checkSchema } from 'express-validator';
 import { ObjectId } from 'mongodb';
 
+import { OrderStatus, PaymentMethod, ReceiveMethod } from '~/constants/enum';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { PURCHASES_MESSAGES } from '~/constants/messages';
 import { ErrorWithStatus } from '~/models/Errors';
 import databaseService from '~/services/database.services';
+import { numberEnumToArray } from '~/utils/commons';
 import { validate } from '~/utils/validation';
-import { productIdSchema } from './common.middlewares';
-import { districtSchema, provinceSchema, streetSchema, wardSchema } from './users.middlewares';
+import { districtSchema, provinceSchema, streetSchema, wardSchema } from './addresses.middlewares';
+import { productIdSchema } from './products.middlewares';
+import { fullNameSchema, genderSchema, phoneNumberSchema } from './users.middlewares';
+
+const receiveMethods = numberEnumToArray(ReceiveMethod);
+const paymentMethods = numberEnumToArray(PaymentMethod);
+const orderStatus = numberEnumToArray(OrderStatus);
 
 const buyCountSchema: ParamSchema = {
   custom: {
@@ -135,11 +142,78 @@ export const deletePurchaseValidator = validate(
 export const checkoutValidator = validate(
   checkSchema(
     {
-      purchase_ids: purchaseIdsSchema,
+      purchases: purchaseIdsSchema,
+      customer_gender: genderSchema,
+      customer_name: fullNameSchema,
+      customer_phone: phoneNumberSchema,
       province: provinceSchema,
       district: districtSchema,
       ward: wardSchema,
-      street: streetSchema
+      street: streetSchema,
+      note: {
+        optional: true,
+        isString: {
+          errorMessage: PURCHASES_MESSAGES.NOTE_MUST_BE_A_STRING
+        },
+        isLength: {
+          errorMessage: PURCHASES_MESSAGES.NOTE_LENGTH,
+          options: { max: 250 }
+        },
+        trim: true
+      },
+      transport_fee: {
+        optional: true,
+        isNumeric: {
+          errorMessage: PURCHASES_MESSAGES.TRANSPORT_FEE_MUST_BE_A_NUMBER
+        }
+      },
+      total_amount: {
+        notEmpty: {
+          errorMessage: PURCHASES_MESSAGES.TOTAL_AMOUNT_IS_REQUIRED
+        },
+        isNumeric: {
+          errorMessage: PURCHASES_MESSAGES.TOTAL_AMOUNT_MUST_BE_A_NUMBER
+        }
+      },
+      total_amount_reduced: {
+        optional: true,
+        isNumeric: {
+          errorMessage: PURCHASES_MESSAGES.TOTAL_AMOUNT_REDUCED_MUST_BE_A_NUMBER
+        }
+      },
+      total_items: {
+        notEmpty: {
+          errorMessage: PURCHASES_MESSAGES.TOTAL_ITEMS_IS_REQUIRED
+        },
+        isNumeric: {
+          errorMessage: PURCHASES_MESSAGES.TOTAL_ITEMS_MUST_BE_A_NUMBER
+        }
+      },
+      receive_method: {
+        notEmpty: {
+          errorMessage: PURCHASES_MESSAGES.RECEIVE_METHOD_IS_REQUIRED
+        },
+        isIn: {
+          errorMessage: PURCHASES_MESSAGES.RECEIVE_METHOD_INVALID,
+          options: [receiveMethods]
+        }
+      },
+      payment_method: {
+        notEmpty: {
+          errorMessage: PURCHASES_MESSAGES.PAYMENT_METHOD_IS_REQUIRED
+        },
+        isIn: {
+          errorMessage: PURCHASES_MESSAGES.PAYMENT_METHOD_INVALID,
+          options: [paymentMethods]
+        }
+      },
+      status: {
+        optional: true,
+        isIn: {
+          errorMessage: PURCHASES_MESSAGES.STATUS_INVALID,
+          options: [orderStatus]
+        }
+      }
     },
     ['body']
   )

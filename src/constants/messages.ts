@@ -88,7 +88,9 @@ export const USERS_MESSAGES = {
   GET_ADDRESS_SUCCEED: 'Get address succeed',
   ADD_OR_UPDATE_VIEWED_PRODUCT_SUCCEED: 'Add or update viewed product succeed',
   GET_VIEWED_PRODUCTS_SUCCEED: 'Get viewed products succeed',
-  GET_QUANTITY_PER_COLLECTION_SUCCEED: 'Get quantity per collection succeed'
+  GET_QUANTITY_PER_COLLECTION_SUCCEED: 'Get quantity per collection succeed',
+  GET_ADDRESSES_SUCCEED: 'Get addresses succeed',
+  ADDRESS_IS_DEFAULT: 'Address is default'
 } as const;
 
 export const CATEGORIES_MESSAGES = {
@@ -171,7 +173,10 @@ export const PRODUCTS_MESSAGES = {
   PRODUCT_IDS_IS_INVALID: 'Product ids is invalid',
   PRICE_AFTER_DISCOUNT_MUST_LESS_THAN: 'Must be less than the init price',
   IMAGES_ITEM_MUST_BE_A_STRING: 'Image item must be a string',
-  PRODUCT_ID_MUST_BE_A_STRING: 'Product id must be a string'
+  PRODUCT_ID_MUST_BE_A_STRING: 'Product id must be a string',
+  PRODUCT_AVAILABLE_COUNT_IS_REQUIRED: 'Product available count is required',
+  PRODUCT_AVAILABLE_COUNT_MUST_BE_A_NUMBER: 'Product available count must be a number',
+  PRODUCT_AVAILABLE_COUNT_MUST_BE_GREATER_THAN_ZERO: 'Product available count must be greater than 0'
 } as const;
 
 export const PURCHASES_MESSAGES = {
@@ -191,7 +196,27 @@ export const PURCHASES_MESSAGES = {
   PURCHASE_IDS_LENGTH: 'Purchase ids must have at least 1 item',
   CHECKOUT_SUCCEED: 'Checkout succeed',
   GET_CART_LIST_SUCCEED: 'Get cart list succeed',
-  DELETE_ALL_PURCHASE_SUCCEED: 'Delete all purchase succeed'
+  DELETE_ALL_PURCHASE_SUCCEED: 'Delete all purchase succeed',
+  NOTE_MUST_BE_A_STRING: 'Note must be a string',
+  NOTE_LENGTH: 'Note must length from 1 to 250 characters',
+  TRANSPORT_FEE_MUST_BE_A_NUMBER: 'Transport fee must be a number',
+  TOTAL_AMOUNT_MUST_BE_A_NUMBER: 'Total amount must be a number',
+  TOTAL_AMOUNT_REDUCED_MUST_BE_A_NUMBER: 'Total amount reduced must be a number',
+  TOTAL_ITEMS_MUST_BE_A_NUMBER: 'Total items must be a number',
+  RECEIVE_METHOD_IS_REQUIRED: 'Receive method is required',
+  RECEIVE_METHOD_IS_INVALID: 'Receive method is invalid',
+  TOTAL_AMOUNT_IS_REQUIRED: 'Total amount is required',
+  TOTAL_ITEMS_IS_REQUIRED: 'Total items is required',
+  RECEIVE_METHOD_MUST_BE_A_NUMBER: 'Receive method must be a number',
+  PAYMENT_METHOD_IS_REQUIRED: 'Payment method is required',
+  PAYMENT_METHOD_IS_INVALID: 'Payment method is invalid',
+  PAYMENT_METHOD_MUST_BE_A_NUMBER: 'Payment method must be a number',
+  STATUS_IS_REQUIRED: 'Status is required',
+  STATUS_IS_INVALID: 'Status is invalid',
+  STATUS_MUST_BE_A_NUMBER: 'Status must be a number',
+  RECEIVE_METHOD_INVALID: 'Receive method is invalid',
+  PAYMENT_METHOD_INVALID: 'Payment method is invalid',
+  STATUS_INVALID: 'Status is invalid'
 } as const;
 
 export const ORDERS_MESSAGES = {

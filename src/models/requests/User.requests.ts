@@ -1,8 +1,7 @@
-import { ParamsDictionary } from 'express-serve-static-core';
 import { JwtPayload } from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 
-import { AddressType, Gender, TokenType, UserRole, UserStatus, UserVerifyStatus } from '~/constants/enum';
+import { Gender, TokenType, UserRole, UserStatus, UserVerifyStatus } from '~/constants/enum';
 
 export interface TokenPayload extends JwtPayload {
   user_id: string;
@@ -53,40 +52,6 @@ export interface UpdateMeRequestBody {
   phoneNumber: string;
   date_of_birth: string;
   avatar: string;
-}
-
-export interface AddAddressRequestBody {
-  province: string;
-  district: string;
-  ward: string;
-  street: string;
-  type: AddressType;
-  isDefault: boolean;
-}
-
-export interface GetAddressRequestParams extends ParamsDictionary {
-  address_id: string;
-}
-
-export interface UpdateAddressRequestBody {
-  province: string;
-  district: string;
-  ward: string;
-  street: string;
-  type: AddressType;
-  isDefault: boolean;
-}
-
-export interface UpdateAddressRequestParams extends ParamsDictionary {
-  address_id: string;
-}
-
-export interface DeleteAddressRequestParams extends ParamsDictionary {
-  address_id: string;
-}
-
-export interface SetDefaultAddressRequestParams extends ParamsDictionary {
-  address_id: string;
 }
 
 export interface UpdateRolesRequestBody {

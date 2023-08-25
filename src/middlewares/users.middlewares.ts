@@ -1,12 +1,12 @@
-import { config } from 'dotenv';
 import { NextFunction, Request } from 'express';
 import { ParamSchema, checkSchema } from 'express-validator';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import capitalize from 'lodash/capitalize';
 import { ObjectId } from 'mongodb';
 
+import { ENV_CONFIG } from '~/constants/config';
 import { USERS_PROJECTION } from '~/constants/db';
-import { AddressType, UserRole, UserVerifyStatus } from '~/constants/enum';
+import { UserRole, UserVerifyStatus } from '~/constants/enum';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { USERS_MESSAGES } from '~/constants/messages';
 import { ErrorWithStatus } from '~/models/Errors';
@@ -16,8 +16,7 @@ import userService from '~/services/users.services';
 import { hashPassword } from '~/utils/crypto';
 import { verifyToken } from '~/utils/jwt';
 import { validate } from '~/utils/validation';
-import { productIdSchema } from './common.middlewares';
-config();
+import { productIdSchema } from './products.middlewares';
 
 const emailSchema: ParamSchema = {
   notEmpty: {
@@ -104,81 +103,6 @@ const imageSchema: ParamSchema = {
   }
 };
 
-export const provinceSchema: ParamSchema = {
-  notEmpty: {
-    errorMessage: USERS_MESSAGES.PROVINCE_IS_REQUIRED
-  },
-  isString: {
-    errorMessage: USERS_MESSAGES.PROVINCE_MUST_BE_A_STRING
-  }
-};
-
-export const districtSchema: ParamSchema = {
-  notEmpty: {
-    errorMessage: USERS_MESSAGES.DISTRICT_IS_REQUIRED
-  },
-  isString: {
-    errorMessage: USERS_MESSAGES.DISTRICT_MUST_BE_A_STRING
-  }
-};
-
-export const wardSchema: ParamSchema = {
-  notEmpty: {
-    errorMessage: USERS_MESSAGES.WARD_IS_REQUIRED
-  },
-  isString: {
-    errorMessage: USERS_MESSAGES.WARD_MUST_BE_A_STRING
-  }
-};
-
-export const streetSchema: ParamSchema = {
-  notEmpty: {
-    errorMessage: USERS_MESSAGES.STREET_IS_REQUIRED
-  },
-  isString: {
-    errorMessage: USERS_MESSAGES.STREET_MUST_BE_A_STRING
-  },
-  isLength: {
-    options: {
-      min: 1,
-      max: 250
-    },
-    errorMessage: USERS_MESSAGES.STREET_LENGTH
-  }
-};
-
-export const addressTypeSchema: ParamSchema = {
-  notEmpty: {
-    errorMessage: USERS_MESSAGES.ADDRESS_TYPE_IS_REQUIRED
-  },
-  custom: {
-    options: (value: number) => {
-      if (!Number.isInteger(value)) {
-        throw new ErrorWithStatus({
-          message: USERS_MESSAGES.ADDRESS_TYPE_MUST_BE_A_INTEGER,
-          status: HTTP_STATUS.BAD_REQUEST
-        });
-      }
-      if (!(value in AddressType)) {
-        throw new ErrorWithStatus({
-          message: USERS_MESSAGES.ADDRESS_TYPE_IS_INVALID,
-          status: HTTP_STATUS.BAD_REQUEST
-        });
-      }
-      return true;
-    }
-  }
-};
-
-export const addressDefaultValueSchema: ParamSchema = {
-  notEmpty: {
-    errorMessage: USERS_MESSAGES.ADDRESS_DEFAULT_VALUE_IS_REQUIRED
-  },
-  isBoolean: {
-    errorMessage: USERS_MESSAGES.ADDRESS_DEFAULT_VALUE_MUST_BE_A_BOOLEAN
-  }
-};
-
 export const expireTokenSchema: ParamSchema = {
   optional: true,
   custom: {
@@ -188,6 +112,45 @@ export const expireTokenSchema: ParamSchema = {
           message: USERS_MESSAGES.EXPIRE_ACCESS_TOKEN_MUST_BE_A_INTEGER,
           status: HTTP_STATUS.BAD_REQUEST
         });
+      }
+      return true;
+    }
+  }
+};
+
+export const genderSchema: ParamSchema = {
+  optional: true
+};
+
+export const fullNameSchema: ParamSchema = {
+  optional: true,
+  isString: {
+    errorMessage: USERS_MESSAGES.FULLNAME_MUST_BE_A_STRING
+  },
+  isLength: {
+    options: {
+      min: 1,
+      max: 100
+    },
+    errorMessage: USERS_MESSAGES.FULLNAME_MUST_LENGTH_FROM_1_TO_100_CHARACTERS
+  },
+  trim: true
+};
+
+export const phoneNumberSchema: ParamSchema = {
+  optional: true,
+  custom: {
+    options: async (value: string, { req }) => {
+      if (!value) {
+        throw new Error(USERS_MESSAGES.PHONE_NUMBER_IS_REQUIRED);
+      }
+      // if (!PHONE_NUMBER_REGEX.test(value)) {
+      //   throw new Error(USERS_MESSAGES.PHONE_NUMBER_INVALID);
+      // }
+      const { user_id } = req.decoded_authorization as TokenPayload;
+      const user = await databaseService.users.findOne({ phoneNumber: value });
+      if (user && user._id.toString() !== user_id) {
+        throw new Error(USERS_MESSAGES.PHONE_NUMBER_IS_EXIST);
       }
       return true;
     }
@@ -211,7 +174,7 @@ export const accessTokenValidator = validate(
             try {
               const decoded_authorization = await verifyToken({
                 token: access_token,
-                secretOrPublicKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
+                secretOrPublicKey: ENV_CONFIG.JWT_SECRET_ACCESS_TOKEN
               });
               (req as Request).decoded_authorization = decoded_authorization;
             } catch (error) {
@@ -244,7 +207,7 @@ export const refreshTokenValidator = validate(
             }
             try {
               const [decoded_refresh_token, refresh_token] = await Promise.all([
-                verifyToken({ token: value, secretOrPublicKey: process.env.JWT_SECRET_REFRESH_TOKEN as string }),
+                verifyToken({ token: value, secretOrPublicKey: ENV_CONFIG.JWT_SECRET_REFRESH_TOKEN }),
                 databaseService.refresh_tokens.findOne({ token: value })
               ]);
               if (!refresh_token) {
@@ -304,7 +267,7 @@ export const forgotPasswordTokenValidator = validate(
                 databaseService.users.findOne({ forgot_password_token: value }),
                 verifyToken({
                   token: value,
-                  secretOrPublicKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
+                  secretOrPublicKey: ENV_CONFIG.JWT_SECRET_FORGOT_PASSWORD_TOKEN
                 })
               ]);
               if (!user) {
@@ -350,7 +313,7 @@ export const emailVerifyTokenValidator = validate(
                 databaseService.users.findOne({ email_verify_token: value }),
                 verifyToken({
                   token: value,
-                  secretOrPublicKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string
+                  secretOrPublicKey: ENV_CONFIG.JWT_SECRET_EMAIL_VERIFY_TOKEN
                 })
               ]);
               if (!user) {
@@ -504,42 +467,9 @@ export const changePasswordValidator = validate(
 export const updateMeValidator = validate(
   checkSchema(
     {
-      fullName: {
-        optional: true,
-        isString: {
-          errorMessage: USERS_MESSAGES.FULLNAME_MUST_BE_A_STRING
-        },
-        isLength: {
-          options: {
-            min: 1,
-            max: 100
-          },
-          errorMessage: USERS_MESSAGES.FULLNAME_MUST_LENGTH_FROM_1_TO_100_CHARACTERS
-        },
-        trim: true
-      },
-      gender: {
-        optional: true
-      },
-      phoneNumber: {
-        optional: true,
-        custom: {
-          options: async (value: string, { req }) => {
-            if (!value) {
-              throw new Error(USERS_MESSAGES.PHONE_NUMBER_IS_REQUIRED);
-            }
-            // if (!PHONE_NUMBER_REGEX.test(value)) {
-            //   throw new Error(USERS_MESSAGES.PHONE_NUMBER_INVALID);
-            // }
-            const { user_id } = req.decoded_authorization as TokenPayload;
-            const user = await databaseService.users.findOne({ phoneNumber: value });
-            if (user && user._id.toString() !== user_id) {
-              throw new Error(USERS_MESSAGES.PHONE_NUMBER_IS_EXIST);
-            }
-            return true;
-          }
-        }
-      },
+      fullName: fullNameSchema,
+      gender: genderSchema,
+      phoneNumber: phoneNumberSchema,
       date_of_birth: {
         optional: true,
         isISO8601: {
@@ -556,94 +486,6 @@ export const updateMeValidator = validate(
     ['body']
   )
 );
-
-export const addAddressValidator = validate(
-  checkSchema(
-    {
-      province: provinceSchema,
-      district: districtSchema,
-      ward: wardSchema,
-      street: streetSchema,
-      type: addressTypeSchema,
-      isDefault: addressDefaultValueSchema
-    },
-    ['body']
-  )
-);
-
-export const updateAddressValidator = validate(
-  checkSchema(
-    {
-      province: provinceSchema,
-      district: districtSchema,
-      ward: wardSchema,
-      street: streetSchema,
-      type: addressTypeSchema,
-      isDefault: addressDefaultValueSchema
-    },
-    ['body']
-  )
-);
-
-export const addressExistValidator = validate(
-  checkSchema(
-    {
-      address_id: {
-        trim: true,
-        custom: {
-          options: async (value: string, { req }) => {
-            if (!value) {
-              throw new ErrorWithStatus({
-                message: USERS_MESSAGES.ADDRESS_ID_IS_REQUIRED,
-                status: HTTP_STATUS.BAD_REQUEST
-              });
-            }
-            if (!ObjectId.isValid(value)) {
-              throw new ErrorWithStatus({
-                message: USERS_MESSAGES.ADDRESS_ID_INVALID,
-                status: HTTP_STATUS.BAD_REQUEST
-              });
-            }
-            const address = await databaseService.users.findOne({
-              'addresses._id': new ObjectId(value)
-            });
-            if (!address) {
-              throw new ErrorWithStatus({
-                message: USERS_MESSAGES.ADDRESS_NOT_EXIST,
-                status: HTTP_STATUS.NOT_FOUND
-              });
-            }
-            return true;
-          }
-        }
-      }
-    },
-    ['params']
-  )
-);
-
-export const limitAddressValidator = async (req: Request, res: any, next: NextFunction) => {
-  const { user_id } = req.decoded_authorization as TokenPayload;
-  const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) });
-  if (!user) {
-    return next(
-      new ErrorWithStatus({
-        message: USERS_MESSAGES.USER_NOT_FOUND,
-        status: HTTP_STATUS.NOT_FOUND
-      })
-    );
-  }
-  (req as Request).user = user;
-  if (user.addresses.length >= 3) {
-    return next(
-      new ErrorWithStatus({
-        message: USERS_MESSAGES.ADDRESS_MAXIMUM,
-        status: HTTP_STATUS.FORBIDDEN
-      })
-    );
-  }
-  next();
-};
 
 export const roleValidator = validate(
   checkSchema(

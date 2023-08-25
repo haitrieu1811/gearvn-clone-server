@@ -1,9 +1,14 @@
-import { ObjectId } from 'mongodb';
+import { ObjectId, WithId } from 'mongodb';
 
 import { PurchaseStatus } from '~/constants/enum';
 import { PURCHASES_MESSAGES } from '~/constants/messages';
-import { AddToCartRequestBody, UpdatePurchaseRequestBody } from '~/models/requests/Purchase.requests';
-import Order, { OrderAddress } from '~/models/schemas/Order.schema';
+import {
+  AddToCartRequestBody,
+  CheckoutRequestBody,
+  UpdatePurchaseRequestBody
+} from '~/models/requests/Purchase.requests';
+import Order from '~/models/schemas/Order.schema';
+import Product from '~/models/schemas/Product.schema';
 import Purchase from '~/models/schemas/Purchase.schema';
 import databaseService from './database.services';
 
@@ -11,11 +16,17 @@ class PurchaseService {
   // Thêm sản phẩm vào giỏ hàng
   async addToCart({ payload, user_id }: { payload: AddToCartRequestBody; user_id: string }) {
     const { product_id, buy_count } = payload;
-    let purchase = await databaseService.purchases.findOne({
-      product_id: new ObjectId(product_id),
-      user_id: new ObjectId(new ObjectId(user_id)),
-      status: PurchaseStatus.InCart
-    });
+    // eslint-disable-next-line prefer-const
+    let [purchase, product] = await Promise.all([
+      databaseService.purchases.findOne({
+        product_id: new ObjectId(product_id),
+        user_id: new ObjectId(new ObjectId(user_id)),
+        status: PurchaseStatus.InCart
+      }),
+      databaseService.products.findOne({
+        _id: new ObjectId(product_id)
+      })
+    ]);
     if (purchase) {
       const { value } = await databaseService.purchases.findOneAndUpdate(
         {
@@ -38,9 +49,11 @@ class PurchaseService {
     } else {
       const { insertedId } = await databaseService.purchases.insertOne(
         new Purchase({
-          buy_count,
           product_id: new ObjectId(product_id),
-          user_id: new ObjectId(user_id)
+          user_id: new ObjectId(user_id),
+          buy_count,
+          unit_price: (product as WithId<Product>).price,
+          unit_price_after_discount: (product as WithId<Product>).price_after_discount
         })
       );
       purchase = await databaseService.purchases.findOne({
@@ -153,28 +166,20 @@ class PurchaseService {
   }
 
   // Đặt hàng
-  async checkout({
-    purchase_ids,
-    user_id,
-    address
-  }: {
-    purchase_ids: ObjectId[];
-    user_id: string;
-    address: OrderAddress;
-  }) {
-    const dataPurchases = purchase_ids.map((id) => new ObjectId(id));
-    await Promise.all([
+  async checkout(payload: CheckoutRequestBody, user_id: string) {
+    const { purchases } = payload;
+    const _purchases = purchases.map((id) => new ObjectId(id));
+    const [{ insertedId }] = await Promise.all([
       databaseService.orders.insertOne(
         new Order({
-          purchases: dataPurchases,
-          user_id: new ObjectId(user_id),
-          address
+          ...payload,
+          user_id
         })
       ),
       databaseService.purchases.updateMany(
         {
           _id: {
-            $in: dataPurchases
+            $in: _purchases
           }
         },
         {
@@ -188,7 +193,10 @@ class PurchaseService {
       )
     ]);
     return {
-      message: PURCHASES_MESSAGES.CHECKOUT_SUCCEED
+      message: PURCHASES_MESSAGES.CHECKOUT_SUCCEED,
+      data: {
+        order_id: insertedId
+      }
     };
   }
 }

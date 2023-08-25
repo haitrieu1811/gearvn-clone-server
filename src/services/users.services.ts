@@ -1,25 +1,19 @@
 import { config } from 'dotenv';
-import { ObjectId, WithId } from 'mongodb';
-import pick from 'lodash/pick';
-import omitBy from 'lodash/omitBy';
-import isUndefined from 'lodash/isUndefined';
 import isNaN from 'lodash/isNaN';
+import omitBy from 'lodash/omitBy';
+import { ObjectId, WithId } from 'mongodb';
 
+import { ENV_CONFIG } from '~/constants/config';
 import { USERS_PROJECTION } from '~/constants/db';
-import { Gender, TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
+import { TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
 import { USERS_MESSAGES } from '~/constants/messages';
-import {
-  AddAddressRequestBody,
-  GetUsersRequestQuery,
-  UpdateAddressRequestBody,
-  UpdateMeRequestBody
-} from '~/models/requests/User.requests';
+import { GetUsersRequestQuery, UpdateMeRequestBody } from '~/models/requests/User.requests';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import User from '~/models/schemas/User.schema';
+import ViewedProduct from '~/models/schemas/ViewedProduct.schema';
 import { hashPassword } from '~/utils/crypto';
 import { signToken, verifyToken } from '~/utils/jwt';
 import databaseService from './database.services';
-import ViewedProduct from '~/models/schemas/ViewedProduct.schema';
 config();
 
 interface SignToken {
@@ -48,9 +42,9 @@ class UserService {
         role,
         token_type: TokenType.Access
       },
-      privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string,
+      privateKey: ENV_CONFIG.JWT_SECRET_ACCESS_TOKEN as string,
       options: {
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN
+        expiresIn: ENV_CONFIG.ACCESS_TOKEN_EXPIRES_IN
       }
     });
   }
@@ -66,7 +60,7 @@ class UserService {
           token_type: TokenType.Refresh,
           exp
         },
-        privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+        privateKey: ENV_CONFIG.JWT_SECRET_REFRESH_TOKEN as string
       });
     }
     return signToken({
@@ -76,9 +70,9 @@ class UserService {
         role,
         token_type: TokenType.Refresh
       },
-      privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string,
+      privateKey: ENV_CONFIG.JWT_SECRET_REFRESH_TOKEN as string,
       options: {
-        expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN
+        expiresIn: ENV_CONFIG.REFRESH_TOKEN_EXPIRES_IN
       }
     });
   }
@@ -100,9 +94,9 @@ class UserService {
         role,
         token_type: TokenType.EmailVerify
       },
-      privateKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string,
+      privateKey: ENV_CONFIG.JWT_SECRET_EMAIL_VERIFY_TOKEN as string,
       options: {
-        expiresIn: process.env.VERIFY_EMAIL_TOKEN_EXPIRES_IN
+        expiresIn: ENV_CONFIG.VERIFY_EMAIL_TOKEN_EXPIRES_IN
       }
     });
   }
@@ -116,9 +110,9 @@ class UserService {
         role,
         token_type: TokenType.ForgotPassword
       },
-      privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string,
+      privateKey: ENV_CONFIG.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string,
       options: {
-        expiresIn: process.env.FORGOT_PASSWORD_TOKEN_EXPIRES_IN
+        expiresIn: ENV_CONFIG.FORGOT_PASSWORD_TOKEN_EXPIRES_IN
       }
     });
   }
@@ -214,7 +208,7 @@ class UserService {
   private decodeRefreshToken(refresh_token: string) {
     return verifyToken({
       token: refresh_token,
-      secretOrPublicKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+      secretOrPublicKey: ENV_CONFIG.JWT_SECRET_REFRESH_TOKEN as string
     });
   }
 
@@ -253,6 +247,7 @@ class UserService {
       }
     };
   }
+
   // Xác thực email
   async verifyEmail({ user_id, role }: { user_id: string; role: UserRole }) {
     const [[access_token, refresh_token]] = await Promise.all([
@@ -440,174 +435,6 @@ class UserService {
         access_token,
         refresh_token,
         user
-      }
-    };
-  }
-
-  // Thêm địa chỉ nhận hàng
-  async addAddress({ payload, user_id }: { payload: AddAddressRequestBody; user_id: string }) {
-    const { value: user } = await databaseService.users.findOneAndUpdate(
-      {
-        _id: new ObjectId(user_id)
-      },
-      {
-        $push: {
-          addresses: {
-            _id: new ObjectId(),
-            ...payload
-          }
-        }
-      },
-      {
-        returnDocument: 'after',
-        projection: USERS_PROJECTION
-      }
-    );
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
-      user_id: user?._id.toString() as string,
-      role: user?.role as UserRole,
-      verify: user?.verify as UserVerifyStatus
-    });
-    return {
-      message: USERS_MESSAGES.ADD_ADDRESS_SUCCEED,
-      data: {
-        access_token,
-        refresh_token,
-        user
-      }
-    };
-  }
-
-  // Lấy thông tin địa chỉ nhận hàng
-  async getAddress(address_id: string) {
-    const user = await databaseService.users.findOne({
-      'addresses._id': new ObjectId(address_id)
-    });
-    const address = user?.addresses.find((address) => address._id.toString() === address_id);
-    return {
-      message: USERS_MESSAGES.GET_ADDRESS_SUCCEED,
-      data: {
-        address
-      }
-    };
-  }
-
-  // Cập nhật địa chỉ nhận hàng
-  async updateAddress({ payload, address_id }: { payload: UpdateAddressRequestBody; address_id: string }) {
-    const { value: user } = await databaseService.users.findOneAndUpdate(
-      {
-        'addresses._id': new ObjectId(address_id)
-      },
-      {
-        $set: {
-          'addresses.$': {
-            _id: new ObjectId(address_id),
-            ...payload
-          }
-        },
-        $currentDate: {
-          updated_at: true
-        }
-      },
-      {
-        projection: USERS_PROJECTION,
-        returnDocument: 'after'
-      }
-    );
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
-      user_id: user?._id.toString() as string,
-      role: user?.role as UserRole,
-      verify: user?.verify as UserVerifyStatus
-    });
-    return {
-      message: USERS_MESSAGES.UPDATE_ADDRESS_SUCCEED,
-      data: {
-        access_token,
-        refresh_token,
-        user
-      }
-    };
-  }
-
-  // Xóa địa chỉ nhận hàng
-  async deleteAddress(address_id: string) {
-    const { value: user } = await databaseService.users.findOneAndUpdate(
-      {
-        // _id: new ObjectId(user_id)
-        'addresses._id': new ObjectId(address_id)
-      },
-      {
-        $pull: {
-          addresses: {
-            _id: new ObjectId(address_id)
-          }
-        }
-      },
-      {
-        returnDocument: 'after',
-        projection: USERS_PROJECTION
-      }
-    );
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
-      user_id: user?._id.toString() as string,
-      role: user?.role as UserRole,
-      verify: user?.verify as UserVerifyStatus
-    });
-    return {
-      message: USERS_MESSAGES.DELETE_ADDRESS_SUCCEED,
-      data: {
-        access_token,
-        refresh_token,
-        user
-      }
-    };
-  }
-
-  // Đặt địa chỉ thành mặc định
-  async setDefaultAddress({ address_id, user_id }: { address_id: string; user_id: string }) {
-    const user = await databaseService.users.findOne({
-      _id: new ObjectId(user_id)
-    });
-    const _addresses = user?.addresses.map((address) => {
-      if (address._id.toString() === address_id) {
-        return {
-          ...address,
-          isDefault: true
-        };
-      }
-      return {
-        ...address,
-        isDefault: false
-      };
-    });
-    const { value: _user } = await databaseService.users.findOneAndUpdate(
-      {
-        _id: new ObjectId(user_id)
-      },
-      {
-        $set: {
-          addresses: _addresses
-        },
-        $currentDate: {
-          updated_at: true
-        }
-      },
-      {
-        returnDocument: 'after',
-        projection: USERS_PROJECTION
-      }
-    );
-    const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
-      user_id: _user?._id.toString() as string,
-      role: _user?.role as UserRole,
-      verify: _user?.verify as UserVerifyStatus
-    });
-    return {
-      message: USERS_MESSAGES.SET_DEFAULT_ADDRESS_SUCCEED,
-      data: {
-        access_token,
-        refresh_token,
-        user: _user
       }
     };
   }

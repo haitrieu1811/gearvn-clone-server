@@ -1,17 +1,7 @@
 import { ObjectId } from 'mongodb';
-import { AddressType, Gender, UserRole, UserStatus, UserVerifyStatus } from '~/constants/enum';
+import { Gender, UserRole, UserStatus, UserVerifyStatus } from '~/constants/enum';
 
-export interface Address {
-  _id: ObjectId;
-  province: string;
-  district: string;
-  ward: string;
-  street: string;
-  type: AddressType;
-  isDefault: boolean;
-}
-
-interface UserInterface {
+interface UserConstructor {
   _id?: ObjectId;
   email: string;
   password: string;
@@ -22,7 +12,7 @@ interface UserInterface {
   gender?: Gender;
   verify?: UserVerifyStatus;
   phoneNumber?: string;
-  addresses?: Address[];
+  addresses?: string[];
   date_of_birth?: Date;
   email_verify_token?: string;
   forgot_password_token?: string;
@@ -41,29 +31,46 @@ class User {
   gender: Gender;
   verify: UserVerifyStatus;
   phoneNumber: string;
-  addresses: Address[];
+  addresses: ObjectId[];
   date_of_birth: Date;
   email_verify_token: string;
   forgot_password_token: string;
   created_at: Date;
   updated_at: Date;
 
-  constructor(user: UserInterface) {
+  constructor({
+    _id,
+    email,
+    password,
+    status,
+    role,
+    fullName,
+    avatar,
+    gender,
+    verify,
+    phoneNumber,
+    addresses,
+    date_of_birth,
+    email_verify_token,
+    forgot_password_token,
+    created_at,
+    updated_at
+  }: UserConstructor) {
     const date = new Date();
-    this._id = user._id;
-    this.email = user.email;
-    this.password = user.password;
-    this.status = user.status || UserStatus.Active;
-    this.role = user.role || UserRole.Customer;
-    this.fullName = user.fullName || '';
-    this.avatar = user.avatar || '';
-    this.gender = user.gender || Gender.Other;
-    this.verify = user.verify || UserVerifyStatus.Unverified;
-    this.phoneNumber = user.phoneNumber || '';
-    this.addresses = user.addresses || [];
+    this._id = _id;
+    this.email = email;
+    this.password = password;
+    this.status = status || UserStatus.Active;
+    this.role = role || UserRole.Customer;
+    this.fullName = fullName || '';
+    this.avatar = avatar || '';
+    this.gender = gender || Gender.Other;
+    this.verify = verify || UserVerifyStatus.Unverified;
+    this.phoneNumber = phoneNumber || '';
+    this.addresses = addresses ? addresses.map((address) => new ObjectId(address)) : [];
     this.date_of_birth = date;
-    this.email_verify_token = user.email_verify_token || '';
-    this.forgot_password_token = user.forgot_password_token || '';
+    this.email_verify_token = email_verify_token || '';
+    this.forgot_password_token = forgot_password_token || '';
     this.created_at = date;
     this.updated_at = date;
   }

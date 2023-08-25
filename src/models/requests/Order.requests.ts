@@ -1,9 +1,8 @@
 import { ParamsDictionary } from 'express-serve-static-core';
 import { OrderStatus } from '~/constants/enum';
+import { Pagination } from './Commons.requests';
 
-export interface GetOrdersRequestQuery {
-  page?: string;
-  limit?: string;
+export interface GetOrdersRequestQuery extends Pagination {
   status?: OrderStatus;
 }
 

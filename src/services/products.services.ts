@@ -224,6 +224,7 @@ class ProductService {
 
   // Lấy danh sách các sản phẩm
   async getListProduct(query: GetProductListRequestQuery) {
+    // Lấy thông tin truy vấn
     const { page, limit, category, brand, name, sortBy, orderBy } = query;
     // Sắp xếp
     const _sortBy = sortBy ? sortBy : 'updated_at';
@@ -235,7 +236,7 @@ class ProductService {
     const _page = Number(page) || 1;
     const _limit = Number(limit) || 10;
     const skip = (_page - 1) * _limit;
-    // Lọc
+    // Tìm kiếm
     const categoryArray = category ? category.split('-') : [];
     const brandArray = brand ? brand.split('-') : [];
     const match = omitBy(
@@ -259,7 +260,7 @@ class ProductService {
       },
       isUndefined
     );
-    // Truy vấn
+    // Lấy danh sách sản phẩm
     const [total, products] = await Promise.all([
       databaseService.products.countDocuments(match),
       databaseService.products
@@ -366,6 +367,7 @@ class ProductService {
             category_id: 1,
             brand_id: 1,
             specifications: 1,
+            available_count: 1,
             created_at: 1,
             updated_at: 1
           }

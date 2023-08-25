@@ -59,6 +59,7 @@ export interface CreateProductRequestBody {
   brand_id: ObjectId;
   category_id: ObjectId;
   specifications?: string;
+  available_count: number;
 }
 
 // Cập nhật sản phẩm (body)
@@ -74,6 +75,7 @@ export interface UpdateProductRequestBody {
   brand_id: ObjectId;
   category_id: ObjectId;
   specifications?: string;
+  available_count: number;
 }
 
 // Cập nhật sản phẩm (params)
