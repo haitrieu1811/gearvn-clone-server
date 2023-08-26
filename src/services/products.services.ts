@@ -239,8 +239,10 @@ class ProductService {
     // Tìm kiếm
     const categoryArray = category ? category.split('-') : [];
     const brandArray = brand ? brand.split('-') : [];
+    const text = name ? { $text: { $search: name } } : {};
     const match = omitBy(
       {
+        ...text,
         category_id: category
           ? {
               $in: categoryArray.map((category) => new ObjectId(category))
@@ -249,12 +251,6 @@ class ProductService {
         brand_id: brand
           ? {
               $in: brandArray.map((brand) => new ObjectId(brand))
-            }
-          : undefined,
-        name_vi: name
-          ? {
-              $regex: name,
-              $options: 'i'
             }
           : undefined
       },

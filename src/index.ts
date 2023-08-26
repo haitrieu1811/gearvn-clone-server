@@ -1,8 +1,9 @@
 import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import helmet from 'helmet';
+import helmet, { HelmetOptions } from 'helmet';
 
+import 'src/utils/email';
 import { ENV_CONFIG, isProduction } from './constants/config';
 import { defaultErrorHandler } from './middlewares/error.middlewares';
 import addressesRouter from './routes/addresses.routes';
@@ -18,13 +19,14 @@ import databaseService from './services/database.services';
 import { initFolders } from './utils/file';
 initFolders();
 
-databaseService.connect().then(async () => {
-  await databaseService.indexUsers();
-  await databaseService.indexPurchases();
+databaseService.connect().then(() => {
+  databaseService.indexUsers();
+  databaseService.indexPurchases();
+  databaseService.indexProducts();
 });
 
 const app = express();
-const port = ENV_CONFIG.PORT;
+const port = ENV_CONFIG.PORT || 4000;
 const corsOptions = {
   origin: isProduction ? ENV_CONFIG.CLIENT_URL : '*'
 };
@@ -35,11 +37,14 @@ const limiter = rateLimit({
   legacyHeaders: false // Disable the `X-RateLimit-*` headers
   // store: ... , // Use an external store for more precise rate limiting
 });
+const helmetOptions: HelmetOptions = {
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+};
 
-app.use(express.json());
+// app.use(limiter);
+app.use(helmet(helmetOptions));
 app.use(cors(corsOptions));
-app.use(helmet());
-app.use(limiter);
+app.use(express.json());
 app.use('/users', usersRouter);
 app.use('/addresses', addressesRouter);
 app.use('/categories', categoriesRouter);

@@ -14,6 +14,7 @@ import ViewedProduct from '~/models/schemas/ViewedProduct.schema';
 import { hashPassword } from '~/utils/crypto';
 import { signToken, verifyToken } from '~/utils/jwt';
 import databaseService from './database.services';
+import { sendVerifyEmail } from '~/utils/email';
 config();
 
 interface SignToken {
@@ -169,7 +170,7 @@ class UserService {
       })
     ]);
     // Gửi mail
-    console.log('>>> Send mail: ', email_verify_token);
+    await sendVerifyEmail(email, email_verify_token);
     return {
       message: USERS_MESSAGES.REGISTER_SUCCEED,
       data: {
