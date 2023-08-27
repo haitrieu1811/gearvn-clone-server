@@ -251,9 +251,9 @@ class UserService {
 
   // Xác thực email
   async verifyEmail({ user_id, role }: { user_id: string; role: UserRole }) {
-    const [[access_token, refresh_token]] = await Promise.all([
+    const [[access_token, refresh_token], { value: updated_user }] = await Promise.all([
       this.signAccessAndRefreshToken({ user_id, verify: UserVerifyStatus.Verified, role }),
-      databaseService.users.updateOne(
+      databaseService.users.findOneAndUpdate(
         {
           _id: new ObjectId(user_id)
         },
@@ -265,6 +265,9 @@ class UserService {
           $currentDate: {
             updated_at: true
           }
+        },
+        {
+          returnDocument: 'after'
         }
       )
     ]);
@@ -279,13 +282,14 @@ class UserService {
       message: USERS_MESSAGES.VERIFY_EMAIL_SUCCEED,
       data: {
         access_token,
-        refresh_token
+        refresh_token,
+        user: updated_user
       }
     };
   }
 
   // Gửi lại email xác thực
-  async resendEmailVerify({ user_id, role }: { user_id: string; role: UserRole }) {
+  async resendEmailVerify({ user_id, role, email }: { user_id: string; role: UserRole; email: string }) {
     const email_verify_token = await this.signEmailVerifyToken({ user_id, verify: UserVerifyStatus.Unverified, role });
     await databaseService.users.updateOne(
       {
@@ -300,7 +304,7 @@ class UserService {
         }
       }
     );
-    console.log('>>> Send email to user: ', email_verify_token);
+    await sendVerifyEmail(email, email_verify_token);
     return {
       message: USERS_MESSAGES.RESEND_EMAIL_VERIFY_SUCCEED
     };

@@ -38,11 +38,7 @@ import {
   verifiedUserValidator,
   verifyForgotPasswordTokenValidator
 } from '~/middlewares/users.middlewares';
-import {
-  ChangePasswordRequestBody,
-  UpdateMeRequestBody,
-  UpdateRolesRequestBody
-} from '~/models/requests/User.requests';
+import { UpdateMeRequestBody, UpdateRolesRequestBody } from '~/models/requests/User.requests';
 import { wrapRequestHandler } from '~/utils/handler';
 
 const usersRouter = Router();
@@ -95,6 +91,7 @@ usersRouter.get('/me', accessTokenValidator, wrapRequestHandler(getMeController)
 usersRouter.patch(
   '/me',
   accessTokenValidator,
+  verifiedUserValidator,
   updateMeValidator,
   filterReqBodyMiddleware<UpdateMeRequestBody>(['avatar', 'date_of_birth', 'fullName', 'gender', 'phoneNumber']),
   wrapRequestHandler(updateMeController)
@@ -113,7 +110,13 @@ usersRouter.put(
 usersRouter.get('/list', accessTokenValidator, adminRoleValidator, wrapRequestHandler(getUsersController));
 
 // Xóa tài khoản người dùng
-usersRouter.delete('/', accessTokenValidator, deleteUserValidator, wrapRequestHandler(deleteUserController));
+usersRouter.delete(
+  '/',
+  accessTokenValidator,
+  adminRoleValidator,
+  deleteUserValidator,
+  wrapRequestHandler(deleteUserController)
+);
 
 // Thêm một lịch sử xem sản phẩm
 usersRouter.post(

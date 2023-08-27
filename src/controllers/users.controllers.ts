@@ -89,7 +89,7 @@ export const resendEmailVerifyController = async (req: Request, res: Response) =
       message: USERS_MESSAGES.EMAIL_VERIFY_BEFORE
     });
   }
-  const result = await userService.resendEmailVerify({ user_id, role });
+  const result = await userService.resendEmailVerify({ user_id, role, email: user.email });
   return res.json(result);
 };
 
