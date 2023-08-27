@@ -90,7 +90,9 @@ export const USERS_MESSAGES = {
   GET_VIEWED_PRODUCTS_SUCCEED: 'Get viewed products succeed',
   GET_QUANTITY_PER_COLLECTION_SUCCEED: 'Get quantity per collection succeed',
   GET_ADDRESSES_SUCCEED: 'Get addresses succeed',
-  ADDRESS_IS_DEFAULT: 'Address is default'
+  ADDRESS_IS_DEFAULT: 'Address is default',
+  FORGOT_PASSWORD_TOKEN_IS_INVALID: 'Forgot password token is invalid',
+  VERIFY_EMAIL_VERIFY_TOKEN_SUCCEED: 'Verify email verify token succeed'
 } as const;
 
 export const CATEGORIES_MESSAGES = {

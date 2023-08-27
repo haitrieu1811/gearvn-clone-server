@@ -249,7 +249,7 @@ export const adminRoleValidator = async (req: Request, res: any, next: NextFunct
   next();
 };
 
-export const forgotPasswordTokenValidator = validate(
+export const verifyForgotPasswordTokenValidator = validate(
   checkSchema(
     {
       forgot_password_token: {
@@ -371,7 +371,7 @@ export const loginValidator = validate(
       email: {
         ...emailSchema,
         custom: {
-          options: async (value, { req }) => {
+          options: async (value) => {
             const { isExist } = await userService.checkEmailExist(value);
             if (!isExist) {
               throw new Error(USERS_MESSAGES.EMAIL_NOT_EXIST);

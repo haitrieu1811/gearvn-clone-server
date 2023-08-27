@@ -22,6 +22,7 @@ import { wrapRequestHandler } from '~/utils/handler';
 
 const purchasesRouter = Router();
 
+// Thêm vào giỏ hàng
 purchasesRouter.post(
   '/add-to-cart',
   accessTokenValidator,
@@ -29,12 +30,11 @@ purchasesRouter.post(
   addToCartValidator,
   wrapRequestHandler(addToCartController)
 );
-purchasesRouter.get(
-  '/get-cart',
-  accessTokenValidator,
-  verifiedUserValidator,
-  wrapRequestHandler(getCartListController)
-);
+
+// Lấy danh sách giỏ hàng
+purchasesRouter.get('/get-cart', accessTokenValidator, wrapRequestHandler(getCartListController));
+
+// Cập nhật giỏ hàng
 purchasesRouter.put(
   '/:purchase_id',
   accessTokenValidator,
@@ -43,6 +43,8 @@ purchasesRouter.put(
   updatePurchaseValidator,
   wrapRequestHandler(updatePurchaseController)
 );
+
+// Xóa giỏ hàng
 purchasesRouter.delete(
   '/',
   accessTokenValidator,
@@ -50,12 +52,16 @@ purchasesRouter.delete(
   deletePurchaseValidator,
   wrapRequestHandler(deletePurchaseController)
 );
+
+// Xóa tất cả giỏ hàng
 purchasesRouter.delete(
   '/delete-all',
   accessTokenValidator,
   verifiedUserValidator,
   wrapRequestHandler(deleteAllPurchaseController)
 );
+
+// Thanh toán
 purchasesRouter.post(
   '/checkout',
   accessTokenValidator,

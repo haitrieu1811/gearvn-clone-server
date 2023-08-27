@@ -38,10 +38,11 @@ class DatabaseService {
   }
 
   async indexUsers() {
-    const isExist = await this.users.indexExists(['email_1', 'addresses_1']);
+    const isExist = await this.users.indexExists(['email_1', 'addresses_1', 'forgot_password_token_1']);
     if (!isExist) {
       await this.users.createIndex({ email: 1 }, { unique: true });
       await this.users.createIndex({ addresses: 1 });
+      await this.users.createIndex({ forgot_password_token: 1 });
     }
   }
 

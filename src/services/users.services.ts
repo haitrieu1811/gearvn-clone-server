@@ -14,7 +14,7 @@ import ViewedProduct from '~/models/schemas/ViewedProduct.schema';
 import { hashPassword } from '~/utils/crypto';
 import { signToken, verifyToken } from '~/utils/jwt';
 import databaseService from './database.services';
-import { sendVerifyEmail } from '~/utils/email';
+import { sendForgotPasswordEmail, sendVerifyEmail } from '~/utils/email';
 config();
 
 interface SignToken {
@@ -316,7 +316,7 @@ class UserService {
       role
     });
     await databaseService.users.updateOne({ _id }, { $set: { forgot_password_token } });
-    console.log('>>> Gửi email khôi phục mật khẩu: ', forgot_password_token);
+    await sendForgotPasswordEmail(email, forgot_password_token);
     return {
       message: USERS_MESSAGES.SEND_FORGOT_PASSWORD_EMAIL_SUCCESS
     };
@@ -334,9 +334,9 @@ class UserService {
     verify: UserVerifyStatus;
     role: UserRole;
   }) {
-    const [[access_token, refresh_token]] = await Promise.all([
+    const [[access_token, refresh_token], { value: updated_user }] = await Promise.all([
       this.signAccessAndRefreshToken({ user_id, verify, role }),
-      databaseService.users.updateOne(
+      databaseService.users.findOneAndUpdate(
         {
           _id: new ObjectId(user_id)
         },
@@ -348,6 +348,10 @@ class UserService {
           $currentDate: {
             updated_at: true
           }
+        },
+        {
+          returnDocument: 'after',
+          projection: USERS_PROJECTION
         }
       )
     ]);
@@ -362,7 +366,8 @@ class UserService {
       message: USERS_MESSAGES.RESET_PASSWORD_SUCCEED,
       data: {
         access_token,
-        refresh_token
+        refresh_token,
+        user: updated_user
       }
     };
   }

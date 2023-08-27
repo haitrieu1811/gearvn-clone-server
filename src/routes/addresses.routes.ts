@@ -32,13 +32,12 @@ addressesRouter.post(
 );
 
 // Lấy danh sách tất cả địa chỉ của tài khoản
-addressesRouter.get('/', accessTokenValidator, verifiedUserValidator, wrapRequestHandler(getAddressesController));
+addressesRouter.get('/', accessTokenValidator, wrapRequestHandler(getAddressesController));
 
 // Lấy thông tin chi tiết một địa chỉ của tài khoản
 addressesRouter.get(
   '/:address_id',
   accessTokenValidator,
-  verifiedUserValidator,
   addressExistValidator,
   wrapRequestHandler(getAddressController)
 );

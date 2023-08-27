@@ -82,4 +82,17 @@ export const sendVerifyEmail = async (toAddress: string, email_verify_token: str
   );
 };
 
-sendVerifyEmail('haitrieu2527@gmail.com', '123');
+export const sendForgotPasswordEmail = async (toAddress: string, forgot_password_token: string) => {
+  return sendMail(
+    toAddress,
+    'Reset Your Password',
+    verifyEmailTemplate
+      .replace('{{title}}', 'Reset Your Password')
+      .replace(
+        '{{content}}',
+        '<p>If you are an account registrant at Gearvn Clone, please click on the link below to reset your password.</p><p>If you are not the account creator, please ignore this email and do not click on the link below.</p>'
+      )
+      .replace('{{link}}', `${ENV_CONFIG.CLIENT_URL}/verify-reset-password-token?token=${forgot_password_token}`)
+      .replace('{{link_text}}', 'Reset Password')
+  );
+};

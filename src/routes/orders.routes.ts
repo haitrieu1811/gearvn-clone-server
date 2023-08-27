@@ -14,22 +14,19 @@ import { wrapRequestHandler } from '~/utils/handler';
 
 const ordersRouter = Router();
 
-ordersRouter.get(
-  '/all',
-  accessTokenValidator,
-  verifiedUserValidator,
-  adminRoleValidator,
-  wrapRequestHandler(getAllController)
-);
-ordersRouter.get('/', accessTokenValidator, verifiedUserValidator, wrapRequestHandler(getListController));
-ordersRouter.get('/quantity', accessTokenValidator, verifiedUserValidator, wrapRequestHandler(getQuantityController));
-ordersRouter.get(
-  '/:order_id',
-  accessTokenValidator,
-  verifiedUserValidator,
-  orderExistValidator,
-  wrapRequestHandler(getOrderDetailController)
-);
+// Lấy danh sách tất cả đơn hàng
+ordersRouter.get('/all', accessTokenValidator, adminRoleValidator, wrapRequestHandler(getAllController));
+
+// Lấy danh sách đơn hàng
+ordersRouter.get('/', accessTokenValidator, wrapRequestHandler(getListController));
+
+// Lấy số lượng đơn hàng
+ordersRouter.get('/quantity', accessTokenValidator, wrapRequestHandler(getQuantityController));
+
+// Lấy thông tin chi tiết một đơn hàng
+ordersRouter.get('/:order_id', accessTokenValidator, orderExistValidator, wrapRequestHandler(getOrderDetailController));
+
+// Cập nhật trạng thái đơn hàng
 ordersRouter.put(
   '/update-status/:order_id',
   accessTokenValidator,
@@ -39,6 +36,8 @@ ordersRouter.put(
   updateStatusValidator,
   wrapRequestHandler(updateStatusController)
 );
+
+// Xóa một đơn hàng
 ordersRouter.delete(
   '/:order_id',
   accessTokenValidator,

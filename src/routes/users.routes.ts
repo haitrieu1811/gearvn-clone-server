@@ -17,7 +17,8 @@ import {
   resetPasswordController,
   updateMeController,
   updateRolesController,
-  verifyEmailController
+  verifyEmailController,
+  verifyEmailVerifyController
 } from '~/controllers/users.controllers';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import {
@@ -28,18 +29,17 @@ import {
   changePasswordValidator,
   deleteUserValidator,
   emailVerifyTokenValidator,
-  forgotPasswordTokenValidator,
   forgotPasswordValidator,
   loginValidator,
   refreshTokenValidator,
   resetPasswordValidator,
   roleValidator,
   updateMeValidator,
-  verifiedUserValidator
+  verifiedUserValidator,
+  verifyForgotPasswordTokenValidator
 } from '~/middlewares/users.middlewares';
 import {
   ChangePasswordRequestBody,
-  ResetPasswordRequestBody,
   UpdateMeRequestBody,
   UpdateRolesRequestBody
 } from '~/models/requests/User.requests';
@@ -68,12 +68,14 @@ usersRouter.post('/resend-email-verify', accessTokenValidator, wrapRequestHandle
 // Quên mật khẩu
 usersRouter.post('/forgot-password', forgotPasswordValidator, wrapRequestHandler(forgotPasswordController));
 
+// Xác thực forgot password token
+usersRouter.post('/verify-forgot-password-token', verifyForgotPasswordTokenValidator, verifyEmailVerifyController);
+
 // Đặt lại mật khẩu
 usersRouter.put(
   '/reset-password',
-  forgotPasswordTokenValidator,
+  verifyForgotPasswordTokenValidator,
   resetPasswordValidator,
-  filterReqBodyMiddleware<ResetPasswordRequestBody>(['password']),
   wrapRequestHandler(resetPasswordController)
 );
 
@@ -83,7 +85,6 @@ usersRouter.put(
   accessTokenValidator,
   verifiedUserValidator,
   changePasswordValidator,
-  filterReqBodyMiddleware<ChangePasswordRequestBody>(['password']),
   wrapRequestHandler(changePasswordController)
 );
 
@@ -118,18 +119,12 @@ usersRouter.delete('/', accessTokenValidator, deleteUserValidator, wrapRequestHa
 usersRouter.post(
   '/viewed-product',
   accessTokenValidator,
-  verifiedUserValidator,
   addViewedProductValidator,
   wrapRequestHandler(addViewedProductController)
 );
 
 // Lấy danh sách lịch sử sản phẩm đã xem của tài khoản đăng nhập
-usersRouter.get(
-  '/viewed-product',
-  accessTokenValidator,
-  verifiedUserValidator,
-  wrapRequestHandler(getViewedProductsController)
-);
+usersRouter.get('/viewed-product', accessTokenValidator, wrapRequestHandler(getViewedProductsController));
 
 // Lấy số lượng của mỗi collection
 usersRouter.get(
