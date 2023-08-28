@@ -198,7 +198,7 @@ export const refreshTokenValidator = validate(
       refresh_token: {
         trim: true,
         custom: {
-          options: async (value, { req }) => {
+          options: async (value: string, { req }) => {
             if (!value) {
               throw new ErrorWithStatus({
                 message: USERS_MESSAGES.REFRESH_TOKEN_IS_REQUIRED,
@@ -210,7 +210,7 @@ export const refreshTokenValidator = validate(
                 verifyToken({ token: value, secretOrPublicKey: ENV_CONFIG.JWT_SECRET_REFRESH_TOKEN }),
                 databaseService.refresh_tokens.findOne({ token: value })
               ]);
-              if (!refresh_token) {
+              if (refresh_token === null) {
                 throw new ErrorWithStatus({
                   message: USERS_MESSAGES.USED_REFRESH_TOKEN_OR_NOT_EXIST,
                   status: HTTP_STATUS.UNAUTHORIZED

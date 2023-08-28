@@ -178,7 +178,7 @@ export const PRODUCTS_MESSAGES = {
   PRODUCT_ID_MUST_BE_A_STRING: 'Product id must be a string',
   PRODUCT_AVAILABLE_COUNT_IS_REQUIRED: 'Product available count is required',
   PRODUCT_AVAILABLE_COUNT_MUST_BE_A_NUMBER: 'Product available count must be a number',
-  PRODUCT_AVAILABLE_COUNT_MUST_BE_GREATER_THAN_ZERO: 'Product available count must be greater than 0'
+  PRODUCT_AVAILABLE_COUNT_MUST_BE_GREATER_OR_EQUAL_ZERO: 'Product available count must be greater or equal 0'
 } as const;
 
 export const PURCHASES_MESSAGES = {

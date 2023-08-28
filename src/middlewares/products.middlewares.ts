@@ -340,8 +340,8 @@ export const createProductValidator = validate(
         },
         custom: {
           options: (value: number) => {
-            if (value <= 0) {
-              throw new Error(PRODUCTS_MESSAGES.PRODUCT_AVAILABLE_COUNT_MUST_BE_GREATER_THAN_ZERO);
+            if (value < 0) {
+              throw new Error(PRODUCTS_MESSAGES.PRODUCT_AVAILABLE_COUNT_MUST_BE_GREATER_OR_EQUAL_ZERO);
             }
             return true;
           }
@@ -454,8 +454,8 @@ export const updateProductValidator = validate(
         },
         custom: {
           options: (value: number) => {
-            if (value <= 0) {
-              throw new Error(PRODUCTS_MESSAGES.PRODUCT_AVAILABLE_COUNT_MUST_BE_GREATER_THAN_ZERO);
+            if (value < 0) {
+              throw new Error(PRODUCTS_MESSAGES.PRODUCT_AVAILABLE_COUNT_MUST_BE_GREATER_OR_EQUAL_ZERO);
             }
             return true;
           }
