@@ -25,51 +25,78 @@ class OrderService {
             }
           },
           {
+            $unwind: '$purchases'
+          },
+          {
             $lookup: {
               from: 'products',
               localField: 'purchases.product_id',
               foreignField: '_id',
-              as: 'purchases'
+              as: 'purchases.product'
             }
           },
           {
-            $lookup: {
-              from: 'users',
-              localField: 'user_id',
-              foreignField: '_id',
-              as: 'user'
-            }
+            $unwind: '$purchases.product'
           },
           {
-            $unwind: '$user'
+            $group: {
+              _id: '$_id',
+              status: {
+                $first: '$status'
+              },
+              customer_name: {
+                $first: '$customer_name'
+              },
+              customer_phone: {
+                $first: '$customer_phone'
+              },
+              province: {
+                $first: '$province'
+              },
+              district: {
+                $first: '$district'
+              },
+              ward: {
+                $first: '$ward'
+              },
+              street: {
+                $first: '$street'
+              },
+              total_amount: {
+                $first: '$total_amount'
+              },
+              note: {
+                $first: '$note'
+              },
+              purchases: {
+                $push: '$purchases'
+              },
+              created_at: {
+                $first: '$created_at'
+              },
+              updated_at: {
+                $first: '$updated_at'
+              }
+            }
           },
           {
             $project: {
-              user_id: 0,
-              status: 0,
-              created_at: 0,
-              updated_at: 0,
-              'purchases._id': 0,
+              'purchases.product_id': 0,
               'purchases.user_id': 0,
-              'purchases.status': 0,
-              'purchases.general_info': 0,
-              'purchases.description': 0,
-              'purchases.images': 0,
-              'purchases.brand_id': 0,
-              'purchases.category_id': 0,
-              'purchases.specifications': 0,
               'purchases.created_at': 0,
               'purchases.updated_at': 0,
-              'user.password': 0,
-              'user.status': 0,
-              'user.role': 0,
-              'user.verify': 0,
-              'user.addresses': 0,
-              'user.email_verify_token': 0,
-              'user.forgot_password_token': 0
+              'purchases.status': 0,
+              'purchases.product.general_info': 0,
+              'purchases.product.description': 0,
+              'purchases.product.images': 0,
+              'purchases.product.brand_id': 0,
+              'purchases.product.category_id': 0,
+              'purchases.product.specifications': 0,
+              'purchases.product.user_id': 0
             }
           }
         ])
+        .sort({ created_at: -1 })
         .skip((_page - 1) * _limit)
         .limit(_limit)
         .toArray(),

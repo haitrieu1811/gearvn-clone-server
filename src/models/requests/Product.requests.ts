@@ -1,6 +1,10 @@
 import { ParamsDictionary } from 'express-serve-static-core';
 import { ObjectId } from 'mongodb';
 
+export interface ProductIdRequestParams extends ParamsDictionary {
+  product_id: string;
+}
+
 // Lấy danh sách nhãn hiệu (query)
 export interface GetBrandsRequestQuery {
   page?: string;
@@ -35,11 +39,6 @@ export interface DeleteBrandRequestBody {
 // Thêm hình ảnh sản phẩm (body)
 export interface AddImageRequestBody {
   images: string[];
-}
-
-// Thêm hình ảnh sản phẩm (params)
-export interface AddImageRequestParams extends ParamsDictionary {
-  product_id: string;
 }
 
 // Xóa hình ảnh sản phẩm (params)
@@ -78,11 +77,6 @@ export interface UpdateProductRequestBody {
   available_count: number;
 }
 
-// Cập nhật sản phẩm (params)
-export interface UpdateProductRequestParams extends ParamsDictionary {
-  product_id: string;
-}
-
 // Xóa xản phẩm (body)
 export interface DeleteProductRequestBody {
   product_ids: ObjectId[];
@@ -97,9 +91,4 @@ export interface GetProductListRequestQuery {
   name?: string;
   sortBy?: 'price' | 'created_at' | 'price_after_discount';
   orderBy?: 'asc' | 'desc';
-}
-
-// Lấy thông tin chi tiết sản phẩm (params)
-export interface GetProductDetailRequestParams extends ParamsDictionary {
-  product_id: string;
 }

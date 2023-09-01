@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import {
   addImageController,
+  addReviewController,
   createBrandController,
   createProductController,
   deleteBrandController,
@@ -11,15 +12,19 @@ import {
   getBrandsController,
   getProductDetailController,
   getProductListController,
+  getReviewRepliesController,
+  getReviewsController,
   updateBrandController,
   updateProductController
 } from '~/controllers/products.controllers';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import {
   addImageValidator,
+  addReviewValidator,
   checkBrandExistValidator,
   checkMediaExistValidator,
   checkProductExist,
+  checkReviewExistValidator,
   createBrandValidator,
   createProductValidator,
   deleteBrandValidator,
@@ -27,7 +32,7 @@ import {
   updateBrandValidator,
   updateProductValidator
 } from '~/middlewares/products.middlewares';
-import { accessTokenValidator, adminRoleValidator } from '~/middlewares/users.middlewares';
+import { accessTokenValidator, adminRoleValidator, verifiedUserValidator } from '~/middlewares/users.middlewares';
 import { CreateProductRequestBody, UpdateProductRequestBody } from '~/models/requests/Product.requests';
 import { wrapRequestHandler } from '~/utils/handler';
 
@@ -138,5 +143,25 @@ productsRouter.get('/', wrapRequestHandler(getProductListController));
 
 // Lấy thông tin chi tiết một sản phẩm
 productsRouter.get('/:product_id', checkProductExist, wrapRequestHandler(getProductDetailController));
+
+// Thêm đánh giá sản phẩm
+productsRouter.post(
+  '/:product_id/reviews',
+  accessTokenValidator,
+  verifiedUserValidator,
+  checkProductExist,
+  addReviewValidator,
+  wrapRequestHandler(addReviewController)
+);
+
+// Lấy danh sách đánh giá theo từng sản phẩm
+productsRouter.get('/:product_id/reviews', checkProductExist, wrapRequestHandler(getReviewsController));
+
+// Lấy phản hồi của một đánh giá
+productsRouter.get(
+  '/reviews/:review_id/replies',
+  checkReviewExistValidator,
+  wrapRequestHandler(getReviewRepliesController)
+);
 
 export default productsRouter;

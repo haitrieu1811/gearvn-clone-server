@@ -10,6 +10,7 @@ import Category from '~/models/schemas/Category.schema';
 import Media from '~/models/schemas/Media.schema';
 import Order from '~/models/schemas/Order.schema';
 import Product from '~/models/schemas/Product.schema';
+import ProductReview from '~/models/schemas/ProductReview.schema';
 import Purchase from '~/models/schemas/Purchase.schema';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import User from '~/models/schemas/User.schema';
@@ -110,6 +111,10 @@ class DatabaseService {
 
   get addresses(): Collection<Address> {
     return this.db.collection(ENV_CONFIG.DB_ADDRESSES_COLLECTION);
+  }
+
+  get productReviews(): Collection<ProductReview> {
+    return this.db.collection(ENV_CONFIG.DB_PRODUCT_REVIEWS_COLLECTION);
   }
 }
 

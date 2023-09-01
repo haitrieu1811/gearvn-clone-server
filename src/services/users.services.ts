@@ -228,7 +228,7 @@ class UserService {
     exp: number;
   }) {
     // Tạo 1 access_token, 1 refresh_token mới và xóa đi 1 refresh_token cũ trong DB
-    const [[access_token, new_refresh_token]] = await Promise.all([
+    const [[new_access_token, new_refresh_token]] = await Promise.all([
       this.signAccessAndRefreshToken({ user_id, verify, role, exp }),
       databaseService.refresh_tokens.deleteOne({ token: refresh_token })
     ]);
@@ -243,7 +243,7 @@ class UserService {
     return {
       message: USERS_MESSAGES.REFRESH_TOKEN_SUCCEED,
       data: {
-        access_token,
+        access_token: new_access_token,
         refresh_token: new_refresh_token
       }
     };

@@ -178,7 +178,22 @@ export const PRODUCTS_MESSAGES = {
   PRODUCT_ID_MUST_BE_A_STRING: 'Product id must be a string',
   PRODUCT_AVAILABLE_COUNT_IS_REQUIRED: 'Product available count is required',
   PRODUCT_AVAILABLE_COUNT_MUST_BE_A_NUMBER: 'Product available count must be a number',
-  PRODUCT_AVAILABLE_COUNT_MUST_BE_GREATER_OR_EQUAL_ZERO: 'Product available count must be greater or equal 0'
+  PRODUCT_AVAILABLE_COUNT_MUST_BE_GREATER_OR_EQUAL_ZERO: 'Product available count must be greater or equal 0',
+  PRODUCT_REVIEW_RATING_IS_REQUIRED: 'Product review rating is required',
+  PRODUCT_REVIEW_RATING_MUST_BE_A_NUMBER: 'Product review rating must be a number',
+  PRODUCT_REVIEW_RATING_MUST_BE_BETWEEN_ONE_AND_FIVE: 'Product review rating must be between 1 and 5',
+  PRODUCT_REVIEW_COMMENT_MUST_BE_A_STRING: 'Product review comment must be a string',
+  PRODUCT_REVIEW_COMMENT_LENGTH: 'Product review comment must length from 12 to 250 characters',
+  ADD_REVIEW_SUCCEED: 'Add review succeed',
+  PRODUCT_REVIEW_PARENT_ID_IS_REQUIRED: 'Product review parent id is required',
+  PRODUCT_REVIEW_PARENT_ID_MUST_BE_A_STRING: 'Product review parent id must be a string',
+  PRODUCT_REVIEW_PARENT_ID_IS_INVALID: 'Product review parent id is invalid',
+  PRODUCT_REVIEW_PARENT_NOT_FOUND: 'Product review parent not found',
+  GET_REVIEWS_SUCCEED: 'Get reviews succeed',
+  PRODUCT_REVIEW_PARENT_ID_MUST_BE_NULL: 'Product review parent id must be null',
+  GET_REVIEW_REPLIES_SUCCEED: 'Get review replies succeed',
+  PRODUCT_REVIEW_RATING_MUST_BE_AN_INTEGER: 'Product review rating must be a integer',
+  UPDATE_REVIEW_SUCCEED: 'Update review succeed'
 } as const;
 
 export const PURCHASES_MESSAGES = {

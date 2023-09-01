@@ -17,6 +17,9 @@ import Brand from '~/models/schemas/Brand.schema';
 import Media from '~/models/schemas/Media.schema';
 import Product from '~/models/schemas/Product.schema';
 import databaseService from './database.services';
+import { AddReviewRequestBody } from '~/models/requests/ProductReview.requests';
+import ProductReview from '~/models/schemas/ProductReview.schema';
+import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 
 class ProductService {
   // Lấy danh sách nhãn hiệu
@@ -338,7 +341,7 @@ class ProductService {
       .aggregate([
         {
           $match: {
-            _id: { $eq: new ObjectId(product_id) }
+            _id: new ObjectId(product_id)
           }
         },
         {
@@ -350,22 +353,199 @@ class ProductService {
           }
         },
         {
+          $lookup: {
+            from: 'brands',
+            localField: 'brand_id',
+            foreignField: '_id',
+            as: 'brand'
+          }
+        },
+        {
+          $unwind: {
+            path: '$brand'
+          }
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'category_id',
+            foreignField: '_id',
+            as: 'category'
+          }
+        },
+        {
+          $unwind: {
+            path: '$category'
+          }
+        },
+        {
+          $lookup: {
+            from: 'product_reviews',
+            localField: '_id',
+            foreignField: 'product_id',
+            as: 'product_reviews'
+          }
+        },
+        {
+          $addFields: {
+            product_reviews: {
+              $filter: {
+                input: '$product_reviews',
+                as: 'item',
+                cond: {
+                  $eq: ['$$item.parent_id', null]
+                }
+              }
+            },
+            five_star: {
+              $filter: {
+                input: '$product_reviews',
+                as: 'item',
+                cond: {
+                  $eq: ['$$item.rating', 5]
+                }
+              }
+            },
+            four_star: {
+              $filter: {
+                input: '$product_reviews',
+                as: 'item',
+                cond: {
+                  $eq: ['$$item.rating', 4]
+                }
+              }
+            },
+            three_star: {
+              $filter: {
+                input: '$product_reviews',
+                as: 'item',
+                cond: {
+                  $eq: ['$$item.rating', 3]
+                }
+              }
+            },
+            two_star: {
+              $filter: {
+                input: '$product_reviews',
+                as: 'item',
+                cond: {
+                  $eq: ['$$item.rating', 2]
+                }
+              }
+            },
+            one_star: {
+              $filter: {
+                input: '$product_reviews',
+                as: 'item',
+                cond: {
+                  $eq: ['$$item.rating', 1]
+                }
+              }
+            }
+          }
+        },
+        {
+          $addFields: {
+            rating_score: {
+              $avg: '$product_reviews.rating'
+            },
+            rating_count: {
+              $size: '$product_reviews'
+            },
+            rating_five_count: {
+              $size: '$five_star'
+            },
+            rating_four_count: {
+              $size: '$four_star'
+            },
+            rating_three_count: {
+              $size: '$three_star'
+            },
+            rating_two_count: {
+              $size: '$two_star'
+            },
+            rating_one_count: {
+              $size: '$one_star'
+            }
+          }
+        },
+        {
+          $group: {
+            _id: '$_id',
+            name_vi: {
+              $first: '$name_vi'
+            },
+            name_en: {
+              $first: '$name_en'
+            },
+            thumbnail: {
+              $first: '$thumbnail'
+            },
+            price: {
+              $first: '$price'
+            },
+            price_after_discount: {
+              $first: '$price_after_discount'
+            },
+            available_count: {
+              $first: '$available_count'
+            },
+            rating_score: {
+              $first: '$rating_score'
+            },
+            rating_count: {
+              $first: '$rating_count'
+            },
+            rating_five_count: {
+              $first: '$rating_five_count'
+            },
+            rating_four_count: {
+              $first: '$rating_four_count'
+            },
+            rating_three_count: {
+              $first: '$rating_three_count'
+            },
+            rating_two_count: {
+              $first: '$rating_two_count'
+            },
+            rating_one_count: {
+              $first: '$rating_one_count'
+            },
+            general_info: {
+              $first: '$general_info'
+            },
+            description: {
+              $first: '$description'
+            },
+            specifications: {
+              $first: '$specifications'
+            },
+            brand: {
+              $first: '$brand'
+            },
+            category: {
+              $first: '$category'
+            },
+            images: {
+              $first: '$images'
+            },
+            created_at: {
+              $first: '$created_at'
+            },
+            updated_at: {
+              $first: '$updated_at'
+            }
+          }
+        },
+        {
           $project: {
-            _id: 1,
-            name_vi: 1,
-            name_en: 1,
-            thumbnail: 1,
-            images: 1,
-            price: 1,
-            price_after_discount: 1,
-            general_info: 1,
-            description: 1,
-            category_id: 1,
-            brand_id: 1,
-            specifications: 1,
-            available_count: 1,
-            created_at: 1,
-            updated_at: 1
+            'category.created_at': 0,
+            'category.updated_at': 0,
+            'brand.created_at': 0,
+            'brand.updated_at': 0,
+            'images.created_at': 0,
+            'images.updated_at': 0,
+            'images.type': 0
           }
         }
       ])
@@ -374,6 +554,237 @@ class ProductService {
       message: PRODUCTS_MESSAGES.GET_PRODUCT_DETAIL_SUCCEED,
       data: {
         product: product[0]
+      }
+    };
+  }
+
+  // Thêm đánh giá sản phẩm
+  async addReview({
+    rating,
+    comment,
+    parent_id,
+    product_id,
+    user_id
+  }: AddReviewRequestBody & { product_id: string; user_id: string }) {
+    let message: string = PRODUCTS_MESSAGES.ADD_REVIEW_SUCCEED;
+    const product_review = await databaseService.productReviews.findOne({
+      product_id: new ObjectId(product_id),
+      user_id: new ObjectId(user_id),
+      parent_id: null
+    });
+    // Kiểm tra xem người dùng đã đánh giá sản phẩm này chưa
+    if (product_review && !parent_id) {
+      const $set = omitBy(
+        {
+          rating,
+          comment
+        },
+        isUndefined
+      );
+      await databaseService.productReviews.updateOne(
+        {
+          product_id: new ObjectId(product_id),
+          user_id: new ObjectId(user_id),
+          parent_id: null
+        },
+        {
+          $set,
+          $currentDate: {
+            updated_at: true
+          }
+        }
+      );
+      message = PRODUCTS_MESSAGES.UPDATE_REVIEW_SUCCEED;
+    } else {
+      await databaseService.productReviews.insertOne(
+        new ProductReview({
+          rating,
+          comment,
+          parent_id,
+          product_id,
+          user_id
+        })
+      );
+    }
+    return {
+      message
+    };
+  }
+
+  // Lấy danh sách đánh giá theo từng sản phẩm
+  async getReviews({ page, limit, product_id }: PaginationRequestQuery & { product_id: string }) {
+    // Phân trang
+    const _page = Number(page) || 1;
+    const _limit = Number(limit) || 10;
+    // Điều kiện tìm kiếm
+    const $match = {
+      product_id: new ObjectId(product_id),
+      parent_id: null
+    };
+    const [reviews, total] = await Promise.all([
+      databaseService.productReviews
+        .aggregate([
+          {
+            $match
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'user_id',
+              foreignField: '_id',
+              as: 'author'
+            }
+          },
+          {
+            $unwind: {
+              path: '$author'
+            }
+          },
+          {
+            $group: {
+              _id: '$_id',
+              rating: {
+                $first: '$rating'
+              },
+              comment: {
+                $first: '$comment'
+              },
+              author: {
+                $first: '$author'
+              },
+              created_at: {
+                $first: '$created_at'
+              },
+              updated_at: {
+                $first: '$updated_at'
+              }
+            }
+          },
+          {
+            $project: {
+              'author.password': 0,
+              'author.status': 0,
+              'author.role': 0,
+              'author.verify': 0,
+              'author.addresses': 0,
+              'author.email_verify_token': 0,
+              'author.forgot_password_token': 0,
+              'author.created_at': 0,
+              'author.updated_at': 0,
+              'author.gender': 0,
+              'author.phoneNumber': 0,
+              'author.date_of_birth': 0
+            }
+          },
+          {
+            $skip: (_page - 1) * _limit
+          },
+          {
+            $limit: _limit
+          }
+        ])
+        .toArray(),
+      databaseService.productReviews.countDocuments($match)
+    ]);
+    return {
+      message: PRODUCTS_MESSAGES.GET_REVIEWS_SUCCEED,
+      data: {
+        reviews,
+        pagination: {
+          total,
+          page: _page,
+          limit: _limit,
+          page_size: Math.ceil(total / _limit)
+        }
+      }
+    };
+  }
+
+  // Lấy danh sách phản hồi đánh giá
+  async getReviewReplies({ page, limit, review_id }: PaginationRequestQuery & { review_id: string }) {
+    // Phân trang
+    const _page = Number(page) || 1;
+    const _limit = Number(limit) || 10;
+    // Điều kiện tìm kiếm
+    const $match = {
+      parent_id: new ObjectId(review_id)
+    };
+    const [product_review_replies, total] = await Promise.all([
+      databaseService.productReviews
+        .aggregate([
+          {
+            $match
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'user_id',
+              foreignField: '_id',
+              as: 'author'
+            }
+          },
+          {
+            $unwind: {
+              path: '$author'
+            }
+          },
+          {
+            $group: {
+              _id: '$_id',
+              rating: {
+                $first: '$rating'
+              },
+              comment: {
+                $first: '$comment'
+              },
+              author: {
+                $first: '$author'
+              },
+              created_at: {
+                $first: '$created_at'
+              },
+              updated_at: {
+                $first: '$updated_at'
+              }
+            }
+          },
+          {
+            $project: {
+              rating: 0,
+              'author.password': 0,
+              'author.status': 0,
+              'author.role': 0,
+              'author.verify': 0,
+              'author.addresses': 0,
+              'author.email_verify_token': 0,
+              'author.forgot_password_token': 0,
+              'author.created_at': 0,
+              'author.updated_at': 0,
+              'author.gender': 0,
+              'author.phoneNumber': 0,
+              'author.date_of_birth': 0
+            }
+          },
+          {
+            $skip: (_page - 1) * _limit
+          },
+          {
+            $limit: _limit
+          }
+        ])
+        .toArray(),
+      databaseService.productReviews.countDocuments($match)
+    ]);
+    return {
+      message: PRODUCTS_MESSAGES.GET_REVIEW_REPLIES_SUCCEED,
+      data: {
+        product_review_replies,
+        pagination: {
+          total,
+          page: _page,
+          limit: _limit,
+          page_size: Math.ceil(total / _limit)
+        }
       }
     };
   }

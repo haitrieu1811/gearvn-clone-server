@@ -3,7 +3,6 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet, { HelmetOptions } from 'helmet';
 
-import 'src/utils/email';
 import { ENV_CONFIG, isProduction } from './constants/config';
 import { defaultErrorHandler } from './middlewares/error.middlewares';
 import addressesRouter from './routes/addresses.routes';
@@ -23,6 +22,7 @@ databaseService.connect().then(() => {
   databaseService.indexUsers();
   databaseService.indexPurchases();
   databaseService.indexProducts();
+  databaseService.indexRefreshTokens();
 });
 
 const app = express();

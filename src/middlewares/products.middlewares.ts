@@ -109,6 +109,36 @@ const categoryIdSchema: ParamSchema = {
   }
 };
 
+const reviewIdSchema: ParamSchema = {
+  custom: {
+    options: async (value: string) => {
+      if (typeof value !== 'string') {
+        throw new ErrorWithStatus({
+          message: PRODUCTS_MESSAGES.PRODUCT_REVIEW_PARENT_ID_MUST_BE_A_STRING,
+          status: HTTP_STATUS.BAD_REQUEST
+        });
+      }
+      if (!ObjectId.isValid(value)) {
+        throw new ErrorWithStatus({
+          message: PRODUCTS_MESSAGES.PRODUCT_REVIEW_PARENT_ID_IS_INVALID,
+          status: HTTP_STATUS.BAD_REQUEST
+        });
+      }
+      const review = await databaseService.productReviews.findOne({
+        _id: new ObjectId(value),
+        parent_id: null
+      });
+      if (!review) {
+        throw new ErrorWithStatus({
+          message: PRODUCTS_MESSAGES.PRODUCT_REVIEW_PARENT_NOT_FOUND,
+          status: HTTP_STATUS.NOT_FOUND
+        });
+      }
+      return true;
+    }
+  }
+};
+
 // Tạo nhãn hiệu
 export const createBrandValidator = validate(
   checkSchema(
@@ -545,5 +575,63 @@ export const deleteProductValidator = validate(
       }
     },
     ['body']
+  )
+);
+
+// Thêm đánh giá sản phẩm
+export const addReviewValidator = validate(
+  checkSchema(
+    {
+      rating: {
+        optional: true,
+        isNumeric: {
+          errorMessage: PRODUCTS_MESSAGES.PRODUCT_REVIEW_RATING_MUST_BE_A_NUMBER
+        },
+        custom: {
+          options: (value: number, { req }) => {
+            const { parent_id } = req.body;
+            if (!Number.isInteger(value)) {
+              throw new Error(PRODUCTS_MESSAGES.PRODUCT_REVIEW_RATING_MUST_BE_AN_INTEGER);
+            }
+            if (value < 1 || value > 5) {
+              throw new Error(PRODUCTS_MESSAGES.PRODUCT_REVIEW_RATING_MUST_BE_BETWEEN_ONE_AND_FIVE);
+            }
+            if (parent_id) {
+              throw new Error(PRODUCTS_MESSAGES.PRODUCT_REVIEW_PARENT_ID_MUST_BE_NULL);
+            }
+            return true;
+          }
+        }
+      },
+      comment: {
+        optional: true,
+        isString: {
+          errorMessage: PRODUCTS_MESSAGES.PRODUCT_REVIEW_COMMENT_MUST_BE_A_STRING
+        },
+        isLength: {
+          options: {
+            min: 12,
+            max: 250
+          },
+          errorMessage: PRODUCTS_MESSAGES.PRODUCT_REVIEW_COMMENT_LENGTH
+        },
+        trim: true
+      },
+      parent_id: {
+        ...reviewIdSchema,
+        optional: true
+      }
+    },
+    ['body']
+  )
+);
+
+// Kiểm tra đánh giá sản phẩm có tồn tại không
+export const checkReviewExistValidator = validate(
+  checkSchema(
+    {
+      review_id: reviewIdSchema
+    },
+    ['params']
   )
 );
