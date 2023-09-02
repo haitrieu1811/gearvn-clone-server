@@ -1,25 +1,25 @@
 import fs from 'fs';
+import isUndefined from 'lodash/isUndefined';
+import omitBy from 'lodash/omitBy';
 import { ObjectId } from 'mongodb';
 import path from 'path';
-import omitBy from 'lodash/omitBy';
-import isUndefined from 'lodash/isUndefined';
 
 import { UPLOAD_IMAGE_DIR } from '~/constants/dir';
 import { MediaType } from '~/constants/enum';
 import { PRODUCTS_MESSAGES } from '~/constants/messages';
+import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 import {
   CreateProductRequestBody,
   GetBrandsRequestQuery,
   GetProductListRequestQuery,
   UpdateProductRequestBody
 } from '~/models/requests/Product.requests';
+import { AddReviewRequestBody } from '~/models/requests/ProductReview.requests';
 import Brand from '~/models/schemas/Brand.schema';
 import Media from '~/models/schemas/Media.schema';
 import Product from '~/models/schemas/Product.schema';
-import databaseService from './database.services';
-import { AddReviewRequestBody } from '~/models/requests/ProductReview.requests';
 import ProductReview from '~/models/schemas/ProductReview.schema';
-import { PaginationRequestQuery } from '~/models/requests/Common.requests';
+import databaseService from './database.services';
 
 class ProductService {
   // Lấy danh sách nhãn hiệu
@@ -563,6 +563,7 @@ class ProductService {
     rating,
     comment,
     parent_id,
+    images,
     product_id,
     user_id
   }: AddReviewRequestBody & { product_id: string; user_id: string }) {
@@ -577,7 +578,8 @@ class ProductService {
       const $set = omitBy(
         {
           rating,
-          comment
+          comment,
+          images
         },
         isUndefined
       );
@@ -601,6 +603,7 @@ class ProductService {
           rating,
           comment,
           parent_id,
+          images,
           product_id,
           user_id
         })
@@ -625,7 +628,18 @@ class ProductService {
       databaseService.productReviews
         .aggregate([
           {
-            $match
+            $match: {
+              product_id: new ObjectId(product_id),
+              parent_id: null
+            }
+          },
+          {
+            $lookup: {
+              from: 'product_reviews',
+              localField: '_id',
+              foreignField: 'parent_id',
+              as: 'replies'
+            }
           },
           {
             $lookup: {
@@ -652,6 +666,9 @@ class ProductService {
               author: {
                 $first: '$author'
               },
+              replies: {
+                $first: '$replies'
+              },
               created_at: {
                 $first: '$created_at'
               },
@@ -673,7 +690,16 @@ class ProductService {
               'author.updated_at': 0,
               'author.gender': 0,
               'author.phoneNumber': 0,
-              'author.date_of_birth': 0
+              'replies.product_id': 0,
+              'replies.user_id': 0,
+              'replies.parent_id': 0,
+              'replies.rating': 0
+            }
+          },
+          {
+            $sort: {
+              created_at: 1,
+              'replies.created_at': 1
             }
           },
           {
@@ -700,91 +726,27 @@ class ProductService {
     };
   }
 
-  // Lấy danh sách phản hồi đánh giá
-  async getReviewReplies({ page, limit, review_id }: PaginationRequestQuery & { review_id: string }) {
-    // Phân trang
-    const _page = Number(page) || 1;
-    const _limit = Number(limit) || 10;
-    // Điều kiện tìm kiếm
-    const $match = {
-      parent_id: new ObjectId(review_id)
-    };
-    const [product_review_replies, total] = await Promise.all([
-      databaseService.productReviews
-        .aggregate([
-          {
-            $match
-          },
-          {
-            $lookup: {
-              from: 'users',
-              localField: 'user_id',
-              foreignField: '_id',
-              as: 'author'
-            }
-          },
-          {
-            $unwind: {
-              path: '$author'
-            }
-          },
-          {
-            $group: {
-              _id: '$_id',
-              rating: {
-                $first: '$rating'
-              },
-              comment: {
-                $first: '$comment'
-              },
-              author: {
-                $first: '$author'
-              },
-              created_at: {
-                $first: '$created_at'
-              },
-              updated_at: {
-                $first: '$updated_at'
-              }
-            }
-          },
-          {
-            $project: {
-              rating: 0,
-              'author.password': 0,
-              'author.status': 0,
-              'author.role': 0,
-              'author.verify': 0,
-              'author.addresses': 0,
-              'author.email_verify_token': 0,
-              'author.forgot_password_token': 0,
-              'author.created_at': 0,
-              'author.updated_at': 0,
-              'author.gender': 0,
-              'author.phoneNumber': 0,
-              'author.date_of_birth': 0
-            }
-          },
-          {
-            $skip: (_page - 1) * _limit
-          },
-          {
-            $limit: _limit
-          }
-        ])
-        .toArray(),
-      databaseService.productReviews.countDocuments($match)
-    ]);
-    return {
-      message: PRODUCTS_MESSAGES.GET_REVIEW_REPLIES_SUCCEED,
-      data: {
-        product_review_replies,
-        pagination: {
-          total,
-          page: _page,
-          limit: _limit,
-          page_size: Math.ceil(total / _limit)
+  // Lấy chi tiết đánh giá
+  async getReviewDetail({ product_id, user_id }: { product_id: string; user_id: string }) {
+    const review = await databaseService.productReviews.findOne(
+      {
+        product_id: new ObjectId(product_id),
+        user_id: new ObjectId(user_id)
+      },
+      {
+        projection: {
+          _id: 1,
+          rating: 1,
+          comment: 1,
+          created_at: 1,
+          updated_at: 1
         }
+      }
+    );
+    return {
+      message: PRODUCTS_MESSAGES.GET_REVIEW_DETAIL_SUCCEED,
+      data: {
+        review
       }
     };
   }

@@ -12,7 +12,7 @@ import {
   getBrandsController,
   getProductDetailController,
   getProductListController,
-  getReviewRepliesController,
+  getReviewDetailController,
   getReviewsController,
   updateBrandController,
   updateProductController
@@ -157,11 +157,12 @@ productsRouter.post(
 // Lấy danh sách đánh giá theo từng sản phẩm
 productsRouter.get('/:product_id/reviews', checkProductExist, wrapRequestHandler(getReviewsController));
 
-// Lấy phản hồi của một đánh giá
+// Lấy thông tin chi tiết của một đánh giá
 productsRouter.get(
-  '/reviews/:review_id/replies',
-  checkReviewExistValidator,
-  wrapRequestHandler(getReviewRepliesController)
+  '/:product_id/reviews/detail',
+  accessTokenValidator,
+  verifiedUserValidator,
+  wrapRequestHandler(getReviewDetailController)
 );
 
 export default productsRouter;

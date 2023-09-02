@@ -17,7 +17,7 @@ import {
   UpdateBrandRequestParams,
   UpdateProductRequestBody
 } from '~/models/requests/Product.requests';
-import { AddReviewRequestBody, ReviewIdRequestParams } from '~/models/requests/ProductReview.requests';
+import { AddReviewRequestBody } from '~/models/requests/ProductReview.requests';
 import { TokenPayload } from '~/models/requests/User.requests';
 import productService from '~/services/products.services';
 
@@ -158,11 +158,10 @@ export const getReviewsController = async (
   return res.json(result);
 };
 
-export const getReviewRepliesController = async (
-  req: Request<ReviewIdRequestParams, any, any, PaginationRequestQuery>,
-  res: Response
-) => {
-  const { review_id } = req.params;
-  const result = await productService.getReviewReplies({ review_id, ...req.query });
+// Lấy thông tin chi tiết đánh giá
+export const getReviewDetailController = async (req: Request<ProductIdRequestParams>, res: Response) => {
+  const { product_id } = req.params;
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const result = await productService.getReviewDetail({ product_id, user_id });
   return res.json(result);
 };

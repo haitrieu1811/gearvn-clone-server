@@ -23,6 +23,7 @@ databaseService.connect().then(() => {
   databaseService.indexPurchases();
   databaseService.indexProducts();
   databaseService.indexRefreshTokens();
+  databaseService.indexProductReviews();
 });
 
 const app = express();

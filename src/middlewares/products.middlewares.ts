@@ -597,7 +597,10 @@ export const addReviewValidator = validate(
               throw new Error(PRODUCTS_MESSAGES.PRODUCT_REVIEW_RATING_MUST_BE_BETWEEN_ONE_AND_FIVE);
             }
             if (parent_id) {
-              throw new Error(PRODUCTS_MESSAGES.PRODUCT_REVIEW_PARENT_ID_MUST_BE_NULL);
+              throw new ErrorWithStatus({
+                message: PRODUCTS_MESSAGES.PRODUCT_REVIEW_PARENT_ID_MUST_BE_NULL,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
             }
             return true;
           }
@@ -608,18 +611,26 @@ export const addReviewValidator = validate(
         isString: {
           errorMessage: PRODUCTS_MESSAGES.PRODUCT_REVIEW_COMMENT_MUST_BE_A_STRING
         },
-        isLength: {
-          options: {
-            min: 12,
-            max: 250
-          },
-          errorMessage: PRODUCTS_MESSAGES.PRODUCT_REVIEW_COMMENT_LENGTH
-        },
         trim: true
       },
       parent_id: {
         ...reviewIdSchema,
         optional: true
+      },
+      images: {
+        optional: true,
+        isArray: {
+          errorMessage: PRODUCTS_MESSAGES.PRODUCT_REVIEW_IMAGES_MUST_BE_AN_STRING_ARRAY
+        },
+        custom: {
+          options: (value: string[]) => {
+            const isValid = value.every((item) => typeof item === 'string');
+            if (!isValid) {
+              throw new Error(PRODUCTS_MESSAGES.PRODUCT_REVIEW_IMAGES_ITEM_MUST_BE_A_STRING);
+            }
+            return true;
+          }
+        }
       }
     },
     ['body']

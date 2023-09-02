@@ -5,6 +5,7 @@ export interface AddReviewRequestBody {
   rating: number;
   comment?: string;
   parent_id?: string;
+  images?: string[];
 }
 
 export interface ReviewIdRequestParams extends ParamsDictionary {

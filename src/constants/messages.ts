@@ -183,7 +183,6 @@ export const PRODUCTS_MESSAGES = {
   PRODUCT_REVIEW_RATING_MUST_BE_A_NUMBER: 'Product review rating must be a number',
   PRODUCT_REVIEW_RATING_MUST_BE_BETWEEN_ONE_AND_FIVE: 'Product review rating must be between 1 and 5',
   PRODUCT_REVIEW_COMMENT_MUST_BE_A_STRING: 'Product review comment must be a string',
-  PRODUCT_REVIEW_COMMENT_LENGTH: 'Product review comment must length from 12 to 250 characters',
   ADD_REVIEW_SUCCEED: 'Add review succeed',
   PRODUCT_REVIEW_PARENT_ID_IS_REQUIRED: 'Product review parent id is required',
   PRODUCT_REVIEW_PARENT_ID_MUST_BE_A_STRING: 'Product review parent id must be a string',
@@ -193,7 +192,11 @@ export const PRODUCTS_MESSAGES = {
   PRODUCT_REVIEW_PARENT_ID_MUST_BE_NULL: 'Product review parent id must be null',
   GET_REVIEW_REPLIES_SUCCEED: 'Get review replies succeed',
   PRODUCT_REVIEW_RATING_MUST_BE_AN_INTEGER: 'Product review rating must be a integer',
-  UPDATE_REVIEW_SUCCEED: 'Update review succeed'
+  UPDATE_REVIEW_SUCCEED: 'Update review succeed',
+  PRODUCT_REVIEW_IMAGES_MUST_BE_AN_STRING_ARRAY: 'Product review images must be an string array',
+  PRODUCT_REVIEW_IMAGES_ITEM_MUST_BE_A_STRING: 'Product review images item must be a string',
+  GET_REVIEW_DETAIL_SUCCEED: 'Get review detail succeed',
+  RATING_MUST_BE_NULL: 'Rating must be null'
 } as const;
 
 export const PURCHASES_MESSAGES = {

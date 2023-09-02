@@ -7,6 +7,7 @@ interface ProductReviewConstructor {
   parent_id?: string;
   rating?: number;
   comment?: string;
+  images?: string[];
   created_at?: Date;
   updated_at?: Date;
 }
@@ -18,6 +19,7 @@ class ProductReview {
   parent_id: ObjectId | null;
   rating: number | null;
   comment: string;
+  images: ObjectId[];
   created_at: Date;
   updated_at: Date;
 
@@ -28,6 +30,7 @@ class ProductReview {
     parent_id,
     rating,
     comment,
+    images,
     created_at,
     updated_at
   }: ProductReviewConstructor) {
@@ -38,6 +41,7 @@ class ProductReview {
     this.parent_id = parent_id ? new ObjectId(parent_id) : null;
     this.rating = rating || null;
     this.comment = comment || '';
+    this.images = images ? images.map((image) => new ObjectId(image)) : [];
     this.created_at = created_at || date;
     this.updated_at = updated_at || date;
   }

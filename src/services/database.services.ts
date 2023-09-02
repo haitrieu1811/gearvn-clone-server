@@ -1,6 +1,5 @@
 import { config } from 'dotenv';
 import { Collection, Db, MongoClient } from 'mongodb';
-import { text } from 'stream/consumers';
 
 import { ENV_CONFIG } from '~/constants/config';
 import Address from '~/models/schemas/Address.schema';
@@ -66,6 +65,13 @@ class DatabaseService {
     if (!isExist) {
       await this.refresh_tokens.createIndex({ token: 1 }, { unique: true });
       await this.refresh_tokens.createIndex({ exp: 1 }, { expireAfterSeconds: 0 });
+    }
+  }
+
+  async indexProductReviews() {
+    const isExist = await this.productReviews.indexExists(['product_id_1_user_id_1_parent_id_1']);
+    if (!isExist) {
+      await this.productReviews.createIndex({ product_id: 1, user_id: 1, parent_id: 1 });
     }
   }
 
