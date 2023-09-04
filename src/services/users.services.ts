@@ -4,7 +4,6 @@ import omitBy from 'lodash/omitBy';
 import { ObjectId, WithId } from 'mongodb';
 
 import { ENV_CONFIG } from '~/constants/config';
-import { USERS_PROJECTION } from '~/constants/db';
 import { TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
 import { USERS_MESSAGES } from '~/constants/messages';
 import { GetUsersRequestQuery, UpdateMeRequestBody } from '~/models/requests/User.requests';
@@ -12,9 +11,9 @@ import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import User from '~/models/schemas/User.schema';
 import ViewedProduct from '~/models/schemas/ViewedProduct.schema';
 import { hashPassword } from '~/utils/crypto';
+import { sendForgotPasswordEmail, sendVerifyEmail } from '~/utils/email';
 import { signToken, verifyToken } from '~/utils/jwt';
 import databaseService from './database.services';
-import { sendForgotPasswordEmail, sendVerifyEmail } from '~/utils/email';
 config();
 
 interface SignToken {
@@ -159,7 +158,11 @@ class UserService {
           _id: user_id
         },
         {
-          projection: USERS_PROJECTION
+          projection: {
+            password: 0,
+            email_verify_token: 0,
+            forgot_password_token: 0
+          }
         }
       ),
       this.insertRefreshToken({
@@ -355,7 +358,11 @@ class UserService {
         },
         {
           returnDocument: 'after',
-          projection: USERS_PROJECTION
+          projection: {
+            password: 0,
+            email_verify_token: 0,
+            forgot_password_token: 0
+          }
         }
       )
     ]);
@@ -403,7 +410,11 @@ class UserService {
         _id: new ObjectId(user_id)
       },
       {
-        projection: USERS_PROJECTION
+        projection: {
+          password: 0,
+          email_verify_token: 0,
+          forgot_password_token: 0
+        }
       }
     );
     return {
@@ -431,7 +442,11 @@ class UserService {
       },
       {
         returnDocument: 'after',
-        projection: USERS_PROJECTION
+        projection: {
+          password: 0,
+          email_verify_token: 0,
+          forgot_password_token: 0
+        }
       }
     );
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
@@ -498,7 +513,11 @@ class UserService {
             ...queryConfig
           },
           {
-            projection: USERS_PROJECTION
+            projection: {
+              password: 0,
+              email_verify_token: 0,
+              forgot_password_token: 0
+            }
           }
         )
         .skip(skip)

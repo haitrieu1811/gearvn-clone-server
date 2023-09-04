@@ -2,6 +2,7 @@ import { CompleteMultipartUploadCommandOutput } from '@aws-sdk/client-s3';
 import { Request } from 'express';
 import fsPromise from 'fs/promises';
 import mime from 'mime';
+import { ObjectId } from 'mongodb';
 import path from 'path';
 import sharp from 'sharp';
 
@@ -10,7 +11,8 @@ import { MediaType } from '~/constants/enum';
 import { MEDIAS_MESSAGES } from '~/constants/messages';
 import { Media } from '~/models/Others';
 import { getNameFromFullname, handleUploadImage } from '~/utils/file';
-import { uploadFileToS3 } from '~/utils/s3';
+import { deleteFileFromS3, uploadFileToS3 } from '~/utils/s3';
+import databaseService from './database.services';
 
 class MediaService {
   // Xử lý upload ảnh
@@ -51,6 +53,28 @@ class MediaService {
       data: {
         medias: result
       }
+    };
+  }
+
+  // Xóa ảnh trên s3 và xóa thông tin ảnh trong database
+  async deleteImages(imageIds: ObjectId[]) {
+    if (imageIds.length <= 0) return;
+    const foundImages = await databaseService.medias
+      .find({
+        _id: {
+          $in: imageIds
+        }
+      })
+      .toArray();
+    await databaseService.medias.deleteMany({
+      _id: {
+        $in: imageIds
+      }
+    });
+    const filepaths = foundImages.map((image) => `images/${image.name}`);
+    await Promise.all([filepaths.map((filepath) => deleteFileFromS3(filepath))]);
+    return {
+      message: MEDIAS_MESSAGES.DELETE_IMAGES_SUCCEED
     };
   }
 }

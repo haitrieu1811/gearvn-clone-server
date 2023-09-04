@@ -114,7 +114,12 @@ export const MEDIAS_MESSAGES = {
   FILE_TYPE_INVALID: 'File type is invalid',
   IMAGE_FIELD_IS_REQUIRED: 'Image field is required',
   FILE_NOT_FOUND: 'File not found',
-  UPLOAD_IMAGE_SUCCEED: 'Upload image succeed'
+  UPLOAD_IMAGE_SUCCEED: 'Upload image succeed',
+  DELETE_IMAGES_SUCCEED: 'Delete images succeed',
+  MEDIA_IDS_IS_REQUIRED: 'Media ids is required',
+  MEDIA_IDS_MUST_BE_ARRAY: 'Media ids must be array',
+  MEDIA_IDS_MUST_BE_ARRAY_AND_NOT_EMPTY: 'Media ids must be array and not empty',
+  MEDIA_IDS_MUST_BE_ARRAY_OF_OBJECT_ID: 'Media ids must be array of ObjectId'
 } as const;
 
 export const PRODUCTS_MESSAGES = {
@@ -184,19 +189,21 @@ export const PRODUCTS_MESSAGES = {
   PRODUCT_REVIEW_RATING_MUST_BE_BETWEEN_ONE_AND_FIVE: 'Product review rating must be between 1 and 5',
   PRODUCT_REVIEW_COMMENT_MUST_BE_A_STRING: 'Product review comment must be a string',
   ADD_REVIEW_SUCCEED: 'Add review succeed',
-  PRODUCT_REVIEW_PARENT_ID_IS_REQUIRED: 'Product review parent id is required',
-  PRODUCT_REVIEW_PARENT_ID_MUST_BE_A_STRING: 'Product review parent id must be a string',
-  PRODUCT_REVIEW_PARENT_ID_IS_INVALID: 'Product review parent id is invalid',
-  PRODUCT_REVIEW_PARENT_NOT_FOUND: 'Product review parent not found',
+  PRODUCT_REVIEW_ID_IS_REQUIRED: 'Product review id is required',
+  PRODUCT_REVIEW_ID_MUST_BE_A_STRING: 'Product review id must be a string',
+  PRODUCT_REVIEW_ID_IS_INVALID: 'Product review id is invalid',
+  PRODUCT_REVIEW_NOT_FOUND: 'Product review not found',
+  PRODUCT_REVIEW_ID_MUST_BE_NULL: 'Product review id must be null',
   GET_REVIEWS_SUCCEED: 'Get reviews succeed',
-  PRODUCT_REVIEW_PARENT_ID_MUST_BE_NULL: 'Product review parent id must be null',
   GET_REVIEW_REPLIES_SUCCEED: 'Get review replies succeed',
   PRODUCT_REVIEW_RATING_MUST_BE_AN_INTEGER: 'Product review rating must be a integer',
   UPDATE_REVIEW_SUCCEED: 'Update review succeed',
   PRODUCT_REVIEW_IMAGES_MUST_BE_AN_STRING_ARRAY: 'Product review images must be an string array',
   PRODUCT_REVIEW_IMAGES_ITEM_MUST_BE_A_STRING: 'Product review images item must be a string',
   GET_REVIEW_DETAIL_SUCCEED: 'Get review detail succeed',
-  RATING_MUST_BE_NULL: 'Rating must be null'
+  RATING_MUST_BE_NULL: 'Rating must be null',
+  DELETE_REVIEW_IMAGE_SUCCEED: 'Delete review image succeed',
+  DELETE_REVIEW_SUCCEED: 'Delete review succeed'
 } as const;
 
 export const PURCHASES_MESSAGES = {

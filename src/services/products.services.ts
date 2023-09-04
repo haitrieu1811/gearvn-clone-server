@@ -20,6 +20,7 @@ import Media from '~/models/schemas/Media.schema';
 import Product from '~/models/schemas/Product.schema';
 import ProductReview from '~/models/schemas/ProductReview.schema';
 import databaseService from './database.services';
+import mediaService from './medias.services';
 
 class ProductService {
   // Lấy danh sách nhãn hiệu
@@ -108,15 +109,18 @@ class ProductService {
 
   // Thêm hình ảnh sản phẩm
   async addImage({ images, product_id }: { images: string[]; product_id: string }) {
-    const dataInsert = images.map((image) => {
-      return new Media({
-        name: image,
-        type: MediaType.Image
-      });
-    });
+    const dataInsert = images.map(
+      (image) =>
+        new Media({
+          name: image,
+          type: MediaType.Image
+        })
+    );
     const { insertedIds } = await databaseService.medias.insertMany(dataInsert);
     await databaseService.products.findOneAndUpdate(
-      { _id: new ObjectId(product_id) },
+      {
+        _id: new ObjectId(product_id)
+      },
       {
         $push: {
           images: {
@@ -559,30 +563,28 @@ class ProductService {
   }
 
   // Thêm đánh giá sản phẩm
-  async addReview({
-    rating,
-    comment,
-    parent_id,
-    images,
-    product_id,
-    user_id
-  }: AddReviewRequestBody & { product_id: string; user_id: string }) {
+  async addReview({ body, product_id, user_id }: { product_id: string; user_id: string; body: AddReviewRequestBody }) {
+    const { rating, comment, images = [], parent_id } = body;
     let message: string = PRODUCTS_MESSAGES.ADD_REVIEW_SUCCEED;
+    let insertedIds: ObjectId[] = [];
+    const _images = images.map(
+      (image) =>
+        new Media({
+          name: image,
+          type: MediaType.Image
+        })
+    );
     const product_review = await databaseService.productReviews.findOne({
       product_id: new ObjectId(product_id),
       user_id: new ObjectId(user_id),
       parent_id: null
     });
+    if (images.length > 0) {
+      const result = await databaseService.medias.insertMany(_images);
+      insertedIds = Object.values(result.insertedIds);
+    }
     // Kiểm tra xem người dùng đã đánh giá sản phẩm này chưa
     if (product_review && !parent_id) {
-      const $set = omitBy(
-        {
-          rating,
-          comment,
-          images
-        },
-        isUndefined
-      );
       await databaseService.productReviews.updateOne(
         {
           product_id: new ObjectId(product_id),
@@ -590,7 +592,15 @@ class ProductService {
           parent_id: null
         },
         {
-          $set,
+          $set: {
+            rating: rating,
+            comment: comment
+          },
+          $push: {
+            images: {
+              $each: insertedIds
+            }
+          },
           $currentDate: {
             updated_at: true
           }
@@ -603,7 +613,7 @@ class ProductService {
           rating,
           comment,
           parent_id,
-          images,
+          images: Object.values(insertedIds),
           product_id,
           user_id
         })
@@ -650,6 +660,14 @@ class ProductService {
             }
           },
           {
+            $lookup: {
+              from: 'medias',
+              localField: 'images',
+              foreignField: '_id',
+              as: 'images'
+            }
+          },
+          {
             $unwind: {
               path: '$author'
             }
@@ -666,6 +684,9 @@ class ProductService {
               author: {
                 $first: '$author'
               },
+              images: {
+                $first: '$images'
+              },
               replies: {
                 $first: '$replies'
               },
@@ -679,6 +700,9 @@ class ProductService {
           },
           {
             $project: {
+              'images.created_at': 0,
+              'images.updated_at': 0,
+              'images.type': 0,
               'author.password': 0,
               'author.status': 0,
               'author.role': 0,
@@ -690,6 +714,7 @@ class ProductService {
               'author.updated_at': 0,
               'author.gender': 0,
               'author.phoneNumber': 0,
+              'author.date_of_birth': 0,
               'replies.product_id': 0,
               'replies.user_id': 0,
               'replies.parent_id': 0,
@@ -728,26 +753,99 @@ class ProductService {
 
   // Lấy chi tiết đánh giá
   async getReviewDetail({ product_id, user_id }: { product_id: string; user_id: string }) {
-    const review = await databaseService.productReviews.findOne(
-      {
-        product_id: new ObjectId(product_id),
-        user_id: new ObjectId(user_id)
-      },
-      {
-        projection: {
-          _id: 1,
-          rating: 1,
-          comment: 1,
-          created_at: 1,
-          updated_at: 1
+    const review = await databaseService.productReviews
+      .aggregate([
+        {
+          $match: {
+            product_id: new ObjectId(product_id),
+            user_id: new ObjectId(user_id)
+          }
+        },
+        {
+          $lookup: {
+            from: 'medias',
+            localField: 'images',
+            foreignField: '_id',
+            as: 'images'
+          }
+        },
+        {
+          $group: {
+            _id: '$_id',
+            rating: {
+              $first: '$rating'
+            },
+            comment: {
+              $first: '$comment'
+            },
+            images: {
+              $first: '$images'
+            },
+            created_at: {
+              $first: '$created_at'
+            },
+            updated_at: {
+              $first: '$updated_at'
+            }
+          }
+        },
+        {
+          $project: {
+            'images.type': 0,
+            'images.created_at': 0,
+            'images.updated_at': 0
+          }
         }
-      }
-    );
+      ])
+      .toArray();
     return {
       message: PRODUCTS_MESSAGES.GET_REVIEW_DETAIL_SUCCEED,
       data: {
-        review
+        review: review[0]
       }
+    };
+  }
+
+  // Xóa một hình ảnh đính kèm trong đánh giá
+  async deleteReviewImage(image_id: string) {
+    await Promise.all([
+      databaseService.medias.deleteOne({
+        _id: new ObjectId(image_id)
+      }),
+      databaseService.productReviews.updateOne(
+        {
+          images: {
+            $elemMatch: {
+              $eq: new ObjectId(image_id)
+            }
+          }
+        },
+        {
+          $pull: {
+            images: new ObjectId(image_id)
+          }
+        }
+      )
+    ]);
+    return {
+      message: PRODUCTS_MESSAGES.DELETE_REVIEW_IMAGE_SUCCEED
+    };
+  }
+
+  // Xóa một đánh giá
+  async deleteReview(review_id: string) {
+    const [{ value }] = await Promise.all([
+      databaseService.productReviews.findOneAndDelete({
+        _id: new ObjectId(review_id)
+      }),
+      databaseService.productReviews.deleteMany({
+        parent_id: new ObjectId(review_id)
+      })
+    ]);
+    const images = value?.images || [];
+    await mediaService.deleteImages(images);
+    return {
+      message: PRODUCTS_MESSAGES.DELETE_REVIEW_SUCCEED
     };
   }
 }

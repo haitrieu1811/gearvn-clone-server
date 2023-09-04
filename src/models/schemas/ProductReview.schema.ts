@@ -7,7 +7,7 @@ interface ProductReviewConstructor {
   parent_id?: string;
   rating?: number;
   comment?: string;
-  images?: string[];
+  images?: ObjectId[];
   created_at?: Date;
   updated_at?: Date;
 }

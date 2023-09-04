@@ -8,6 +8,8 @@ import {
   deleteBrandController,
   deleteImageController,
   deleteProductController,
+  deleteReviewController,
+  deleteReviewImageController,
   getBrandController,
   getBrandsController,
   getProductDetailController,
@@ -34,6 +36,7 @@ import {
 } from '~/middlewares/products.middlewares';
 import { accessTokenValidator, adminRoleValidator, verifiedUserValidator } from '~/middlewares/users.middlewares';
 import { CreateProductRequestBody, UpdateProductRequestBody } from '~/models/requests/Product.requests';
+import { AddReviewRequestBody } from '~/models/requests/ProductReview.requests';
 import { wrapRequestHandler } from '~/utils/handler';
 
 const productsRouter = Router();
@@ -151,6 +154,7 @@ productsRouter.post(
   verifiedUserValidator,
   checkProductExist,
   addReviewValidator,
+  filterReqBodyMiddleware<AddReviewRequestBody>(['comment', 'images', 'parent_id', 'rating']),
   wrapRequestHandler(addReviewController)
 );
 
@@ -163,6 +167,24 @@ productsRouter.get(
   accessTokenValidator,
   verifiedUserValidator,
   wrapRequestHandler(getReviewDetailController)
+);
+
+// Xóa hình ảnh đính kèm của đánh giá
+productsRouter.delete(
+  '/reviews/:review_id/images/:image_id',
+  accessTokenValidator,
+  verifiedUserValidator,
+  checkReviewExistValidator,
+  wrapRequestHandler(deleteReviewImageController)
+);
+
+// Xóa một đánh giá
+productsRouter.delete(
+  '/reviews/:review_id',
+  accessTokenValidator,
+  verifiedUserValidator,
+  checkReviewExistValidator,
+  wrapRequestHandler(deleteReviewController)
 );
 
 export default productsRouter;

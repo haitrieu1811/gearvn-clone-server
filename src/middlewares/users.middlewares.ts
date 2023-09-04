@@ -5,7 +5,6 @@ import capitalize from 'lodash/capitalize';
 import { ObjectId } from 'mongodb';
 
 import { ENV_CONFIG } from '~/constants/config';
-import { USERS_PROJECTION } from '~/constants/db';
 import { UserRole, UserVerifyStatus } from '~/constants/enum';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { USERS_MESSAGES } from '~/constants/messages';
@@ -392,7 +391,11 @@ export const loginValidator = validate(
                 password: hashPassword(value)
               },
               {
-                projection: USERS_PROJECTION
+                projection: {
+                  password: 0,
+                  email_verify_token: 0,
+                  forgot_password_token: 0
+                }
               }
             );
             if (!user) {

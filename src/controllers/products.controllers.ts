@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 import { PaginationRequestQuery } from '~/models/requests/Common.requests';
+import { ImageIdRequestParams } from '~/models/requests/Media.requests';
 
 import {
   AddImageRequestBody,
@@ -17,7 +18,7 @@ import {
   UpdateBrandRequestParams,
   UpdateProductRequestBody
 } from '~/models/requests/Product.requests';
-import { AddReviewRequestBody } from '~/models/requests/ProductReview.requests';
+import { AddReviewRequestBody, ReviewIdRequestParams } from '~/models/requests/ProductReview.requests';
 import { TokenPayload } from '~/models/requests/User.requests';
 import productService from '~/services/products.services';
 
@@ -141,10 +142,9 @@ export const addReviewController = async (
   req: Request<ProductIdRequestParams, any, AddReviewRequestBody>,
   res: Response
 ) => {
-  const { rating, comment, parent_id } = req.body;
   const { product_id } = req.params;
   const { user_id } = req.decoded_authorization as TokenPayload;
-  const result = await productService.addReview({ rating, comment, parent_id, product_id, user_id });
+  const result = await productService.addReview({ body: req.body, product_id, user_id });
   return res.json(result);
 };
 
@@ -163,5 +163,19 @@ export const getReviewDetailController = async (req: Request<ProductIdRequestPar
   const { product_id } = req.params;
   const { user_id } = req.decoded_authorization as TokenPayload;
   const result = await productService.getReviewDetail({ product_id, user_id });
+  return res.json(result);
+};
+
+// Xóa một hình ảnh đính kèm của đánh giá
+export const deleteReviewImageController = async (req: Request<ImageIdRequestParams>, res: Response) => {
+  const { image_id } = req.params;
+  const result = await productService.deleteReviewImage(image_id);
+  return res.json(result);
+};
+
+// Xóa một đánh giá
+export const deleteReviewController = async (req: Request<ReviewIdRequestParams>, res: Response) => {
+  const { review_id } = req.params;
+  const result = await productService.deleteReview(review_id);
   return res.json(result);
 };

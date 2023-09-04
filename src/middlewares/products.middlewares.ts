@@ -114,23 +114,22 @@ const reviewIdSchema: ParamSchema = {
     options: async (value: string) => {
       if (typeof value !== 'string') {
         throw new ErrorWithStatus({
-          message: PRODUCTS_MESSAGES.PRODUCT_REVIEW_PARENT_ID_MUST_BE_A_STRING,
+          message: PRODUCTS_MESSAGES.PRODUCT_REVIEW_ID_MUST_BE_A_STRING,
           status: HTTP_STATUS.BAD_REQUEST
         });
       }
       if (!ObjectId.isValid(value)) {
         throw new ErrorWithStatus({
-          message: PRODUCTS_MESSAGES.PRODUCT_REVIEW_PARENT_ID_IS_INVALID,
+          message: PRODUCTS_MESSAGES.PRODUCT_REVIEW_ID_IS_INVALID,
           status: HTTP_STATUS.BAD_REQUEST
         });
       }
       const review = await databaseService.productReviews.findOne({
-        _id: new ObjectId(value),
-        parent_id: null
+        _id: new ObjectId(value)
       });
       if (!review) {
         throw new ErrorWithStatus({
-          message: PRODUCTS_MESSAGES.PRODUCT_REVIEW_PARENT_NOT_FOUND,
+          message: PRODUCTS_MESSAGES.PRODUCT_REVIEW_NOT_FOUND,
           status: HTTP_STATUS.NOT_FOUND
         });
       }
@@ -598,7 +597,7 @@ export const addReviewValidator = validate(
             }
             if (parent_id) {
               throw new ErrorWithStatus({
-                message: PRODUCTS_MESSAGES.PRODUCT_REVIEW_PARENT_ID_MUST_BE_NULL,
+                message: PRODUCTS_MESSAGES.PRODUCT_REVIEW_ID_MUST_BE_NULL,
                 status: HTTP_STATUS.BAD_REQUEST
               });
             }
