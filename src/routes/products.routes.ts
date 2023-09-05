@@ -2,30 +2,22 @@ import { Router } from 'express';
 
 import {
   addImageController,
-  addReviewController,
   createProductController,
   deleteProductController,
-  deleteReviewController,
-  deleteReviewImageController,
   getProductDetailController,
   getProductListController,
-  getReviewDetailController,
-  getReviewsController,
   updateProductController
 } from '~/controllers/products.controllers';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import {
   addImageValidator,
-  addReviewValidator,
   checkProductExist,
-  checkReviewExistValidator,
   createProductValidator,
   deleteProductValidator,
   updateProductValidator
 } from '~/middlewares/products.middlewares';
-import { accessTokenValidator, adminRoleValidator, verifiedUserValidator } from '~/middlewares/users.middlewares';
+import { accessTokenValidator, adminRoleValidator } from '~/middlewares/users.middlewares';
 import { CreateProductRequestBody, UpdateProductRequestBody } from '~/models/requests/Product.requests';
-import { AddReviewRequestBody } from '~/models/requests/ProductReview.requests';
 import { wrapRequestHandler } from '~/utils/handler';
 
 const productsRouter = Router();
@@ -99,45 +91,5 @@ productsRouter.get('/', wrapRequestHandler(getProductListController));
 
 // Lấy thông tin chi tiết một sản phẩm
 productsRouter.get('/:product_id', checkProductExist, wrapRequestHandler(getProductDetailController));
-
-// Thêm đánh giá sản phẩm
-productsRouter.post(
-  '/:product_id/reviews',
-  accessTokenValidator,
-  verifiedUserValidator,
-  checkProductExist,
-  addReviewValidator,
-  filterReqBodyMiddleware<AddReviewRequestBody>(['comment', 'images', 'parent_id', 'rating']),
-  wrapRequestHandler(addReviewController)
-);
-
-// Lấy danh sách đánh giá theo từng sản phẩm
-productsRouter.get('/:product_id/reviews', checkProductExist, wrapRequestHandler(getReviewsController));
-
-// Lấy thông tin chi tiết của một đánh giá
-productsRouter.get(
-  '/:product_id/reviews/detail',
-  accessTokenValidator,
-  verifiedUserValidator,
-  wrapRequestHandler(getReviewDetailController)
-);
-
-// Xóa hình ảnh đính kèm của đánh giá
-productsRouter.delete(
-  '/reviews/:review_id/images/:image_id',
-  accessTokenValidator,
-  verifiedUserValidator,
-  checkReviewExistValidator,
-  wrapRequestHandler(deleteReviewImageController)
-);
-
-// Xóa một đánh giá
-productsRouter.delete(
-  '/reviews/:review_id',
-  accessTokenValidator,
-  verifiedUserValidator,
-  checkReviewExistValidator,
-  wrapRequestHandler(deleteReviewController)
-);
 
 export default productsRouter;
