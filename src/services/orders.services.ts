@@ -91,7 +91,6 @@ class OrderService {
               'purchases.product.images': 0,
               'purchases.product.brand_id': 0,
               'purchases.product.category_id': 0,
-              'purchases.product.specifications': 0,
               'purchases.product.user_id': 0
             }
           }
@@ -193,7 +192,6 @@ class OrderService {
               'purchases.product.images': 0,
               'purchases.product.brand_id': 0,
               'purchases.product.category_id': 0,
-              'purchases.product.specifications': 0,
               'purchases.product.user_id': 0
             }
           }
@@ -325,7 +323,6 @@ class OrderService {
             'purchases.product.images': 0,
             'purchases.product.brand_id': 0,
             'purchases.product.category_id': 0,
-            'purchases.product.specifications': 0,
             'purchases.product.user_id': 0
           }
         }

@@ -100,7 +100,6 @@ class PurchaseService {
             'product.images': 0,
             'product.brand_id': 0,
             'product.category_id': 0,
-            'product.specifications': 0,
             'product.user_id': 0
           }
         },

@@ -404,9 +404,6 @@ class ProductService {
             description: {
               $first: '$description'
             },
-            specifications: {
-              $first: '$specifications'
-            },
             brand: {
               $first: '$brand'
             },

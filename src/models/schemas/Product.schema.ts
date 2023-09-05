@@ -12,7 +12,6 @@ export interface ProductType {
   images?: ObjectId[];
   brand_id: ObjectId;
   category_id: ObjectId;
-  specifications?: string;
   available_count: number;
   user_id: ObjectId;
   created_at?: Date;
@@ -31,7 +30,6 @@ class Product {
   images: ObjectId[];
   brand_id: ObjectId;
   category_id: ObjectId;
-  specifications: string;
   available_count: number;
   user_id: ObjectId;
   created_at: Date;
@@ -50,7 +48,6 @@ class Product {
     this.images = product.images || [];
     this.brand_id = product.brand_id;
     this.category_id = product.category_id;
-    this.specifications = product.specifications || '';
     this.available_count = product.available_count;
     this.user_id = product.user_id;
     this.created_at = date;

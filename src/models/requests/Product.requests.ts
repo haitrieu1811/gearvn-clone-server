@@ -26,7 +26,6 @@ export interface CreateProductRequestBody {
   description?: string;
   brand_id: ObjectId;
   category_id: ObjectId;
-  specifications?: string;
   available_count: number;
 }
 
@@ -42,7 +41,6 @@ export interface UpdateProductRequestBody {
   images?: ObjectId[];
   brand_id: ObjectId;
   category_id: ObjectId;
-  specifications?: string;
   available_count: number;
 }
 

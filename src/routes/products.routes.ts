@@ -47,7 +47,6 @@ productsRouter.post(
     'name_vi',
     'price',
     'price_after_discount',
-    'specifications',
     'thumbnail'
   ]),
   wrapRequestHandler(createProductController)
@@ -70,7 +69,6 @@ productsRouter.patch(
     'name_vi',
     'price',
     'price_after_discount',
-    'specifications',
     'thumbnail',
     'available_count'
   ]),

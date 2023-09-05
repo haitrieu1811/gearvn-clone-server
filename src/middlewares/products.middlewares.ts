@@ -196,13 +196,6 @@ export const createProductValidator = validate(
       },
       brand_id: brandIdSchema,
       category_id: categoryIdSchema,
-      specifications: {
-        optional: true,
-        isString: {
-          errorMessage: PRODUCTS_MESSAGES.PRODUCT_SPECIFICATIONS_MUST_BE_A_STRING
-        },
-        trim: true
-      },
       available_count: {
         notEmpty: {
           errorMessage: PRODUCTS_MESSAGES.PRODUCT_AVAILABLE_COUNT_IS_REQUIRED
@@ -311,13 +304,6 @@ export const updateProductValidator = validate(
       category_id: {
         ...categoryIdSchema,
         optional: true
-      },
-      specifications: {
-        optional: true,
-        isString: {
-          errorMessage: PRODUCTS_MESSAGES.PRODUCT_SPECIFICATIONS_MUST_BE_A_STRING
-        },
-        trim: true
       },
       available_count: {
         optional: true,
