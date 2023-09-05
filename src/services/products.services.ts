@@ -10,12 +10,10 @@ import { PRODUCTS_MESSAGES } from '~/constants/messages';
 import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 import {
   CreateProductRequestBody,
-  GetBrandsRequestQuery,
   GetProductListRequestQuery,
   UpdateProductRequestBody
 } from '~/models/requests/Product.requests';
 import { AddReviewRequestBody } from '~/models/requests/ProductReview.requests';
-import Brand from '~/models/schemas/Brand.schema';
 import Media from '~/models/schemas/Media.schema';
 import Product from '~/models/schemas/Product.schema';
 import ProductReview from '~/models/schemas/ProductReview.schema';
@@ -23,90 +21,6 @@ import databaseService from './database.services';
 import mediaService from './medias.services';
 
 class ProductService {
-  // Lấy danh sách nhãn hiệu
-  async getBrands(query: GetBrandsRequestQuery) {
-    const { limit, page } = query;
-    const _limit = Number(limit) || 0;
-    const _page = Number(page) || 1;
-    const skip = (_page - 1) * _limit;
-    const [total, brands] = await Promise.all([
-      await databaseService.brands.countDocuments(),
-      await databaseService.brands.find({}).skip(skip).limit(_limit).toArray()
-    ]);
-    const pageSize = Math.ceil(total / _limit);
-    return {
-      message: PRODUCTS_MESSAGES.GET_BRANDS_SUCCEED,
-      data: {
-        brands,
-        pagination: {
-          total,
-          page: _page,
-          limit: _limit,
-          page_size: pageSize
-        }
-      }
-    };
-  }
-
-  // Lấy thông tin chi tiết một nhãn hiệu
-  async getBrand(brand_id: string) {
-    const brand = await databaseService.brands.findOne({ _id: new ObjectId(brand_id) });
-    return {
-      message: PRODUCTS_MESSAGES.GET_BRAND_SUCCEED,
-      data: {
-        brand
-      }
-    };
-  }
-
-  // Tạo nhãn hiệu mới
-  async createBrand(name: string) {
-    await databaseService.brands.insertOne(new Brand({ name }));
-    return {
-      message: PRODUCTS_MESSAGES.CREATE_BRAND_SUCCEED
-    };
-  }
-
-  // Cập nhật nhãn hiệu
-  async updateBrand({ name, brand_id }: { name: string; brand_id: string }) {
-    await databaseService.brands.updateOne(
-      { _id: new ObjectId(brand_id) },
-      {
-        $set: {
-          name
-        },
-        $currentDate: {
-          updated_at: true
-        }
-      }
-    );
-    return {
-      message: PRODUCTS_MESSAGES.UPDATE_BRAND_SUCCEED
-    };
-  }
-
-  // Xóa nhãn hiệu
-  async deleteBrand(brand_ids: ObjectId[]) {
-    const _brand_ids = brand_ids.map((id) => new ObjectId(id));
-
-    const [{ deletedCount }] = await Promise.all([
-      databaseService.brands.deleteMany({
-        _id: {
-          $in: _brand_ids
-        }
-      }),
-      databaseService.products.deleteMany({
-        brand_id: {
-          $in: _brand_ids
-        }
-      })
-    ]);
-
-    return {
-      message: `Delete ${deletedCount} brand succeed`
-    };
-  }
-
   // Thêm hình ảnh sản phẩm
   async addImage({ images, product_id }: { images: string[]; product_id: string }) {
     const dataInsert = images.map(
@@ -134,37 +48,6 @@ class ProductService {
     );
     return {
       message: PRODUCTS_MESSAGES.ADD_IMAGE_SUCCEED
-    };
-  }
-
-  // Xóa hình ảnh sản phẩm
-  async deleteImage(media_id: string) {
-    const [image] = await Promise.all([
-      databaseService.medias.findOne({ _id: new ObjectId(media_id) }),
-      databaseService.medias.deleteOne({ _id: new ObjectId(media_id) }),
-      databaseService.products.updateOne(
-        {
-          images: {
-            $elemMatch: {
-              $eq: new ObjectId(media_id)
-            }
-          }
-        },
-        {
-          $pull: {
-            images: new ObjectId(media_id)
-          }
-        }
-      )
-    ]);
-    if (image) {
-      const imagePath = path.resolve(UPLOAD_IMAGE_DIR, image.name);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
-    }
-    return {
-      message: PRODUCTS_MESSAGES.DELETE_IMAGE_SUCCEED
     };
   }
 

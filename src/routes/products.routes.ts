@@ -3,35 +3,24 @@ import { Router } from 'express';
 import {
   addImageController,
   addReviewController,
-  createBrandController,
   createProductController,
-  deleteBrandController,
-  deleteImageController,
   deleteProductController,
   deleteReviewController,
   deleteReviewImageController,
-  getBrandController,
-  getBrandsController,
   getProductDetailController,
   getProductListController,
   getReviewDetailController,
   getReviewsController,
-  updateBrandController,
   updateProductController
 } from '~/controllers/products.controllers';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import {
   addImageValidator,
   addReviewValidator,
-  checkBrandExistValidator,
-  checkMediaExistValidator,
   checkProductExist,
   checkReviewExistValidator,
-  createBrandValidator,
   createProductValidator,
-  deleteBrandValidator,
   deleteProductValidator,
-  updateBrandValidator,
   updateProductValidator
 } from '~/middlewares/products.middlewares';
 import { accessTokenValidator, adminRoleValidator, verifiedUserValidator } from '~/middlewares/users.middlewares';
@@ -40,34 +29,6 @@ import { AddReviewRequestBody } from '~/models/requests/ProductReview.requests';
 import { wrapRequestHandler } from '~/utils/handler';
 
 const productsRouter = Router();
-
-// Lấy danh sách các nhãn hiệu
-productsRouter.get('/brand', wrapRequestHandler(getBrandsController));
-
-// Lấy thông tin chi tiết của một nhãn hiệu
-productsRouter.get('/brand/:brand_id', checkBrandExistValidator, wrapRequestHandler(getBrandController));
-
-// Tạo mới nhãn hiệu
-productsRouter.post(
-  '/brand',
-  accessTokenValidator,
-  adminRoleValidator,
-  createBrandValidator,
-  wrapRequestHandler(createBrandController)
-);
-
-// Cập nhật nhãn hiệu
-productsRouter.put(
-  '/brand/:brand_id',
-  accessTokenValidator,
-  adminRoleValidator,
-  checkBrandExistValidator,
-  updateBrandValidator,
-  wrapRequestHandler(updateBrandController)
-);
-
-// Xóa nhãn hiệu
-productsRouter.delete('/brand', accessTokenValidator, deleteBrandValidator, wrapRequestHandler(deleteBrandController));
 
 // Thêm hình ảnh sản phẩm
 productsRouter.post(
@@ -79,14 +40,6 @@ productsRouter.post(
   wrapRequestHandler(addImageController)
 );
 
-// Xóa hình ảnh sản phẩm
-productsRouter.delete(
-  '/image/:media_id',
-  accessTokenValidator,
-  adminRoleValidator,
-  checkMediaExistValidator,
-  wrapRequestHandler(deleteImageController)
-);
 // Thêm mới sản phẩm
 productsRouter.post(
   '/',
