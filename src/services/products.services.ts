@@ -233,6 +233,19 @@ class ProductService {
         },
         {
           $lookup: {
+            from: 'users',
+            localField: 'user_id',
+            foreignField: '_id',
+            as: 'author'
+          }
+        },
+        {
+          $unwind: {
+            path: '$author'
+          }
+        },
+        {
+          $lookup: {
             from: 'medias',
             localField: 'images',
             foreignField: '_id',
@@ -404,6 +417,12 @@ class ProductService {
             description: {
               $first: '$description'
             },
+            specifications: {
+              $first: '$specifications'
+            },
+            author: {
+              $first: '$author'
+            },
             brand: {
               $first: '$brand'
             },
@@ -423,7 +442,18 @@ class ProductService {
         },
         {
           $project: {
-            'category.created_at': 0,
+            'author.status': 0,
+            'author.password': 0,
+            'author.role': 0,
+            'author.gender': 0,
+            'author.verify': 0,
+            'author.phoneNumber': 0,
+            'author.addresses': 0,
+            'author.date_of_birth': 0,
+            'author.email_verify_token': 0,
+            'author.forgot_password_token': 0,
+            'author.created_at': 0,
+            'author.updated_at': 0,
             'category.updated_at': 0,
             'brand.created_at': 0,
             'brand.updated_at': 0,

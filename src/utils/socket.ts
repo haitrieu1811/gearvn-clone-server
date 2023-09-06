@@ -1,13 +1,16 @@
 import { Server as HttpServer } from 'http';
+import { ObjectId } from 'mongodb';
 import { Server } from 'socket.io';
 
 import { ENV_CONFIG } from '~/constants/config';
-import { UserVerifyStatus } from '~/constants/enum';
+import { NotificationType, UserVerifyStatus } from '~/constants/enum';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { USERS_MESSAGES } from '~/constants/messages';
 import { verifyAccessToken } from '~/middlewares/common.middlewares';
 import { ErrorWithStatus } from '~/models/Errors';
 import { TokenPayload } from '~/models/requests/User.requests';
+import Notification from '~/models/schemas/Notification.schema';
+import databaseService from '~/services/database.services';
 
 const initSocket = (httpServer: HttpServer) => {
   const io = new Server(httpServer, {
@@ -57,6 +60,35 @@ const initSocket = (httpServer: HttpServer) => {
         socket_id: socket.id
       };
     }
+
+    // Có đánh giá mới
+    socket.on('send_product_review', async (data) => {
+      const { title, content, path, sender_id, receiver_id } = data;
+      // Thêm thông báo vào database
+      await databaseService.notifications.insertOne(
+        new Notification({
+          type: NotificationType.NewReview,
+          title,
+          content,
+          path,
+          sender_id: new ObjectId(sender_id),
+          receiver_id: new ObjectId(receiver_id),
+          is_read: false
+        })
+      );
+      // Hiển thị đánh giá mới ngay lập tức cho mọi người
+      socket.broadcast.emit('receive_product_review');
+      // Gửi thông báo đến người nhận
+      if (receiver_id && receiver_id in users) {
+        const receiver_socket_id = users[receiver_id].socket_id;
+        socket.to(receiver_socket_id).emit('receive_notification');
+      }
+    });
+
+    // Xóa đánh giá cũ
+    socket.on('delete_product_review', () => {
+      socket.broadcast.emit('receive_product_review');
+    });
 
     socket.on('disconnect', () => {
       delete users[user_id];

@@ -31,7 +31,7 @@ class NotificationsService {
   async getNotifications({ user_id, page, limit }: { user_id: string } & PaginationRequestQuery) {
     // Phân trang
     const _page = Number(page) || 1;
-    const _limit = Number(limit) || 20;
+    const _limit = Number(limit) || 10;
     const [notifications, total, unread_total] = await Promise.all([
       databaseService.notifications
         .aggregate([
