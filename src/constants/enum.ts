@@ -69,3 +69,8 @@ export enum PaymentMethod {
   Cash,
   Card
 }
+
+export enum NotificationType {
+  NewOrder,
+  NewReview
+}

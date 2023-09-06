@@ -12,6 +12,7 @@ type ErrorsType = Record<
 export class ErrorWithStatus {
   message: string;
   status: number;
+
   constructor({ message, status }: { message: string; status: number }) {
     this.message = message;
     this.status = status;
@@ -20,6 +21,7 @@ export class ErrorWithStatus {
 
 export class EntityError extends ErrorWithStatus {
   data: ErrorsType;
+
   constructor({ message = USERS_MESSAGES.VALIDATION_ERROR, errors }: { message?: string; errors: ErrorsType }) {
     super({ message, status: HTTP_STATUS.UNPROCESSABLE_ENTITY });
     this.data = errors;

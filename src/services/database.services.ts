@@ -7,6 +7,7 @@ import Blog from '~/models/schemas/Blog.schema';
 import Brand from '~/models/schemas/Brand.schema';
 import Category from '~/models/schemas/Category.schema';
 import Media from '~/models/schemas/Media.schema';
+import Notification from '~/models/schemas/Notification.schema';
 import Order from '~/models/schemas/Order.schema';
 import Product from '~/models/schemas/Product.schema';
 import ProductReview from '~/models/schemas/ProductReview.schema';
@@ -38,11 +39,12 @@ class DatabaseService {
   }
 
   async indexUsers() {
-    const isExist = await this.users.indexExists(['email_1', 'addresses_1', 'forgot_password_token_1']);
+    const isExist = await this.users.indexExists(['email_1', 'addresses_1', 'forgot_password_token_1', 'role_1']);
     if (!isExist) {
       await this.users.createIndex({ email: 1 }, { unique: true });
       await this.users.createIndex({ addresses: 1 });
       await this.users.createIndex({ forgot_password_token: 1 });
+      await this.users.createIndex({ role: 1 });
     }
   }
 
@@ -72,6 +74,19 @@ class DatabaseService {
     const isExist = await this.productReviews.indexExists(['product_id_1_user_id_1_parent_id_1']);
     if (!isExist) {
       await this.productReviews.createIndex({ product_id: 1, user_id: 1, parent_id: 1 });
+    }
+  }
+
+  async indexNotifications() {
+    const isExist = await this.notifications.indexExists([
+      'receiver_id_1_is_read_1',
+      'receiver_id_1',
+      '_id_1_receiver_id_1_is_read_1'
+    ]);
+    if (!isExist) {
+      await this.notifications.createIndex({ receiver_id: 1 });
+      await this.notifications.createIndex({ receiver_id: 1, is_read: 1 });
+      await this.notifications.createIndex({ _id: 1, receiver_id: 1, is_read: 1 });
     }
   }
 
@@ -121,6 +136,10 @@ class DatabaseService {
 
   get productReviews(): Collection<ProductReview> {
     return this.db.collection(ENV_CONFIG.DB_PRODUCT_REVIEWS_COLLECTION);
+  }
+
+  get notifications(): Collection<Notification> {
+    return this.db.collection(ENV_CONFIG.DB_NOTIFICATIONS_COLLECTION);
   }
 }
 

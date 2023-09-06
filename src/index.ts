@@ -10,6 +10,7 @@ import blogsRouter from './routes/blogs.routes';
 import brandsRouter from './routes/brands.routes';
 import categoriesRouter from './routes/categories.routes';
 import mediasRouter from './routes/medias.routes';
+import notificationsRouter from './routes/notifications.routes';
 import ordersRouter from './routes/orders.routes';
 import productReviewsRouter from './routes/productReviews.routes';
 import productsRouter from './routes/products.routes';
@@ -26,6 +27,7 @@ databaseService.connect().then(() => {
   databaseService.indexProducts();
   databaseService.indexRefreshTokens();
   databaseService.indexProductReviews();
+  databaseService.indexNotifications();
 });
 
 const app = express();
@@ -58,6 +60,7 @@ app.use('/medias', mediasRouter);
 app.use('/purchases', purchasesRouter);
 app.use('/orders', ordersRouter);
 app.use('/blogs', blogsRouter);
+app.use('/notifications', notificationsRouter);
 app.use('/static', staticRouter);
 app.use(defaultErrorHandler);
 

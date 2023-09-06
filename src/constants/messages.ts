@@ -282,3 +282,21 @@ export const BLOGS_MESSAGES = {
   BLOG_IDS_NOT_EMPTY: 'Blog ids not empty',
   BLOG_IDS_IS_INVALID: 'Blog ids is invalid'
 } as const;
+
+export const NOTIFICATIONS_MESSAGES = {
+  NOTIFICATION_TYPE_IS_REQUIRED: 'Notification type is required',
+  NOTIFICATION_TYPE_IS_INVALID: 'Notification type is invalid',
+  NOTIFICATION_TITLE_IS_REQUIRED: 'Notification title is required',
+  NOTIFICATION_TITLE_MUST_BE_A_STRING: 'Notification title must be a string',
+  NOTIFICATION_CONTENT_IS_REQUIRED: 'Notification content is required',
+  NOTIFICATION_CONTENT_MUST_BE_A_STRING: 'Notification content must be a string',
+  ADD_NOTIFICATION_SUCCEED: 'Add notification succeed',
+  GET_NOTIFICATION_LIST_SUCCEED: 'Get notification list succeed',
+  NOTIFICATION_PATH_MUST_BE_A_STRING: 'Notification path must be a string',
+  NOTIFICATION_PATH_IS_INVALID: 'Notification path must be a valid url',
+  DELETE_NOTIFICATION_SUCCEED: 'Delete notification succeed',
+  NOTIFICATION_ID_IS_REQUIRED: 'Notification id is required',
+  NOTIFICATION_ID_IS_INVALID: 'Notification id is invalid',
+  NOTIFICATION_ID_IS_NOT_EXISTED: 'Notification id is not existed',
+  MARK_AS_READ_NOTIFICATION_SUCCEED: 'Mark as read notification succeed'
+} as const;
