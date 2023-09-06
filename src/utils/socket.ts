@@ -1,0 +1,71 @@
+import { Server as HttpServer } from 'http';
+import { Server } from 'socket.io';
+
+import { ENV_CONFIG } from '~/constants/config';
+import { UserVerifyStatus } from '~/constants/enum';
+import HTTP_STATUS from '~/constants/httpStatus';
+import { USERS_MESSAGES } from '~/constants/messages';
+import { verifyAccessToken } from '~/middlewares/common.middlewares';
+import { ErrorWithStatus } from '~/models/Errors';
+import { TokenPayload } from '~/models/requests/User.requests';
+
+const initSocket = (httpServer: HttpServer) => {
+  const io = new Server(httpServer, {
+    cors: {
+      origin: ENV_CONFIG.CLIENT_URL
+    }
+  });
+
+  // Socket users
+  const users: {
+    [key: string]: {
+      socket_id: string;
+    };
+  } = {};
+
+  // Socket middleware
+  io.use(async (socket, next) => {
+    const { Authorization } = socket.handshake.auth;
+    const access_token = Authorization.split(' ')[1];
+    try {
+      const decoded_authorization = await verifyAccessToken(access_token);
+      const { verify } = decoded_authorization as TokenPayload;
+      if (verify === UserVerifyStatus.Unverified) {
+        throw new ErrorWithStatus({
+          message: USERS_MESSAGES.USER_IS_UNVERIFIED,
+          status: HTTP_STATUS.FORBIDDEN
+        });
+      }
+      socket.handshake.auth.decoded_authorization = decoded_authorization;
+      socket.handshake.auth.access_token = access_token;
+      next();
+    } catch (error) {
+      next({
+        message: 'Unauthorized',
+        name: 'UnauthorizedError',
+        data: error
+      });
+    }
+  });
+
+  io.on('connection', (socket) => {
+    console.log(`User ${socket.id} connected`);
+
+    const { user_id } = socket.handshake.auth.decoded_authorization as TokenPayload;
+    if (user_id) {
+      users[user_id] = {
+        socket_id: socket.id
+      };
+    }
+
+    socket.on('disconnect', () => {
+      delete users[user_id];
+      console.log(`User ${socket.id} disconnected`);
+      console.log('Users connected: ', users);
+    });
+
+    console.log('Users connected: ', users);
+  });
+};
+
+export default initSocket;

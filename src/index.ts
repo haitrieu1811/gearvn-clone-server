@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet, { HelmetOptions } from 'helmet';
+import { createServer } from 'http';
 
 import { ENV_CONFIG, isProduction } from './constants/config';
 import { defaultErrorHandler } from './middlewares/error.middlewares';
@@ -19,6 +20,7 @@ import staticRouter from './routes/static.routes';
 import usersRouter from './routes/users.routes';
 import databaseService from './services/database.services';
 import { initFolders } from './utils/file';
+import initSocket from './utils/socket';
 initFolders();
 
 databaseService.connect().then(() => {
@@ -31,6 +33,8 @@ databaseService.connect().then(() => {
 });
 
 const app = express();
+const httpServer = createServer(app);
+
 const port = ENV_CONFIG.PORT || 4000;
 const corsOptions = {
   origin: isProduction ? ENV_CONFIG.CLIENT_URL : '*'
@@ -64,6 +68,8 @@ app.use('/notifications', notificationsRouter);
 app.use('/static', staticRouter);
 app.use(defaultErrorHandler);
 
-app.listen(port, () => {
+initSocket(httpServer);
+
+httpServer.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
