@@ -11,6 +11,7 @@ import { ErrorWithStatus } from '~/models/Errors';
 import { TokenPayload } from '~/models/requests/User.requests';
 import Notification from '~/models/schemas/Notification.schema';
 import databaseService from '~/services/database.services';
+import notificationsService from '~/services/notifications.services';
 
 const initSocket = (httpServer: HttpServer) => {
   const io = new Server(httpServer, {
@@ -65,7 +66,7 @@ const initSocket = (httpServer: HttpServer) => {
     socket.on('send_product_review', async (data) => {
       const { title, content, path, sender_id, receiver_id } = data;
       // Thêm thông báo vào database
-      await databaseService.notifications.insertOne(
+      const { insertedId } = await databaseService.notifications.insertOne(
         new Notification({
           type: NotificationType.NewReview,
           title,
@@ -76,17 +77,19 @@ const initSocket = (httpServer: HttpServer) => {
           is_read: false
         })
       );
+      const new_notification = await notificationsService.getNotification(insertedId);
       // Hiển thị đánh giá mới ngay lập tức cho mọi người
       socket.broadcast.emit('receive_product_review');
       // Gửi thông báo đến người nhận
       if (receiver_id && receiver_id in users) {
         const receiver_socket_id = users[receiver_id].socket_id;
-        socket.to(receiver_socket_id).emit('receive_notification');
+        socket.to(receiver_socket_id).emit('receive_notification', new_notification);
       }
     });
 
     // Xóa đánh giá cũ
     socket.on('delete_product_review', () => {
+      // Cập nhật lại danh sách đánh giá cho mọi người
       socket.broadcast.emit('receive_product_review');
     });
 
