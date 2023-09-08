@@ -1,4 +1,3 @@
-import { config } from 'dotenv';
 import { Collection, Db, MongoClient } from 'mongodb';
 
 import { ENV_CONFIG } from '~/constants/config';
@@ -6,6 +5,7 @@ import Address from '~/models/schemas/Address.schema';
 import Blog from '~/models/schemas/Blog.schema';
 import Brand from '~/models/schemas/Brand.schema';
 import Category from '~/models/schemas/Category.schema';
+import Conversation from '~/models/schemas/Conversation.schema';
 import Media from '~/models/schemas/Media.schema';
 import Notification from '~/models/schemas/Notification.schema';
 import Order from '~/models/schemas/Order.schema';
@@ -15,7 +15,6 @@ import Purchase from '~/models/schemas/Purchase.schema';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import User from '~/models/schemas/User.schema';
 import ViewedProduct from '~/models/schemas/ViewedProduct.schema';
-config();
 
 const uri = `mongodb+srv://${ENV_CONFIG.DB_USERNAME}:${ENV_CONFIG.DB_PASSWORD}@gearvn-clone-cluster.ur6rvkl.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -90,6 +89,19 @@ class DatabaseService {
     }
   }
 
+  async indexConversations() {
+    const isExist = await this.conversations.indexExists([
+      'sender_id_1_receiver_id_1',
+      'sender_id_1_receiver_id_1_is_read_1',
+      'sender_id_1'
+    ]);
+    if (!isExist) {
+      await this.conversations.createIndex({ sender_id: 1, receiver_id: 1 });
+      await this.conversations.createIndex({ sender_id: 1, receiver_id: 1, is_read: 1 });
+      await this.conversations.createIndex({ sender_id: 1 });
+    }
+  }
+
   get users(): Collection<User> {
     return this.db.collection(ENV_CONFIG.DB_USERS_COLLECTION);
   }
@@ -140,6 +152,10 @@ class DatabaseService {
 
   get notifications(): Collection<Notification> {
     return this.db.collection(ENV_CONFIG.DB_NOTIFICATIONS_COLLECTION);
+  }
+
+  get conversations(): Collection<Conversation> {
+    return this.db.collection(ENV_CONFIG.DB_CONVERSATIONS_COLLECTION);
   }
 }
 

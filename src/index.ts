@@ -10,6 +10,7 @@ import addressesRouter from './routes/addresses.routes';
 import blogsRouter from './routes/blogs.routes';
 import brandsRouter from './routes/brands.routes';
 import categoriesRouter from './routes/categories.routes';
+import conversationsRouter from './routes/conversations.routes';
 import mediasRouter from './routes/medias.routes';
 import notificationsRouter from './routes/notifications.routes';
 import ordersRouter from './routes/orders.routes';
@@ -30,6 +31,7 @@ databaseService.connect().then(() => {
   databaseService.indexRefreshTokens();
   databaseService.indexProductReviews();
   databaseService.indexNotifications();
+  databaseService.indexConversations();
 });
 
 const app = express();
@@ -65,6 +67,7 @@ app.use('/purchases', purchasesRouter);
 app.use('/orders', ordersRouter);
 app.use('/blogs', blogsRouter);
 app.use('/notifications', notificationsRouter);
+app.use('/conversations', conversationsRouter);
 app.use('/static', staticRouter);
 app.use(defaultErrorHandler);
 

@@ -103,6 +103,33 @@ const imageSchema: ParamSchema = {
   }
 };
 
+export const userIdSchema: ParamSchema = {
+  custom: {
+    options: async (value: string) => {
+      if (!value) {
+        throw new ErrorWithStatus({
+          message: USERS_MESSAGES.USER_ID_IS_REQUIRED,
+          status: HTTP_STATUS.BAD_REQUEST
+        });
+      }
+      if (!ObjectId.isValid(value)) {
+        throw new ErrorWithStatus({
+          message: USERS_MESSAGES.USER_ID_IS_INVALID,
+          status: HTTP_STATUS.BAD_REQUEST
+        });
+      }
+      const count = await databaseService.users.countDocuments({ _id: new ObjectId(value) });
+      if (count === 0) {
+        throw new ErrorWithStatus({
+          message: USERS_MESSAGES.USER_NOT_EXISTED,
+          status: HTTP_STATUS.NOT_FOUND
+        });
+      }
+      return true;
+    }
+  }
+};
+
 export const expireTokenSchema: ParamSchema = {
   optional: true,
   custom: {

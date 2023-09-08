@@ -92,7 +92,10 @@ export const USERS_MESSAGES = {
   GET_ADDRESSES_SUCCEED: 'Get addresses succeed',
   ADDRESS_IS_DEFAULT: 'Address is default',
   FORGOT_PASSWORD_TOKEN_IS_INVALID: 'Forgot password token is invalid',
-  VERIFY_EMAIL_VERIFY_TOKEN_SUCCEED: 'Verify email verify token succeed'
+  VERIFY_EMAIL_VERIFY_TOKEN_SUCCEED: 'Verify email verify token succeed',
+  USER_ID_IS_REQUIRED: 'User id is required',
+  USER_ID_IS_INVALID: 'User id is invalid',
+  USER_NOT_EXISTED: 'User not existed'
 } as const;
 
 export const CATEGORIES_MESSAGES = {
@@ -299,4 +302,20 @@ export const NOTIFICATIONS_MESSAGES = {
   NOTIFICATION_ID_IS_INVALID: 'Notification id is invalid',
   NOTIFICATION_ID_IS_NOT_EXISTED: 'Notification id is not existed',
   MARK_AS_READ_NOTIFICATION_SUCCEED: 'Mark as read notification succeed'
+} as const;
+
+export const CONVERSATIONS_MESSAGES = {
+  CONTENT_REQUIRED: 'Content of conversation is required',
+  ADD_CONVERSATION_SUCCESS: 'Add new conversation succeed',
+  RECEIVER_ID_IS_REQUIRED: 'Receiver id is required',
+  RECEIVER_ID_IS_INVALID: 'Receiver id is invalid',
+  RECEIVER_NOT_EXISTED: 'Receiver not existed',
+  CONTENT_CANNOT_BE_EMPTY: 'Content cannot be empty',
+  RECEIVER_ID_MUST_BE_DIFFERENT_FROM_SENDER_ID: `You can't send message to yourself`,
+  GET_CONVERSATIONS_SUCCESS: 'Get conversations succeed',
+  READ_ALL_MESSAGES_SUCCESS: 'Read all messages of conversation succeed',
+  SENDER_ID_IS_REQUIRED: 'Sender id is required',
+  SENDER_ID_IS_INVALID: 'Sender id is invalid',
+  SENDER_NOT_EXISTED: 'Sender not existed',
+  GET_RECEIVERS_SUCCESS: 'Get receivers succeed'
 } as const;
