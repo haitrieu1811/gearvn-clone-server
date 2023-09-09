@@ -9,7 +9,9 @@ import { USERS_MESSAGES } from '~/constants/messages';
 import { verifyAccessToken } from '~/middlewares/common.middlewares';
 import { ErrorWithStatus } from '~/models/Errors';
 import { TokenPayload } from '~/models/requests/User.requests';
+import Conversation from '~/models/schemas/Conversation.schema';
 import Notification from '~/models/schemas/Notification.schema';
+import conversationsService from '~/services/conversations.services';
 import databaseService from '~/services/database.services';
 import notificationsService from '~/services/notifications.services';
 
@@ -81,16 +83,35 @@ const initSocket = (httpServer: HttpServer) => {
       // Hiển thị đánh giá mới ngay lập tức cho mọi người
       socket.broadcast.emit('receive_product_review');
       // Gửi thông báo đến người nhận
-      if (receiver_id && receiver_id in users) {
-        const receiver_socket_id = users[receiver_id].socket_id;
-        socket.to(receiver_socket_id).emit('receive_notification', new_notification);
-      }
+      if (!(receiver_id in users)) return;
+      const receiver_socket_id = users[receiver_id].socket_id;
+      socket.to(receiver_socket_id).emit('receive_notification', new_notification);
     });
 
     // Xóa đánh giá cũ
     socket.on('delete_product_review', () => {
       // Cập nhật lại danh sách đánh giá cho mọi người
       socket.broadcast.emit('receive_product_review');
+    });
+
+    // Có tin nhắn mới
+    socket.on('send_message', async (data) => {
+      const { content, sender_id, receiver_id } = data;
+      // Thêm thông báo vào database
+      const { insertedId } = await databaseService.conversations.insertOne(
+        new Conversation({
+          content,
+          sender_id: new ObjectId(sender_id),
+          receiver_id: new ObjectId(receiver_id),
+          is_read: false
+        })
+      );
+      const new_conversation = await conversationsService.getConversation(insertedId);
+      // Gửi tin nhắn mới đến người nhận nếu người nhận đang online ở client
+      if (!(sender_id in users) || !(receiver_id in users)) return;
+      const sender_socket_id = users[sender_id].socket_id;
+      const receiver_socket_id = users[receiver_id].socket_id;
+      socket.to(sender_socket_id).to(receiver_socket_id).emit('receive_message', new_conversation);
     });
 
     socket.on('disconnect', () => {

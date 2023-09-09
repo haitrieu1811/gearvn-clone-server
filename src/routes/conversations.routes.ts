@@ -3,8 +3,7 @@ import { Router } from 'express';
 import {
   addConversationController,
   getConversationsController,
-  getReceiversController,
-  readConversationsController
+  getReceiversController
 } from '~/controllers/conversations.controllers';
 import {
   addConversationValidator,
@@ -32,15 +31,6 @@ conversationsRouter.get(
   verifiedUserValidator,
   receiverIdValidator,
   wrapRequestHandler(getConversationsController)
-);
-
-// Đọc tất cả tin nhắn
-conversationsRouter.patch(
-  '/read/sender/:sender_id',
-  accessTokenValidator,
-  verifiedUserValidator,
-  senderIdValidator,
-  wrapRequestHandler(readConversationsController)
 );
 
 // Lấy danh sách người dùng đã nhắn tin

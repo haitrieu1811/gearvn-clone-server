@@ -93,12 +93,14 @@ class DatabaseService {
     const isExist = await this.conversations.indexExists([
       'sender_id_1_receiver_id_1',
       'sender_id_1_receiver_id_1_is_read_1',
-      'sender_id_1'
+      'sender_id_1',
+      'receiver_id_1'
     ]);
     if (!isExist) {
       await this.conversations.createIndex({ sender_id: 1, receiver_id: 1 });
       await this.conversations.createIndex({ sender_id: 1, receiver_id: 1, is_read: 1 });
       await this.conversations.createIndex({ sender_id: 1 });
+      await this.conversations.createIndex({ receiver_id: 1 });
     }
   }
 

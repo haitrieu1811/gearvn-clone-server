@@ -145,6 +145,7 @@ class UserService {
     await databaseService.users.insertOne(
       new User({
         _id: user_id,
+        fullName: `User#${user_id.toString().slice(-4)}`, // Tạo tên mặc định khi mới tạo tài khoản
         email,
         password: hashPassword(password),
         email_verify_token

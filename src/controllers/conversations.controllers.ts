@@ -2,11 +2,7 @@ import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 
 import { PaginationRequestQuery } from '~/models/requests/Common.requests';
-import {
-  AddConversationRequestBody,
-  ReceiverIdRequestParams,
-  SenderIdRequestParams
-} from '~/models/requests/Conversation.requests';
+import { AddConversationRequestBody, ReceiverIdRequestParams } from '~/models/requests/Conversation.requests';
 import { TokenPayload } from '~/models/requests/User.requests';
 import conversationsService from '~/services/conversations.services';
 
@@ -33,17 +29,9 @@ export const getConversationsController = async (
   return res.json(result);
 };
 
-// Đọc tất cả tin nhắn
-export const readConversationsController = async (req: Request<SenderIdRequestParams>, res: Response) => {
-  const { user_id: receiver_id } = req.decoded_authorization as TokenPayload;
-  const { sender_id } = req.params;
-  const result = await conversationsService.readConversations({ sender_id, receiver_id });
-  return res.json(result);
-};
-
 // Lấy danh sách người dùng đã nhắn tin
 export const getReceiversController = async (req: Request, res: Response) => {
-  const { user_id } = req.decoded_authorization as TokenPayload;
-  const result = await conversationsService.getReceivers(user_id);
+  const { user_id, role } = req.decoded_authorization as TokenPayload;
+  const result = await conversationsService.getReceivers({ user_id, role });
   return res.json(result);
 };
