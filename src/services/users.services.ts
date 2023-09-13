@@ -660,6 +660,23 @@ class UserService {
       }
     };
   }
+
+  // Lấy danh sách id của những tài khoản admin (chỉ sử dụng ở server)
+  async getAdminIds() {
+    const admin_ids = await databaseService.users
+      .find(
+        {
+          role: UserRole.Admin
+        },
+        {
+          projection: {
+            _id: 1
+          }
+        }
+      )
+      .toArray();
+    return admin_ids.map((admin) => admin._id);
+  }
 }
 
 const userService = new UserService();

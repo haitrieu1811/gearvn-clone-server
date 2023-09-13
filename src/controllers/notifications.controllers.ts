@@ -2,19 +2,9 @@ import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 
-import { AddNotificationRequestBody, NotificationIdRequestParams } from '~/models/requests/Notification.requests';
+import { NotificationIdRequestParams } from '~/models/requests/Notification.requests';
 import { TokenPayload } from '~/models/requests/User.requests';
 import notificationsService from '~/services/notifications.services';
-
-// Thêm một thông báo mới cho những admin
-export const addNotificationController = async (
-  req: Request<ParamsDictionary, any, AddNotificationRequestBody>,
-  res: Response
-) => {
-  const { user_id } = req.decoded_authorization as TokenPayload;
-  const result = await notificationsService.addNotification({ user_id, body: req.body });
-  return res.json(result);
-};
 
 // Lấy danh sách thông báo
 export const getNotificationsController = async (

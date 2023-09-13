@@ -7,27 +7,111 @@ import databaseService from './database.services';
 import { UserRole } from '~/constants/enum';
 
 class ConversationsService {
-  // Thêm một tin nhắn mới;
+  // Thêm một tin nhắn mới (chỉ dùng ở server)
   async addConversation({
     content,
     sender_id,
     receiver_id
   }: {
     content: string;
-    sender_id: string;
-    receiver_id: string;
+    sender_id: ObjectId;
+    receiver_id: ObjectId;
   }) {
-    await databaseService.conversations.insertOne(
+    const { insertedId } = await databaseService.conversations.insertOne(
       new Conversation({
         content,
-        receiver_id: new ObjectId(receiver_id),
-        sender_id: new ObjectId(sender_id),
+        receiver_id,
+        sender_id,
         is_read: false
       })
     );
-    return {
-      message: CONVERSATIONS_MESSAGES.ADD_CONVERSATION_SUCCESS
-    };
+    const conversation = await databaseService.conversations
+      .aggregate([
+        {
+          $match: {
+            _id: insertedId
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'sender_id',
+            foreignField: '_id',
+            as: 'sender'
+          }
+        },
+        {
+          $unwind: {
+            path: '$sender'
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'receiver_id',
+            foreignField: '_id',
+            as: 'receiver'
+          }
+        },
+        {
+          $unwind: {
+            path: '$receiver'
+          }
+        },
+        {
+          $group: {
+            _id: '$_id',
+            content: {
+              $first: '$content'
+            },
+            is_read: {
+              $first: '$is_read'
+            },
+            sender: {
+              $first: '$sender'
+            },
+            receiver: {
+              $first: '$receiver'
+            },
+            created_at: {
+              $first: '$created_at'
+            },
+            updated_at: {
+              $first: '$updated_at'
+            }
+          }
+        },
+        {
+          $project: {
+            'sender.password': 0,
+            'sender.status': 0,
+            'sender.role': 0,
+            'sender.gender': 0,
+            'sender.verify': 0,
+            'sender.phoneNumber': 0,
+            'sender.addresses': 0,
+            'sender.date_of_birth': 0,
+            'sender.email_verify_token': 0,
+            'sender.forgot_password_token': 0,
+            'sender.created_at': 0,
+            'sender.updated_at': 0,
+            'receiver.password': 0,
+            'receiver.status': 0,
+            'receiver.role': 0,
+            'receiver.gender': 0,
+            'receiver.verify': 0,
+            'receiver.phoneNumber': 0,
+            'receiver.addresses': 0,
+            'receiver.date_of_birth': 0,
+            'receiver.email_verify_token': 0,
+            'receiver.forgot_password_token': 0,
+            'receiver.created_at': 0,
+            'receiver.updated_at': 0
+          }
+        }
+      ])
+      .toArray();
+    return conversation[0];
   }
 
   // Lấy danh sách tin nhắn
@@ -342,7 +426,8 @@ class ConversationsService {
         },
         {
           $unwind: {
-            path: '$messages_send_and_receive_with_you'
+            path: '$messages_send_and_receive_with_you',
+            preserveNullAndEmptyArrays: true
           }
         },
         {

@@ -64,19 +64,26 @@ class AddressesService {
           }
         },
         {
-          $project: {
-            _id: 0,
-            addresses: 1
+          $unwind: {
+            path: '$addresses'
+          }
+        },
+        {
+          $replaceRoot: {
+            newRoot: '$addresses'
+          }
+        },
+        {
+          $sort: {
+            created_at: -1
           }
         }
       ])
-      .sort({ created_at: -1 })
       .toArray();
-    const _addresses = addresses[0].addresses;
     return {
       message: USERS_MESSAGES.GET_ADDRESSES_SUCCEED,
       data: {
-        addresses: _addresses
+        addresses
       }
     };
   }

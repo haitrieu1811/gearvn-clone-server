@@ -3,7 +3,7 @@ import { BlogStatus } from '~/constants/enum';
 
 interface BlogInterface {
   _id?: ObjectId;
-  thumbnail: string;
+  thumbnail?: string;
   name_vi: string;
   name_en?: string;
   content_vi: string;
@@ -28,9 +28,8 @@ class Blog {
 
   constructor(blog: BlogInterface) {
     const date = new Date();
-
     this._id = blog._id;
-    this.thumbnail = blog.thumbnail;
+    this.thumbnail = blog.thumbnail || '';
     this.name_vi = blog.name_vi;
     this.name_en = blog.name_en || '';
     this.content_vi = blog.content_vi;

@@ -40,77 +40,11 @@ const receiverIdSchema: ParamSchema = {
   }
 };
 
-const senderIdSchema: ParamSchema = {
-  custom: {
-    options: async (value: string) => {
-      if (!value) {
-        throw new ErrorWithStatus({
-          message: CONVERSATIONS_MESSAGES.SENDER_ID_IS_REQUIRED,
-          status: HTTP_STATUS.BAD_REQUEST
-        });
-      }
-      if (!ObjectId.isValid(value)) {
-        throw new ErrorWithStatus({
-          message: CONVERSATIONS_MESSAGES.SENDER_ID_IS_INVALID,
-          status: HTTP_STATUS.BAD_REQUEST
-        });
-      }
-      const count = await databaseService.users.countDocuments({ _id: new ObjectId(value) });
-      if (count === 0) {
-        throw new ErrorWithStatus({
-          message: CONVERSATIONS_MESSAGES.SENDER_NOT_EXISTED,
-          status: HTTP_STATUS.NOT_FOUND
-        });
-      }
-      return true;
-    }
-  }
-};
-
-// Thêm một tin nhắn mới
-export const addConversationValidator = validate(
-  checkSchema(
-    {
-      receiver_id: receiverIdSchema,
-      content: {
-        custom: {
-          options: (value: string) => {
-            if (!value) {
-              throw new ErrorWithStatus({
-                message: CONVERSATIONS_MESSAGES.CONTENT_REQUIRED,
-                status: HTTP_STATUS.BAD_REQUEST
-              });
-            }
-            if (value.trim().length === 0) {
-              throw new ErrorWithStatus({
-                message: CONVERSATIONS_MESSAGES.CONTENT_CANNOT_BE_EMPTY,
-                status: HTTP_STATUS.BAD_REQUEST
-              });
-            }
-            return true;
-          }
-        }
-      }
-    },
-    ['body']
-  )
-);
-
 // Kiểm tra ID người nhận tin nhắn
 export const receiverIdValidator = validate(
   checkSchema(
     {
       receiver_id: receiverIdSchema
-    },
-    ['params']
-  )
-);
-
-// Kiểm tra ID người gửi tin nhắn
-export const senderIdValidator = validate(
-  checkSchema(
-    {
-      sender_id: senderIdSchema
     },
     ['params']
   )

@@ -1,28 +1,11 @@
 import { Router } from 'express';
 
-import {
-  addConversationController,
-  getConversationsController,
-  getReceiversController
-} from '~/controllers/conversations.controllers';
-import {
-  addConversationValidator,
-  receiverIdValidator,
-  senderIdValidator
-} from '~/middlewares/conversations.middlewares';
+import { getConversationsController, getReceiversController } from '~/controllers/conversations.controllers';
+import { receiverIdValidator } from '~/middlewares/conversations.middlewares';
 import { accessTokenValidator, verifiedUserValidator } from '~/middlewares/users.middlewares';
 import { wrapRequestHandler } from '~/utils/handler';
 
 const conversationsRouter = Router();
-
-// Thêm một tin nhắn mới
-conversationsRouter.post(
-  '/',
-  accessTokenValidator,
-  verifiedUserValidator,
-  addConversationValidator,
-  wrapRequestHandler(addConversationController)
-);
 
 // Lấy danh sách tin nhắn
 conversationsRouter.get(

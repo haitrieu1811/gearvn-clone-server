@@ -1,6 +1,5 @@
 import { ParamsDictionary } from 'express-serve-static-core';
 import { ObjectId } from 'mongodb';
-import { AddAddressRequestBody } from './User.requests';
 import { Gender, OrderStatus, PaymentMethod, ReceiveMethod } from '~/constants/enum';
 
 export interface AddToCartRequestBody {

@@ -1,4 +1,3 @@
-import { NextFunction, Request } from 'express';
 import { ParamSchema, checkSchema } from 'express-validator';
 import { ObjectId } from 'mongodb';
 
@@ -6,7 +5,6 @@ import { AddressType } from '~/constants/enum';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { USERS_MESSAGES } from '~/constants/messages';
 import { ErrorWithStatus } from '~/models/Errors';
-import { TokenPayload } from '~/models/requests/User.requests';
 import databaseService from '~/services/database.services';
 import { validate } from '~/utils/validation';
 
@@ -148,44 +146,3 @@ export const addressExistValidator = validate(
     ['params']
   )
 );
-
-// Kiểm tra số lượng địa chỉ của người dùng
-export const limitAddressValidator = async (req: Request, res: any, next: NextFunction) => {
-  const { user_id } = req.decoded_authorization as TokenPayload;
-  const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) });
-  if (!user) {
-    return next(
-      new ErrorWithStatus({
-        message: USERS_MESSAGES.USER_NOT_FOUND,
-        status: HTTP_STATUS.NOT_FOUND
-      })
-    );
-  }
-  (req as Request).user = user;
-  if (user.addresses.length >= 3) {
-    return next(
-      new ErrorWithStatus({
-        message: USERS_MESSAGES.ADDRESS_MAXIMUM,
-        status: HTTP_STATUS.FORBIDDEN
-      })
-    );
-  }
-  next();
-};
-
-// Kiểm tra địa chỉ có phải là địa chỉ mặc định hay không
-export const notDefaultAddressValidator = async (req: Request, res: any, next: NextFunction) => {
-  const { address_id } = req.params;
-  const address = await databaseService.addresses.findOne({
-    _id: new ObjectId(address_id)
-  });
-  if (address && address.is_default) {
-    return next(
-      new ErrorWithStatus({
-        message: USERS_MESSAGES.ADDRESS_IS_DEFAULT,
-        status: HTTP_STATUS.FORBIDDEN
-      })
-    );
-  }
-  next();
-};

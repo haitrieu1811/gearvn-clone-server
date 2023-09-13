@@ -11,7 +11,6 @@ import {
 import {
   addAddressValidator,
   addressExistValidator,
-  notDefaultAddressValidator,
   updateAddressValidator
 } from '~/middlewares/addresses.middlewares';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
@@ -59,7 +58,6 @@ addressesRouter.delete(
   accessTokenValidator,
   verifiedUserValidator,
   addressExistValidator,
-  notDefaultAddressValidator,
   wrapRequestHandler(deleteAddressController)
 );
 

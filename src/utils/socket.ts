@@ -9,11 +9,9 @@ import { USERS_MESSAGES } from '~/constants/messages';
 import { verifyAccessToken } from '~/middlewares/common.middlewares';
 import { ErrorWithStatus } from '~/models/Errors';
 import { TokenPayload } from '~/models/requests/User.requests';
-import Conversation from '~/models/schemas/Conversation.schema';
-import Notification from '~/models/schemas/Notification.schema';
 import conversationsService from '~/services/conversations.services';
-import databaseService from '~/services/database.services';
 import notificationsService from '~/services/notifications.services';
+import userService from '~/services/users.services';
 
 const initSocket = (httpServer: HttpServer) => {
   const io = new Server(httpServer, {
@@ -65,53 +63,74 @@ const initSocket = (httpServer: HttpServer) => {
     }
 
     // Có đánh giá mới
-    socket.on('send_product_review', async (data) => {
+    socket.on('new_review', async (data) => {
       const { title, content, path, sender_id, receiver_id } = data;
       // Thêm thông báo vào database
-      const { insertedId } = await databaseService.notifications.insertOne(
-        new Notification({
-          type: NotificationType.NewReview,
-          title,
-          content,
-          path,
-          sender_id: new ObjectId(sender_id),
-          receiver_id: new ObjectId(receiver_id),
-          is_read: false
-        })
-      );
-      const new_notification = await notificationsService.getNotification(insertedId);
+      const new_notification = await notificationsService.addNotification({
+        title,
+        content,
+        path,
+        type: NotificationType.NewReview,
+        sender_id: new ObjectId(sender_id),
+        receiver_id: new ObjectId(receiver_id)
+      });
       // Hiển thị đánh giá mới ngay lập tức cho mọi người
       socket.broadcast.emit('receive_product_review');
       // Gửi thông báo đến người nhận
       if (!(receiver_id in users)) return;
       const receiver_socket_id = users[receiver_id].socket_id;
-      socket.to(receiver_socket_id).emit('receive_notification', new_notification);
-    });
-
-    // Xóa đánh giá cũ
-    socket.on('delete_product_review', () => {
-      // Cập nhật lại danh sách đánh giá cho mọi người
-      socket.broadcast.emit('receive_product_review');
+      socket.to(receiver_socket_id).emit('receive_notification', {
+        payload: {
+          new_notification
+        }
+      });
     });
 
     // Có tin nhắn mới
-    socket.on('send_message', async (data) => {
+    socket.on('new_message', async (data) => {
       const { content, sender_id, receiver_id } = data;
       // Thêm thông báo vào database
-      const { insertedId } = await databaseService.conversations.insertOne(
-        new Conversation({
-          content,
-          sender_id: new ObjectId(sender_id),
-          receiver_id: new ObjectId(receiver_id),
-          is_read: false
-        })
-      );
-      const new_conversation = await conversationsService.getConversation(insertedId);
+      const new_conversation = await conversationsService.addConversation({
+        content,
+        sender_id: new ObjectId(sender_id),
+        receiver_id: new ObjectId(receiver_id)
+      });
       // Gửi tin nhắn mới đến người nhận nếu người nhận đang online ở client
-      if (!(sender_id in users) || !(receiver_id in users)) return;
-      const sender_socket_id = users[sender_id].socket_id;
+      if (!(receiver_id in users)) return;
       const receiver_socket_id = users[receiver_id].socket_id;
-      socket.to(sender_socket_id).to(receiver_socket_id).emit('receive_message', new_conversation);
+      socket.to(receiver_socket_id).emit('receive_message', new_conversation);
+    });
+
+    // Có đơn hàng mới
+    socket.on('new_order', async (data) => {
+      const { sender, content, title } = data.payload;
+      // Thêm thông báo vào database
+      const admin_ids = await userService.getAdminIds();
+      const [new_notification] = await Promise.all(
+        admin_ids.map(
+          async (admin_id) =>
+            await notificationsService.addNotification({
+              title,
+              content,
+              type: NotificationType.NewOrder,
+              sender_id: new ObjectId(sender._id),
+              receiver_id: admin_id
+            })
+        )
+      );
+      // Gửi thông báo đến người nhận (admin)
+      const receiver_socket_ids = admin_ids
+        .map((admin_id) => {
+          const _admin_id = admin_id.toString();
+          if (!(_admin_id in users)) return '';
+          return users[_admin_id].socket_id;
+        })
+        .filter((socket_id) => !!socket_id);
+      socket.to(receiver_socket_ids).emit('receive_notification', {
+        payload: {
+          new_notification
+        }
+      });
     });
 
     socket.on('disconnect', () => {

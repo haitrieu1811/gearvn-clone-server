@@ -86,10 +86,7 @@ class ProductReviewsService {
       databaseService.productReviews
         .aggregate([
           {
-            $match: {
-              product_id: new ObjectId(product_id),
-              parent_id: null
-            }
+            $match
           },
           {
             $lookup: {
@@ -147,6 +144,65 @@ class ProductReviewsService {
             }
           },
           {
+            $unwind: {
+              path: '$replies',
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'replies.user_id',
+              foreignField: '_id',
+              as: 'reply_users'
+            }
+          },
+          {
+            $addFields: {
+              'replies.author': {
+                $filter: {
+                  input: '$reply_users',
+                  as: 'item',
+                  cond: {
+                    $eq: ['$$item._id', '$replies.user_id']
+                  }
+                }
+              }
+            }
+          },
+          {
+            $unwind: {
+              path: '$replies.author',
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $group: {
+              _id: '$_id',
+              rating: {
+                $first: '$rating'
+              },
+              comment: {
+                $first: '$comment'
+              },
+              author: {
+                $first: '$author'
+              },
+              replies: {
+                $push: '$replies'
+              },
+              images: {
+                $first: '$images'
+              },
+              created_at: {
+                $first: '$created_at'
+              },
+              updated_at: {
+                $first: '$updated_at'
+              }
+            }
+          },
+          {
             $project: {
               'images.created_at': 0,
               'images.updated_at': 0,
@@ -166,7 +222,19 @@ class ProductReviewsService {
               'replies.product_id': 0,
               'replies.user_id': 0,
               'replies.parent_id': 0,
-              'replies.rating': 0
+              'replies.rating': 0,
+              'replies.author.password': 0,
+              'replies.author.status': 0,
+              'replies.author.role': 0,
+              'replies.author.verify': 0,
+              'replies.author.addresses': 0,
+              'replies.author.email_verify_token': 0,
+              'replies.author.forgot_password_token': 0,
+              'replies.author.created_at': 0,
+              'replies.author.updated_at': 0,
+              'replies.author.gender': 0,
+              'replies.author.phoneNumber': 0,
+              'replies.author.date_of_birth': 0
             }
           },
           {

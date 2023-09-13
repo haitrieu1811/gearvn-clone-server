@@ -1,30 +1,106 @@
 import { ObjectId } from 'mongodb';
 
-import { UserRole } from '~/constants/enum';
+import { NotificationType } from '~/constants/enum';
 import { NOTIFICATIONS_MESSAGES } from '~/constants/messages';
-import { AddNotificationRequestBody } from '~/models/requests/Notification.requests';
+import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 import Notification from '~/models/schemas/Notification.schema';
 import databaseService from './database.services';
-import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 
 class NotificationsService {
-  // Thêm một thông báo mới cho những admin
-  async addNotification({ user_id, body }: { user_id: string; body: AddNotificationRequestBody }) {
-    const admins = await databaseService.users.find({ role: UserRole.Admin }).toArray();
-    const admin_ids = admins.map((admin) => admin._id);
-    const notifications = admin_ids.map(
-      (admin_id) =>
-        new Notification({
-          ...body,
-          sender_id: new ObjectId(user_id),
-          receiver_id: admin_id,
-          is_read: false
-        })
+  // Thêm một thông báo mới (chỉ dùng ở server)
+  async addNotification({
+    type,
+    title,
+    content,
+    path,
+    sender_id,
+    receiver_id
+  }: {
+    type: NotificationType;
+    title: string;
+    content: string;
+    path?: string;
+    sender_id: ObjectId;
+    receiver_id: ObjectId;
+  }) {
+    const { insertedId } = await databaseService.notifications.insertOne(
+      new Notification({
+        type,
+        title,
+        content,
+        path,
+        sender_id: new ObjectId(sender_id),
+        receiver_id: new ObjectId(receiver_id),
+        is_read: false
+      })
     );
-    await databaseService.notifications.insertMany(notifications);
-    return {
-      message: NOTIFICATIONS_MESSAGES.ADD_NOTIFICATION_SUCCEED
-    };
+    const new_notification = await databaseService.notifications
+      .aggregate([
+        {
+          $match: {
+            _id: insertedId
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'sender_id',
+            foreignField: '_id',
+            as: 'sender'
+          }
+        },
+        {
+          $unwind: {
+            path: '$sender'
+          }
+        },
+        {
+          $group: {
+            _id: '$_id',
+            type: {
+              $first: '$type'
+            },
+            title: {
+              $first: '$title'
+            },
+            content: {
+              $first: '$content'
+            },
+            is_read: {
+              $first: '$is_read'
+            },
+            path: {
+              $first: '$path'
+            },
+            sender: {
+              $first: '$sender'
+            },
+            created_at: {
+              $first: '$created_at'
+            },
+            updated_at: {
+              $first: '$updated_at'
+            }
+          }
+        },
+        {
+          $project: {
+            'sender.password': 0,
+            'sender.status': 0,
+            'sender.role': 0,
+            'sender.gender': 0,
+            'sender.verify': 0,
+            'sender.addresses': 0,
+            'sender.date_of_birth': 0,
+            'sender.email_verify_token': 0,
+            'sender.forgot_password_token': 0,
+            'sender.created_at': 0,
+            'sender.updated_at': 0
+          }
+        }
+      ])
+      .toArray();
+    return new_notification[0];
   }
 
   // Lấy danh sách thông báo
@@ -126,77 +202,6 @@ class NotificationsService {
         }
       }
     };
-  }
-
-  // Lấy thông báo theo id
-  async getNotification(notification_id: ObjectId) {
-    const notification = await databaseService.notifications
-      .aggregate<Notification>([
-        {
-          $match: {
-            _id: new ObjectId(notification_id)
-          }
-        },
-        {
-          $lookup: {
-            from: 'users',
-            localField: 'sender_id',
-            foreignField: '_id',
-            as: 'sender'
-          }
-        },
-        {
-          $unwind: {
-            path: '$sender'
-          }
-        },
-        {
-          $group: {
-            _id: '$_id',
-            type: {
-              $first: '$type'
-            },
-            title: {
-              $first: '$title'
-            },
-            content: {
-              $first: '$content'
-            },
-            is_read: {
-              $first: '$is_read'
-            },
-            path: {
-              $first: '$path'
-            },
-            sender: {
-              $first: '$sender'
-            },
-            created_at: {
-              $first: '$created_at'
-            },
-            updated_at: {
-              $first: '$updated_at'
-            }
-          }
-        },
-        {
-          $project: {
-            'sender.password': 0,
-            'sender.status': 0,
-            'sender.role': 0,
-            'sender.gender': 0,
-            'sender.verify': 0,
-            'sender.addresses': 0,
-            'sender.date_of_birth': 0,
-            'sender.email_verify_token': 0,
-            'sender.forgot_password_token': 0,
-            'sender.created_at': 0,
-            'sender.updated_at': 0
-          }
-        }
-      ])
-      .toArray();
-    return notification[0];
   }
 
   // Xóa thông báo

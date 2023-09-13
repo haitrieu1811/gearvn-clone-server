@@ -293,7 +293,6 @@ export const NOTIFICATIONS_MESSAGES = {
   NOTIFICATION_TITLE_MUST_BE_A_STRING: 'Notification title must be a string',
   NOTIFICATION_CONTENT_IS_REQUIRED: 'Notification content is required',
   NOTIFICATION_CONTENT_MUST_BE_A_STRING: 'Notification content must be a string',
-  ADD_NOTIFICATION_SUCCEED: 'Add notification succeed',
   GET_NOTIFICATION_LIST_SUCCEED: 'Get notification list succeed',
   NOTIFICATION_PATH_MUST_BE_A_STRING: 'Notification path must be a string',
   NOTIFICATION_PATH_IS_INVALID: 'Notification path must be a valid url',
@@ -306,7 +305,6 @@ export const NOTIFICATIONS_MESSAGES = {
 
 export const CONVERSATIONS_MESSAGES = {
   CONTENT_REQUIRED: 'Content of conversation is required',
-  ADD_CONVERSATION_SUCCESS: 'Add new conversation succeed',
   RECEIVER_ID_IS_REQUIRED: 'Receiver id is required',
   RECEIVER_ID_IS_INVALID: 'Receiver id is invalid',
   RECEIVER_NOT_EXISTED: 'Receiver not existed',
