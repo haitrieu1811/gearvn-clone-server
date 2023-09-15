@@ -47,7 +47,8 @@ productsRouter.post(
     'name_vi',
     'price',
     'price_after_discount',
-    'thumbnail'
+    'thumbnail',
+    'available_count'
   ]),
   wrapRequestHandler(createProductController)
 );

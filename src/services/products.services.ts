@@ -7,18 +7,14 @@ import path from 'path';
 import { UPLOAD_IMAGE_DIR } from '~/constants/dir';
 import { MediaType } from '~/constants/enum';
 import { PRODUCTS_MESSAGES } from '~/constants/messages';
-import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 import {
   CreateProductRequestBody,
   GetProductListRequestQuery,
   UpdateProductRequestBody
 } from '~/models/requests/Product.requests';
-import { AddReviewRequestBody } from '~/models/requests/ProductReview.requests';
 import Media from '~/models/schemas/Media.schema';
 import Product from '~/models/schemas/Product.schema';
-import ProductReview from '~/models/schemas/ProductReview.schema';
 import databaseService from './database.services';
-import mediaService from './medias.services';
 
 class ProductService {
   // Thêm hình ảnh sản phẩm
