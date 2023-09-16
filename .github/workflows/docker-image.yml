@@ -1,0 +1,22 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create env file
+        run: echo "${{ secrets.GEARVN_CLONE_ENV_PRODUCTION }}" > .env.production
+      - name: Build the Docker image
+        run: docker build --progress=plain -t haitrieu1811/gearvn-clone:v1 .
+      - name: Login to DockerHub
+        run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Push image to DockerHub
+        run: docker push haitrieu1811/gearvn-clone:v1
