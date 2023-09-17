@@ -8,7 +8,7 @@ import { ORDERS_MESSAGES } from '~/constants/messages';
 import { OrderStatus } from '~/constants/enum';
 
 class OrderService {
-  // Lấy tất cả thông tin đơn hàng
+  // Lấy tất cả thông tin đơn hàng (chỉ dành cho admin)
   async getAll(query: GetOrdersRequestQuery) {
     const { page, limit } = query;
     const _limit = limit ? Number(limit) : 10;
@@ -337,7 +337,7 @@ class OrderService {
   }
 
   // Lấy số lượng đơn hàng
-  async GetQuantity(user_id: string) {
+  async getQuantity(user_id: string) {
     const [qty_all, qty_new, qty_processing, qty_delivering, qty_succeed, qty_cancelled] = await Promise.all([
       databaseService.orders.countDocuments({
         user_id: new ObjectId(user_id)

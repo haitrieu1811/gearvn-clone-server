@@ -5,17 +5,12 @@ export interface ProductIdRequestParams extends ParamsDictionary {
   product_id: string;
 }
 
-// Thêm hình ảnh sản phẩm (body)
-export interface AddImageRequestBody {
-  images: string[];
-}
-
-// Xóa hình ảnh sản phẩm (params)
+// Params: Xóa hình ảnh sản phẩm
 export interface DeleteImageRequestParams extends ParamsDictionary {
   media_id: string;
 }
 
-// Tạo mới sản phẩm (body)
+// Body: Tạo mới sản phẩm
 export interface CreateProductRequestBody {
   name_vi: string;
   name_en?: string;
@@ -27,29 +22,30 @@ export interface CreateProductRequestBody {
   brand_id: ObjectId;
   category_id: ObjectId;
   available_count: number;
+  images?: string[];
 }
 
-// Cập nhật sản phẩm (body)
+// Body: Cập nhật sản phẩm
 export interface UpdateProductRequestBody {
-  name_vi: string;
+  name_vi?: string;
   name_en?: string;
   thumbnail: string;
-  price: number;
+  price?: number;
   price_after_discount?: number;
   general_info?: string;
   description?: string;
-  images?: ObjectId[];
-  brand_id: ObjectId;
-  category_id: ObjectId;
-  available_count: number;
+  images?: string[];
+  brand_id?: string;
+  category_id?: string;
+  available_count?: number;
 }
 
-// Xóa xản phẩm (body)
+// Body: Xóa xản phẩm
 export interface DeleteProductRequestBody {
   product_ids: ObjectId[];
 }
 
-// Lấy danh sách sản phẩm (query)
+// Query: Lấy danh sách sản phẩm
 export interface GetProductListRequestQuery {
   page?: string;
   limit?: string;

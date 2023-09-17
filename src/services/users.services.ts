@@ -145,7 +145,7 @@ class UserService {
     await databaseService.users.insertOne(
       new User({
         _id: user_id,
-        fullName: `User#${user_id.toString().slice(-4)}`, // Tạo tên mặc định khi mới tạo tài khoản
+        fullname: `User#${user_id.toString().slice(-4)}`, // Tạo tên mặc định khi mới tạo tài khoản
         email,
         password: hashPassword(password),
         email_verify_token
@@ -414,7 +414,11 @@ class UserService {
         projection: {
           password: 0,
           email_verify_token: 0,
-          forgot_password_token: 0
+          forgot_password_token: 0,
+          addresses: 0,
+          status: 0,
+          role: 0,
+          verify: 0
         }
       }
     );

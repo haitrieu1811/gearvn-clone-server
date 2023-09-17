@@ -1,30 +1,15 @@
 import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
-import { PaginationRequestQuery } from '~/models/requests/Common.requests';
-import { ImageIdRequestParams } from '~/models/requests/Media.requests';
 
 import {
-  AddImageRequestBody,
   CreateProductRequestBody,
   DeleteProductRequestBody,
   GetProductListRequestQuery,
   ProductIdRequestParams,
   UpdateProductRequestBody
 } from '~/models/requests/Product.requests';
-import { AddReviewRequestBody, ReviewIdRequestParams } from '~/models/requests/ProductReview.requests';
 import { TokenPayload } from '~/models/requests/User.requests';
 import productService from '~/services/products.services';
-
-// Thêm hình ảnh sản phẩm
-export const addImageController = async (
-  req: Request<ProductIdRequestParams, any, AddImageRequestBody>,
-  res: Response
-) => {
-  const { images } = req.body;
-  const { product_id } = req.params;
-  const result = await productService.addImage({ images, product_id });
-  return res.json(result);
-};
 
 // Tạo mới sản phẩm
 export const createProductController = async (

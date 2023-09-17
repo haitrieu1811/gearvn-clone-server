@@ -1,10 +1,8 @@
-import fs from 'fs';
 import isUndefined from 'lodash/isUndefined';
 import omitBy from 'lodash/omitBy';
+import omit from 'lodash/omit';
 import { ObjectId } from 'mongodb';
-import path from 'path';
 
-import { UPLOAD_IMAGE_DIR } from '~/constants/dir';
 import { MediaType } from '~/constants/enum';
 import { PRODUCTS_MESSAGES } from '~/constants/messages';
 import {
@@ -17,24 +15,52 @@ import Product from '~/models/schemas/Product.schema';
 import databaseService from './database.services';
 
 class ProductService {
-  // Thêm hình ảnh sản phẩm
-  async addImage({ images, product_id }: { images: string[]; product_id: string }) {
-    const dataInsert = images.map(
-      (image) =>
-        new Media({
-          name: image,
-          type: MediaType.Image
-        })
+  // Tạo sản phẩm mới
+  async createProduct({ payload, user_id }: { payload: CreateProductRequestBody; user_id: string }) {
+    const { images } = payload;
+    let insertedIds: ObjectId[] = [];
+    if (images && images.length > 0) {
+      const _images = images.map((image) => new Media({ name: image, type: MediaType.Image }));
+      const { insertedIds: _insertedIds } = await databaseService.medias.insertMany(_images);
+      insertedIds = Object.values(_insertedIds);
+    }
+    await databaseService.products.insertOne(
+      new Product({
+        ...payload,
+        brand_id: new ObjectId(payload.brand_id),
+        category_id: new ObjectId(payload.category_id),
+        user_id: new ObjectId(user_id),
+        images: insertedIds
+      })
     );
-    const { insertedIds } = await databaseService.medias.insertMany(dataInsert);
+    return {
+      message: PRODUCTS_MESSAGES.CREATE_PRODUCT_SUCCEED
+    };
+  }
+
+  // Cập nhật sản phẩm cũ
+  async updateProduct({ payload, product_id }: { payload: UpdateProductRequestBody; product_id: string }) {
+    const { images, category_id, brand_id } = payload;
+    const _payload = omit(payload, ['images']);
+    let insertedIds: ObjectId[] = [];
+    if (images && images.length > 0) {
+      const _image = images.map((image) => new Media({ name: image, type: MediaType.Image }));
+      const { insertedIds: _insertedIds } = await databaseService.medias.insertMany(_image);
+      insertedIds = Object.values(_insertedIds);
+    }
     await databaseService.products.findOneAndUpdate(
       {
         _id: new ObjectId(product_id)
       },
       {
+        $set: {
+          ..._payload,
+          category_id: category_id ? new ObjectId(category_id) : undefined,
+          brand_id: brand_id ? new ObjectId(brand_id) : undefined
+        },
         $push: {
           images: {
-            $each: Object.values(insertedIds)
+            $each: insertedIds
           }
         },
         $currentDate: {
@@ -42,54 +68,6 @@ class ProductService {
         }
       }
     );
-    return {
-      message: PRODUCTS_MESSAGES.ADD_IMAGE_SUCCEED
-    };
-  }
-
-  // Tạo sản phẩm mới
-  async createProduct({ payload, user_id }: { payload: CreateProductRequestBody; user_id: string }) {
-    const { insertedId } = await databaseService.products.insertOne(
-      new Product({
-        ...payload,
-        brand_id: new ObjectId(payload.brand_id),
-        category_id: new ObjectId(payload.category_id),
-        user_id: new ObjectId(user_id)
-      })
-    );
-    return {
-      message: PRODUCTS_MESSAGES.CREATE_PRODUCT_SUCCEED,
-      data: {
-        insertedId
-      }
-    };
-  }
-
-  // Cập nhật sản phẩm cũ
-  async updateProduct({ payload, product_id }: { payload: UpdateProductRequestBody; product_id: string }) {
-    const { value } = await databaseService.products.findOneAndUpdate(
-      {
-        _id: new ObjectId(product_id)
-      },
-      {
-        $set: {
-          ...payload,
-          category_id: new ObjectId(payload.category_id),
-          brand_id: new ObjectId(payload.brand_id)
-        },
-        $currentDate: {
-          updated_at: true
-        }
-      }
-    );
-    if (value) {
-      if (value.thumbnail !== payload.thumbnail) {
-        const thumbnailPath = path.resolve(UPLOAD_IMAGE_DIR, value.thumbnail);
-        if (fs.existsSync(thumbnailPath)) {
-          fs.unlinkSync(thumbnailPath);
-        }
-      }
-    }
     return {
       message: PRODUCTS_MESSAGES.UPDATE_PRODUCT_SUCCEED
     };

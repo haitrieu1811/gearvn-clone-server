@@ -43,7 +43,7 @@ export const getOrderDetailController = async (req: Request<GetOrderDetailParams
 // Lấy số lượng đơn hàng
 export const getQuantityController = async (req: Request, res: Response) => {
   const { user_id } = req.decoded_authorization as TokenPayload;
-  const result = await orderService.GetQuantity(user_id);
+  const result = await orderService.getQuantity(user_id);
   return res.json(result);
 };
 

@@ -22,7 +22,7 @@ import {
 } from '~/controllers/users.controllers';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import {
-  RegisterValidator,
+  registerValidator,
   accessTokenValidator,
   addViewedProductValidator,
   adminRoleValidator,
@@ -44,7 +44,7 @@ import { wrapRequestHandler } from '~/utils/handler';
 const usersRouter = Router();
 
 // Đăng ký
-usersRouter.post('/register', RegisterValidator, wrapRequestHandler(registerController));
+usersRouter.post('/register', registerValidator, wrapRequestHandler(registerController));
 
 // Đăng nhập
 usersRouter.post('/login', loginValidator, wrapRequestHandler(loginController));
@@ -64,7 +64,7 @@ usersRouter.post('/resend-email-verify', accessTokenValidator, wrapRequestHandle
 // Quên mật khẩu
 usersRouter.post('/forgot-password', forgotPasswordValidator, wrapRequestHandler(forgotPasswordController));
 
-// Xác thực forgot password token
+// Xác thực forgot password token (để đặt lại mật khẩu)
 usersRouter.post('/verify-forgot-password-token', verifyForgotPasswordTokenValidator, verifyEmailVerifyController);
 
 // Đặt lại mật khẩu
@@ -93,7 +93,7 @@ usersRouter.patch(
   accessTokenValidator,
   verifiedUserValidator,
   updateMeValidator,
-  filterReqBodyMiddleware<UpdateMeRequestBody>(['avatar', 'date_of_birth', 'fullName', 'gender', 'phoneNumber']),
+  filterReqBodyMiddleware<UpdateMeRequestBody>(['avatar', 'date_of_birth', 'fullname', 'gender', 'phone_number']),
   wrapRequestHandler(updateMeController)
 );
 

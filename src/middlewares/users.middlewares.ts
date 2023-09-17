@@ -171,11 +171,8 @@ export const phoneNumberSchema: ParamSchema = {
       if (!value) {
         throw new Error(USERS_MESSAGES.PHONE_NUMBER_IS_REQUIRED);
       }
-      // if (!PHONE_NUMBER_REGEX.test(value)) {
-      //   throw new Error(USERS_MESSAGES.PHONE_NUMBER_INVALID);
-      // }
       const { user_id } = req.decoded_authorization as TokenPayload;
-      const user = await databaseService.users.findOne({ phoneNumber: value });
+      const user = await databaseService.users.findOne({ phone_number: value });
       if (user && user._id.toString() !== user_id) {
         throw new Error(USERS_MESSAGES.PHONE_NUMBER_IS_EXIST);
       }
@@ -184,6 +181,7 @@ export const phoneNumberSchema: ParamSchema = {
   }
 };
 
+// Access token
 export const accessTokenValidator = validate(
   checkSchema(
     {
@@ -201,6 +199,7 @@ export const accessTokenValidator = validate(
   )
 );
 
+// Refresh token
 export const refreshTokenValidator = validate(
   checkSchema(
     {
@@ -244,6 +243,7 @@ export const refreshTokenValidator = validate(
   )
 );
 
+// Kiểm tra quyền admin
 export const adminRoleValidator = async (req: Request, res: any, next: NextFunction) => {
   const { role } = req.decoded_authorization as TokenPayload;
   const isAdmin = role === UserRole.Admin;
@@ -258,6 +258,7 @@ export const adminRoleValidator = async (req: Request, res: any, next: NextFunct
   next();
 };
 
+// Xác thực forgot password token
 export const verifyForgotPasswordTokenValidator = validate(
   checkSchema(
     {
@@ -304,6 +305,7 @@ export const verifyForgotPasswordTokenValidator = validate(
   )
 );
 
+// Xác thực email verify token
 export const emailVerifyTokenValidator = validate(
   checkSchema(
     {
@@ -350,6 +352,7 @@ export const emailVerifyTokenValidator = validate(
   )
 );
 
+// Kiểm tra user đã xác thực email chưa
 export const verifiedUserValidator = (req: Request, res: any, next: NextFunction) => {
   const { verify } = req.decoded_authorization as TokenPayload;
   if (verify !== UserVerifyStatus.Verified) {
@@ -363,7 +366,8 @@ export const verifiedUserValidator = (req: Request, res: any, next: NextFunction
   next();
 };
 
-export const RegisterValidator = validate(
+// Đăng ký
+export const registerValidator = validate(
   checkSchema(
     {
       email: emailSchema,
@@ -374,6 +378,7 @@ export const RegisterValidator = validate(
   )
 );
 
+// Đăng nhập
 export const loginValidator = validate(
   checkSchema(
     {
@@ -382,9 +387,7 @@ export const loginValidator = validate(
         custom: {
           options: async (value) => {
             const { isExist } = await userService.checkEmailExist(value);
-            if (!isExist) {
-              throw new Error(USERS_MESSAGES.EMAIL_NOT_EXIST);
-            }
+            if (!isExist) throw new Error(USERS_MESSAGES.EMAIL_NOT_EXIST);
             return true;
           }
         }
@@ -404,13 +407,12 @@ export const loginValidator = validate(
                 projection: {
                   password: 0,
                   email_verify_token: 0,
-                  forgot_password_token: 0
+                  forgot_password_token: 0,
+                  addresses: 0
                 }
               }
             );
-            if (!user) {
-              throw new Error(USERS_MESSAGES.EMAIL_OR_PASSWORD_INCORRECT);
-            }
+            if (!user) throw new Error(USERS_MESSAGES.EMAIL_OR_PASSWORD_INCORRECT);
             req.user = user;
             return true;
           }
@@ -421,6 +423,7 @@ export const loginValidator = validate(
   )
 );
 
+// Quên mật khẩu
 export const forgotPasswordValidator = validate(
   checkSchema(
     {
@@ -441,6 +444,7 @@ export const forgotPasswordValidator = validate(
   )
 );
 
+// Đặt lại mật khẩu
 export const resetPasswordValidator = validate(
   checkSchema(
     {
@@ -451,6 +455,7 @@ export const resetPasswordValidator = validate(
   )
 );
 
+// Đổi mật khẩu
 export const changePasswordValidator = validate(
   checkSchema(
     {
@@ -477,12 +482,13 @@ export const changePasswordValidator = validate(
   )
 );
 
+// Cập nhật thông tin cá nhân
 export const updateMeValidator = validate(
   checkSchema(
     {
-      fullName: fullNameSchema,
+      fullname: fullNameSchema,
       gender: genderSchema,
-      phoneNumber: phoneNumberSchema,
+      phone_number: phoneNumberSchema,
       date_of_birth: {
         optional: true,
         isISO8601: {
@@ -500,6 +506,7 @@ export const updateMeValidator = validate(
   )
 );
 
+// Cập nhật quyền cho tài khoản
 export const roleValidator = validate(
   checkSchema(
     {
@@ -524,6 +531,7 @@ export const roleValidator = validate(
   )
 );
 
+// Xóa tài khoản người dùng
 export const deleteUserValidator = validate(
   checkSchema(
     {
@@ -564,6 +572,7 @@ export const deleteUserValidator = validate(
   )
 );
 
+// Thêm một lịch sử xem sản phẩm
 export const addViewedProductValidator = validate(
   checkSchema(
     {

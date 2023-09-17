@@ -441,8 +441,8 @@ class ConversationsService {
             email: {
               $first: '$email'
             },
-            fullName: {
-              $first: '$fullName'
+            fullname: {
+              $first: '$fullname'
             },
             avatar: {
               $first: '$avatar'

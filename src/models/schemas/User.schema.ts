@@ -7,11 +7,11 @@ interface UserConstructor {
   password: string;
   status?: UserStatus;
   role?: UserRole;
-  fullName?: string;
+  fullname?: string;
   avatar?: string;
   gender?: Gender;
   verify?: UserVerifyStatus;
-  phoneNumber?: string;
+  phone_number?: string;
   addresses?: string[];
   date_of_birth?: Date;
   email_verify_token?: string;
@@ -24,13 +24,13 @@ class User {
   _id?: ObjectId;
   email: string;
   password: string;
-  fullName: string;
+  fullname: string;
   status: UserStatus;
   role: UserRole;
   avatar: string;
   gender: Gender;
   verify: UserVerifyStatus;
-  phoneNumber: string;
+  phone_number: string;
   addresses: ObjectId[];
   date_of_birth: Date;
   email_verify_token: string;
@@ -44,11 +44,11 @@ class User {
     password,
     status,
     role,
-    fullName,
+    fullname,
     avatar,
     gender,
     verify,
-    phoneNumber,
+    phone_number,
     addresses,
     date_of_birth,
     email_verify_token,
@@ -62,17 +62,17 @@ class User {
     this.password = password;
     this.status = status || UserStatus.Active;
     this.role = role || UserRole.Customer;
-    this.fullName = fullName || '';
+    this.fullname = fullname || '';
     this.avatar = avatar || '';
     this.gender = gender || Gender.Other;
     this.verify = verify || UserVerifyStatus.Unverified;
-    this.phoneNumber = phoneNumber || '';
+    this.phone_number = phone_number || '';
     this.addresses = addresses ? addresses.map((address) => new ObjectId(address)) : [];
-    this.date_of_birth = date;
+    this.date_of_birth = date_of_birth || date;
     this.email_verify_token = email_verify_token || '';
     this.forgot_password_token = forgot_password_token || '';
-    this.created_at = date;
-    this.updated_at = date;
+    this.created_at = created_at || date;
+    this.updated_at = updated_at || date;
   }
 }
 

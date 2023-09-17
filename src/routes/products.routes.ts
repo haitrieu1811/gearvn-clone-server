@@ -1,7 +1,6 @@
 import { Router } from 'express';
 
 import {
-  addImageController,
   createProductController,
   deleteProductController,
   getProductDetailController,
@@ -10,7 +9,6 @@ import {
 } from '~/controllers/products.controllers';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import {
-  addImageValidator,
   checkProductExist,
   createProductValidator,
   deleteProductValidator,
@@ -21,16 +19,6 @@ import { CreateProductRequestBody, UpdateProductRequestBody } from '~/models/req
 import { wrapRequestHandler } from '~/utils/handler';
 
 const productsRouter = Router();
-
-// Thêm hình ảnh sản phẩm
-productsRouter.post(
-  '/image/:product_id',
-  accessTokenValidator,
-  adminRoleValidator,
-  checkProductExist,
-  addImageValidator,
-  wrapRequestHandler(addImageController)
-);
 
 // Thêm mới sản phẩm
 productsRouter.post(
@@ -48,7 +36,8 @@ productsRouter.post(
     'price',
     'price_after_discount',
     'thumbnail',
-    'available_count'
+    'available_count',
+    'images'
   ]),
   wrapRequestHandler(createProductController)
 );

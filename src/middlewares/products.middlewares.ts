@@ -66,41 +66,6 @@ const categoryIdSchema: ParamSchema = {
   }
 };
 
-// Thêm hình ảnh sản phẩm
-export const addImageValidator = validate(
-  checkSchema(
-    {
-      images: {
-        custom: {
-          options: (value: string[]) => {
-            if (!value) {
-              throw new ErrorWithStatus({
-                message: PRODUCTS_MESSAGES.IMAGES_IS_REQUIRED,
-                status: HTTP_STATUS.BAD_REQUEST
-              });
-            }
-            if (!Array.isArray(value)) {
-              throw new ErrorWithStatus({
-                message: PRODUCTS_MESSAGES.IMAGES_MUST_BE_AN_ARRAY,
-                status: HTTP_STATUS.BAD_REQUEST
-              });
-            }
-            const valid = value.every((item) => typeof item === 'string');
-            if (!valid) {
-              throw new ErrorWithStatus({
-                message: PRODUCTS_MESSAGES.IMAGES_ITEM_MUST_BE_A_STRING,
-                status: HTTP_STATUS.BAD_REQUEST
-              });
-            }
-            return true;
-          }
-        }
-      }
-    },
-    ['body']
-  )
-);
-
 // Kiểm tra sản phẩm có tồn tại không
 export const checkProductExist = validate(
   checkSchema(
