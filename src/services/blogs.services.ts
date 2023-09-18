@@ -1,12 +1,14 @@
 import { ObjectId } from 'mongodb';
 
 import { BLOGS_MESSAGES } from '~/constants/messages';
-import { CreateBlogRequestBody, GetBlogListRequestQuery, UpdateBlogRequestBody } from '~/models/requests/Blog.requests';
+import { CreateBlogRequestBody, UpdateBlogRequestBody } from '~/models/requests/Blog.requests';
+import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 import Blog from '~/models/schemas/Blog.schema';
 import databaseService from './database.services';
 
 class BlogService {
-  async create({ payload, user_id }: { payload: CreateBlogRequestBody; user_id: string }) {
+  // Tạo blog
+  async createBlog({ payload, user_id }: { payload: CreateBlogRequestBody; user_id: string }) {
     await databaseService.blogs.insertOne(
       new Blog({
         ...payload,
@@ -18,7 +20,8 @@ class BlogService {
     };
   }
 
-  async update({ payload, blog_id }: { payload: UpdateBlogRequestBody; blog_id: string }) {
+  // Cập nhật blog
+  async updateBlog({ payload, blog_id }: { payload: UpdateBlogRequestBody; blog_id: string }) {
     await databaseService.blogs.findOneAndUpdate(
       {
         _id: new ObjectId(blog_id)
@@ -37,7 +40,8 @@ class BlogService {
     };
   }
 
-  async delete(blog_ids: string[]) {
+  // Xóa blog
+  async deleteBlogs(blog_ids: string[]) {
     const _blog_ids = blog_ids.map((id) => new ObjectId(id));
     const { deletedCount } = await databaseService.blogs.deleteMany({
       _id: {
@@ -49,7 +53,8 @@ class BlogService {
     };
   }
 
-  async getList(query: GetBlogListRequestQuery) {
+  // Lấy danh sách blog
+  async getBlogs(query: PaginationRequestQuery) {
     const { page, limit } = query;
     const _page = Number(page) || 1;
     const _limit = Number(limit) || 10;
@@ -88,7 +93,8 @@ class BlogService {
     };
   }
 
-  async getDetail(blog_id: string) {
+  // Lấy chi tiết blog
+  async getBlog(blog_id: string) {
     const blog = await databaseService.blogs.findOne({ _id: new ObjectId(blog_id) });
     return {
       message: BLOGS_MESSAGES.GET_BLOG_DETAIL_SUCCEED,

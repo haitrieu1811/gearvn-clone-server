@@ -1,0 +1,3357 @@
+openapi: 3.0.3
+info:
+  title: Swagger Gearvn Clone - OpenAPI 3.0
+  description: |-
+    Đây là một bản clone của Gearvn sử dụng OpenAPI 3.0 để mô tả API.
+
+    Có một vài API mà chỉ admin mới có quyền truy cập (được chú thích ở từng API), vì vậy bạn cần đăng nhập với tài khoản admin để có thể truy cập vào những API đó.
+
+    Các tác vụ như thêm thông báo, nhắn tin được thực hiện realtime với socket.io nên không có các api thực hiện những chức năng này. Nó được thực hiện thông qua giao tiếp giữa client và server với socket.io.
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: haitrieu2524@gmail.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: http://localhost:4000
+    description: Local server
+
+tags:
+  - name: user
+    description: Tất cả các API liên quan đến user (người dùng)
+  - name: product
+    description: Tất cả các API liên quan đến product (sản phẩm)
+  - name: address
+    description: Tất cả các API liên quan đến address (địa chỉ nhận hàng)
+  - name: category
+    description: Tất cả các API liên quan đến category (danh mục sản phẩm)
+  - name: brand
+    description: Tất cả các API liên quan đến brand (thương hiệu sản phẩm)
+  - name: media
+    description: Tất cả các API liên quan đến media (hình ảnh, video)
+  - name: review
+    description: Tất cả các API liên quan đến review (đánh giá sản phẩm)
+  - name: purchase
+    description: Tất cả các API liên quan đến purchase (đơn mua)
+  - name: order
+    description: Tất cả các API liên quan đến order (đơn đặt hàng) - một order là tập hợp của nhiều purchase
+  - name: blog
+    description: Tất cả các API liên quan đến blog (bài viết)
+  - name: notification
+    description: Tất cả các API liên quan đến notification (thông báo)
+  - name: conversation
+    description: 'Tất cả các API liên quan đến conversation (cuộc trò chuyện). Lưu ý: admin chỉ nhắn tin được với khách hàng và ngược lại'
+
+# Paths
+paths:
+  # User
+  /users/login:
+    post:
+      tags:
+        - user
+      summary: Đăng nhập
+      description: Đăng nhập vào hệ thống
+      operationId: login
+      requestBody:
+        description: Thông tin đăng nhập
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: haitrieu2527@gmail.com
+                password:
+                  type: string
+                  example: 01225939704aA-
+        required: true
+      responses:
+        '200':
+          description: Đăng nhập thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login succeed
+                  data:
+                    $ref: '#/components/schemas/SuccessAuthentication'
+  /users/register:
+    post:
+      tags:
+        - user
+      summary: Đăng ký
+      description: Đăng ký tài khoản mới
+      operationId: register
+      requestBody:
+        description: Thông tin đăng ký
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: haitrieu2527+2@gmail.com
+                password:
+                  type: string
+                  example: 01225939704aA-
+                confirm_password:
+                  type: string
+                  example: 01225939704aA-
+        required: true
+      responses:
+        '200':
+          description: Đăng ký thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Register account succeed
+                  data:
+                    $ref: '#/components/schemas/SuccessAuthentication'
+  /users/logout:
+    post:
+      tags:
+        - user
+      summary: Đăng xuất
+      description: Đăng xuất khỏi hệ thống
+      operationId: logout
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Thông tin đăng xuất
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjRhNGM1N2U5ZTM2NzA3MjFhZTRiZTc3IiwidmVyaWZ5IjoxLCJyb2xlIjowLCJ0b2tlbl90eXBlIjoxLCJpYXQiOjE2OTUwMzMwODMsImV4cCI6MTY5NTAzMzY4M30.Ve9cBY7VRBYaDS9TqjW-bHkc6CY3tORsJN8NTr73l68
+        required: true
+      responses:
+        '200':
+          description: Đăng xuất thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logout succeed
+  /users/verify-email:
+    post:
+      tags:
+        - user
+      summary: Xác thực email
+      description: Xác thực email hay còn gọi là kích hoạt tài khoản để có thể sử dụng những chức năng của hệ thống cần xác thực người dùng như đổi mật khẩu, cập nhật thông tin cá nhân, ...
+      operationId: verifyEmail
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Thông tin xác thực email
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email_verify_token:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjUwODI5NTE2NGE4OTUwMmQ2MzJlZTdkIiwidmVyaWZ5IjowLCJyb2xlIjoxLCJ0b2tlbl90eXBlIjoyLCJpYXQiOjE2OTUwMzM2ODEsImV4cCI6MTY5NTYzODQ4MX0.fytsFO2uQrLjfvzalSY0la4q53DBmkpbHCcbhDEJfWg
+        required: true
+      responses:
+        '200':
+          description: Xác thực email thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Verify email succeed
+                  data:
+                    $ref: '#/components/schemas/SuccessAuthentication'
+  /users/resend-email-verify:
+    post:
+      tags:
+        - user
+      summary: Gửi lại email xác thực
+      description: Gửi lại email xác thực nếu người dùng chưa nhận được email xác thực hoặc email xác thực đã hết hạn
+      operationId: resendEmailVerify
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Gửi lại email xác thực thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Resend email verify succeed
+  /users/forgot-password:
+    post:
+      tags:
+        - user
+      summary: Quên mật khẩu
+      description: Quên mật khẩu và gửi email reset password
+      operationId: forgotPassword
+      requestBody:
+        description: Thông tin quên mật khẩu
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: haitrieu2527@gmail.com
+        required: true
+      responses:
+        '200':
+          description: Gửi email reset password thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Reset password request email has been sent, please check your email
+  /users/verify-forgot-password-token:
+    post:
+      tags:
+        - user
+      summary: Xác thực forgot_password_token
+      description: Xác thực forgot_password_token để đặt lại mật khẩu sau khi gửi yêu cầu quên mật khẩu
+      operationId: verifyForgotPasswordToken
+      requestBody:
+        description: Thông tin xác thực forgot_password_token
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                forgot_password_token:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjRlOWYzY2ZkNWNiZTU2OTIzNjdlNzA0IiwidmVyaWZ5IjoxLCJyb2xlIjoxLCJ0b2tlbl90eXBlIjozLCJpYXQiOjE2OTUwMzYyOTYsImV4cCI6MTY5NTY0MTA5Nn0.3Eq0x0AN5LIapgUDAAcAfaJyaL2FYQsKi6-lf_hX_Sk
+        required: true
+      responses:
+        '200':
+          description: Xác thực forgot_password_token thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Verify forgot password token succeed
+  /users/reset-password:
+    put:
+      tags:
+        - user
+      summary: Đặt lại mật khẩu
+      description: Đặt lại mật khẩu sau khi gửi yêu cầu quên mật khẩu và xác thực forgot_password_token thành công
+      operationId: resetPassword
+      requestBody:
+        description: Thông tin đặt lại mật khẩu
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                forgot_password_token:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjRlOWYzY2ZkNWNiZTU2OTIzNjdlNzA0IiwidmVyaWZ5IjoxLCJyb2xlIjoxLCJ0b2tlbl90eXBlIjozLCJpYXQiOjE2OTUwMzYyOTYsImV4cCI6MTY5NTY0MTA5Nn0.3Eq0x0AN5LIapgUDAAcAfaJyaL2FYQsKi6-lf_hX_Sk
+                password:
+                  type: string
+                  example: 01225939705aA-
+                confirm_password:
+                  type: string
+                  example: 01225939705aA-
+        required: true
+      responses:
+        '200':
+          description: Đặt lại mật khẩu thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Reset password succeed
+                  data:
+                    $ref: '#/components/schemas/SuccessAuthentication'
+  /users/change-password:
+    put:
+      tags:
+        - user
+      summary: Đổi mật khẩu
+      description: Thay đổi mật khẩu của tài khoản đang đăng nhập
+      operationId: changePassword
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Thông tin đổi mật khẩu
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                old_password:
+                  type: string
+                  example: 01225939704aA-
+                password:
+                  type: string
+                  example: 01225939705aA-
+                confirm_password:
+                  type: string
+                  example: 01225939705aA-
+        required: true
+      responses:
+        '200':
+          description: Đổi mật khẩu thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Change password succeed
+  /users/refresh-token:
+    post:
+      tags:
+        - user
+      summary: Refresh token
+      description: Refresh token để lấy access token mới khi access token đã hết hạn
+      operationId: refreshToken
+      requestBody:
+        description: Thông tin refresh token
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjRhNGM1N2U5ZTM2NzA3MjFhZTRiZTc3IiwidmVyaWZ5IjoxLCJyb2xlIjowLCJ0b2tlbl90eXBlIjoxLCJpYXQiOjE2OTUwMzMwODMsImV4cCI6MTY5NTAzMzY4M30.Ve9cBY7VRBYaDS9TqjW-bHkc6CY3tORsJN8NTr73l68
+        required: true
+      responses:
+        '200':
+          description: Refresh token thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Refresh token succeed
+                  data:
+                    $ref: '#/components/schemas/RefreshToken'
+  /users/me:
+    get:
+      tags:
+        - user
+      summary: Lấy thông tin người dùng
+      description: Lấy thông tin người dùng đang đăng nhập
+      operationId: getMe
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lấy thông tin người dùng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get info me succeed
+                  data:
+                    $ref: '#/components/schemas/User'
+    patch:
+      tags:
+        - user
+      summary: Cập nhật thông tin người dùng
+      description: Cập nhật thông tin người dùng đang đăng nhập
+      operationId: updateMe
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Thông tin cập nhật mới của người dùng nhập vào để cập nhật thông tin
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullname:
+                  type: string
+                  example: Trần Hải Triều
+                avatar:
+                  type: string
+                  example: 977a9518243f1985fca916609.jpg
+                gender:
+                  type: integer
+                  example: 0
+                date_of_birth:
+                  type: integer
+                  example: 2000-11-17T17:00:00.000Z
+                phone_number:
+                  type: string
+                  example: 0775939704
+        required: true
+      responses:
+        '200':
+          description: Cập nhật thông tin người dùng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Update profile succeed
+                  data:
+                    $ref: '#/components/schemas/SuccessAuthentication'
+  /users/viewed-product:
+    post:
+      tags:
+        - user
+      summary: Xem sản phẩm
+      description: Thêm thông tin sản phẩm vào danh sách sản phẩm đã xem của người dùng
+      operationId: addViewedProduct
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Thông tin sản phẩm
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_id:
+                  type: string
+                  example: 60f9f3cfd5cbe5692367e704
+        required: true
+      responses:
+        '200':
+          description: Thêm sản phẩm vào danh sách sản phẩm đã xem thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Add or update viewed product succeed
+    get:
+      tags:
+        - user
+      summary: Lấy danh sách sản phẩm đã xem
+      description: Lấy danh sách sản phẩm đã xem của người dùng đang đăng nhập
+      operationId: getViewedProduct
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lấy danh sách sản phẩm đã xem thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get viewed product succeed
+                  data:
+                    type: object
+                    properties:
+                      viewed_products:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ViewdProduct'
+  /users:
+    get:
+      tags:
+        - user
+      summary: Lấy danh sách người dùng (chỉ có admin mới có quyền truy cập)
+      description: Lấy danh sách tất cả người dùng trong hệ thống (chỉ có admin mới có quyền truy cập)
+      operationId: getUsers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Trang hiện tại
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng người dùng trên một trang
+          required: false
+          schema:
+            type: integer
+            example: 10
+        - name: gender
+          in: query
+          description: Giới tính
+          required: false
+          schema:
+            type: integer
+            example: 0
+        - name: role
+          in: query
+          description: Vai trò
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: status
+          in: query
+          description: Trạng thái
+          required: false
+          schema:
+            type: integer
+            example: 0
+      responses:
+        '200':
+          description: Lấy danh sách người dùng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get users list succeed
+                  data:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+  # Product
+  /products:
+    post:
+      tags:
+        - product
+      summary: Thêm sản phẩm (chỉ có admin mới có quyền truy cập)
+      description: Thêm sản phẩm mới vào hệ thống (chỉ có admin mới có quyền truy cập)
+      operationId: addProduct
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Thông tin sản phẩm
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name_vi
+                - thumbnail
+                - price
+                - brand_id
+                - category_id
+                - available_count
+              properties:
+                name_vi:
+                  type: string
+                  example: Chuột CoolerMaster MM711 RGB White Matte
+                name_en:
+                  type: string
+                  example: CoolerMaster MM711 RGB White Matte Mouse
+                thumbnail:
+                  type: string
+                  format: binary
+                  example: 60f9f3cfd5cbe5692367e704.jpg
+                price:
+                  type: integer
+                  example: 1490000
+                price_after_discount:
+                  type: integer
+                  example: 390000
+                general_info:
+                  type: string
+                  example: Chuột CoolerMaster MM711 RGB White Matte
+                description:
+                  type: string
+                  example: Chuột CoolerMaster MM711 RGB White Matte
+                brand_id:
+                  type: string
+                  example: 64ae64393ff83b13949af3bd
+                category_id:
+                  type: string
+                  example: 64afbb1839753e4263bc467e
+                available_count:
+                  type: integer
+                  example: 10
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                    example: 60f9f3cfd5cbe5692367e704.jpg
+        required: true
+      responses:
+        '200':
+          description: Thêm sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Create product succeed
+    delete:
+      tags:
+        - product
+      summary: Xóa sản phẩm (chỉ có admin mới có quyền truy cập)
+      description: Xóa một hoặc nhiều sản phẩm cùng lúc (chỉ có admin mới có quyền truy cập)
+      operationId: deleteProduct
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Danh sách id sản phẩm muốn xóa
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_ids:
+                  type: array
+                  items:
+                    type: string
+                    example: 60f9f3cfd5cbe5692367e704
+        required: true
+      responses:
+        '200':
+          description: Xóa sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Delete product succeed
+    get:
+      tags:
+        - product
+      summary: Lấy danh sách sản phẩm
+      description: Lấy danh sách sản phẩm
+      operationId: getProducts
+      parameters:
+        - name: page
+          in: query
+          description: Trang hiện tại
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng sản phẩm trên một trang
+          required: false
+          schema:
+            type: integer
+            example: 10
+        - name: brand
+          in: query
+          description: ID của thương hiệu
+          required: false
+          schema:
+            type: string
+            example: 64ae64393ff83b13949af3bd
+        - name: category
+          in: query
+          description: ID của danh mục
+          required: false
+          schema:
+            type: string
+            example: 64afbb1839753e4263bc467e
+        - name: name
+          in: query
+          description: Tên sản phẩm (tìm kiếm)
+          required: false
+          schema:
+            type: string
+            example: Chuột CoolerMaster MM711 RGB White Matte
+        - name: sortBy
+          in: query
+          description: Trường được sắp xếp theo thứ tự
+          required: false
+          schema:
+            type: string
+            enum:
+              - price
+              - price_after_discount
+              - created_at
+            example: price
+        - name: orderBy
+          in: query
+          description: Thứ tự sắp xếp tăng dần hoặc giảm dần
+          required: false
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            example: desc
+      responses:
+        '200':
+          description: Lấy danh sách sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get products list succeed
+                  data:
+                    type: object
+                    properties:
+                      products:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProductItem'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+  /products/{product_id}:
+    put:
+      tags:
+        - product
+      summary: Cập nhật sản phẩm (chỉ có admin mới có quyền truy cập)
+      description: Cập nhật thông tin sản phẩm (chỉ có admin mới có quyền truy cập)
+      operationId: updateProduct
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: product_id
+          in: path
+          description: ID của sản phẩm
+          required: true
+          schema:
+            type: string
+            example: 60f9f3cfd5cbe5692367e704
+      requestBody:
+        description: Thông tin sản phẩm
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name_vi:
+                  type: string
+                  example: Chuột CoolerMaster MM711 RGB White Matte
+                name_en:
+                  type: string
+                  example: CoolerMaster MM711 RGB White Matte Mouse
+                thumbnail:
+                  type: string
+                  format: binary
+                  example: 60f9f3cfd5cbe5692367e704.jpg
+                price:
+                  type: integer
+                  example: 1490000
+                price_after_discount:
+                  type: integer
+                  example: 390000
+                general_info:
+                  type: string
+                  example: Chuột CoolerMaster MM711 RGB White Matte
+                description:
+                  type: string
+                  example: Chuột CoolerMaster MM711 RGB White Matte
+                brand_id:
+                  type: string
+                  example: 64ae64393ff83b13949af3bd
+                category_id:
+                  type: string
+                  example: 64afbb1839753e4263bc467e
+                available_count:
+                  type: integer
+                  example: 10
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                    example: 60f9f3cfd5cbe5692367e704.jpg
+        required: true
+      responses:
+        '200':
+          description: Cập nhật sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Update product succeed
+    get:
+      tags:
+        - product
+      summary: Lấy thông tin chi tiết sản phẩm
+      description: Lấy thông tin chi tiết sản phẩm
+      operationId: getProductDetail
+      parameters:
+        - name: product_id
+          in: path
+          description: ID của sản phẩm
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      responses:
+        '200':
+          description: Lấy thông tin chi tiết sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get product detail succeed
+                  data:
+                    $ref: '#/components/schemas/ProductDetail'
+  # Address
+  /addresses:
+    post:
+      tags:
+        - address
+      summary: Thêm địa chỉ nhận hàng
+      description: Thêm địa chỉ nhận hàng để sử dụng cho việc đặt hàng (không giới hạn số lượng địa chỉ)
+      operationId: addAddress
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Thông tin địa chỉ nhận hàng
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAddressReqBody'
+        required: false
+      responses:
+        '200':
+          description: Thêm địa chỉ nhận hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Add address succeed
+    get:
+      tags:
+        - address
+      summary: Lấy danh sách địa chỉ nhận hàng
+      description: Lấy danh sách địa chỉ nhận hàng của người dùng đang đăng nhập
+      operationId: getAddresses
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lấy danh sách địa chỉ nhận hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get addresses succeed
+                  data:
+                    type: object
+                    properties:
+                      addresses:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Address'
+  /addresses/{address_id}:
+    get:
+      tags:
+        - address
+      summary: Lấy địa chỉ nhận hàng
+      description: Lấy thông tin chi tiết địa chỉ nhận hàng
+      operationId: getAddress
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: address_id
+          in: path
+          description: ID của địa chỉ nhận hàng
+          required: true
+          schema:
+            type: string
+            example: 6508f3d604e5de01f7240a43
+      responses:
+        '200':
+          description: Lấy địa chỉ nhận hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get address succeed
+                  data:
+                    type: object
+                    properties:
+                      address:
+                        $ref: '#/components/schemas/Address'
+    put:
+      tags:
+        - address
+      summary: Cập nhật địa chỉ nhận hàng
+      description: Cập nhật thông tin địa chỉ nhận hàng
+      operationId: updateAddress
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: address_id
+          in: path
+          description: ID của địa chỉ nhận hàng
+          required: true
+          schema:
+            type: string
+            example: 6508f3d604e5de01f7240a43
+      requestBody:
+        description: Thông tin địa chỉ nhận hàng
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAddressReqBody'
+        required: false
+      responses:
+        '200':
+          description: Cập nhật địa chỉ nhận hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Update address succeed
+                  data:
+                    type: object
+                    properties:
+                      address:
+                        $ref: '#/components/schemas/Address'
+    delete:
+      tags:
+        - address
+      summary: Xóa địa chỉ nhận hàng
+      description: Xóa địa chỉ nhận hàng khỏi danh sách địa chỉ nhận hàng
+      operationId: deleteAddress
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: address_id
+          in: path
+          description: ID của địa chỉ nhận hàng
+          required: true
+          schema:
+            type: string
+            example: 6508f3d604e5de01f7240a43
+      responses:
+        '200':
+          description: Xóa địa chỉ nhận hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Delete address succeed
+  /addresses/set-default/{address_id}:
+    put:
+      tags:
+        - address
+      summary: Đặt địa chỉ nhận hàng làm mặc định
+      description: Đặt địa chỉ nhận hàng làm địa chỉ nhận hàng mặc định để thuận tiện cho việc đặt hàng (một người dùng chỉ có thể có một địa chỉ nhận hàng mặc định)
+      operationId: setDefaultAddress
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: address_id
+          in: path
+          description: ID của địa chỉ nhận hàng
+          required: true
+          schema:
+            type: string
+            example: 6508f3d604e5de01f7240a43
+      responses:
+        '200':
+          description: Đặt địa chỉ nhận hàng mặc định thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Set default address succeed
+  # Category
+  /categories:
+    post:
+      tags:
+        - category
+      summary: Thêm danh mục (chỉ có admin mới có quyền truy cập)
+      description: Thêm danh mục sản phẩm mới vào hệ thống (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: addCategory
+      requestBody:
+        description: Thông tin danh mục sản phẩm mới
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name_vi:
+                  type: string
+                  example: Chuột
+                name_en:
+                  type: string
+                  example: Mouse
+        required: true
+      responses:
+        '200':
+          description: Thêm danh mục sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Create category succeed
+    get:
+      tags:
+        - category
+      summary: Lấy danh sách danh mục (chỉ có admin mới có quyền truy cập)
+      description: Lấy danh sách danh mục sản phẩm (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: getCategories
+      parameters:
+        - name: page
+          in: query
+          description: Trang hiện tại
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng danh mục trên một trang
+          required: false
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Lấy danh sách danh mục sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get categories succeed
+                  data:
+                    type: object
+                    properties:
+                      categories:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Category'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+    delete:
+      tags:
+        - category
+      summary: Xóa danh mục (chỉ có admin mới có quyền truy cập)
+      description: Xóa một hoặc nhiều danh mục cùng lúc (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Danh sách id danh mục muốn xóa
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category_ids:
+                  type: array
+                  items:
+                    type: string
+                    example: 64afbb1839753e4263bc467e
+        required: true
+      responses:
+        '200':
+          description: Xóa danh mục sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Delete category succeed
+  /categories/{category_id}:
+    get:
+      tags:
+        - category
+      summary: Lấy danh mục (chỉ có admin mới có quyền truy cập)
+      description: Lấy thông tin chi tiết danh mục sản phẩm (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: getCategory
+      parameters:
+        - name: category_id
+          in: path
+          description: ID của danh mục sản phẩm
+          required: true
+          schema:
+            type: string
+            example: 64afbb1839753e4263bc467e
+      responses:
+        '200':
+          description: Lấy danh mục sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get category succeed
+                  data:
+                    type: object
+                    properties:
+                      category:
+                        $ref: '#/components/schemas/Category'
+    patch:
+      tags:
+        - category
+      summary: Cập nhật danh mục (chỉ có admin mới có quyền truy cập)
+      description: Cập nhật thông tin danh mục sản phẩm (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: updateCategory
+      parameters:
+        - name: category_id
+          in: path
+          description: ID của danh mục sản phẩm
+          required: true
+          schema:
+            type: string
+            example: 64afbb1839753e4263bc467e
+      requestBody:
+        description: Thông tin danh mục sản phẩm
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name_vi:
+                  type: string
+                  example: Chuột
+                name_en:
+                  type: string
+                  example: Mouse
+        required: true
+      responses:
+        '200':
+          description: Cập nhật danh mục sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Update category succeed
+                  data:
+                    type: object
+                    properties:
+                      category:
+                        $ref: '#/components/schemas/Category'
+  # Brand
+  /brands:
+    post:
+      tags:
+        - brand
+      summary: Thêm thương hiệu (chỉ có admin mới có quyền truy cập)
+      description: Thêm thương hiệu sản phẩm mới vào hệ thống (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: addBrand
+      requestBody:
+        description: Thông tin thương hiệu sản phẩm mới
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: CoolerMaster
+        required: true
+      responses:
+        '200':
+          description: Thêm thương hiệu sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Create brand succeed
+    get:
+      tags:
+        - brand
+      summary: Lấy danh sách thương hiệu (chỉ có admin mới có quyền truy cập)
+      description: Lấy danh sách thương hiệu sản phẩm (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: getBrands
+      parameters:
+        - name: page
+          in: query
+          description: Trang hiện tại
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng thương hiệu trên một trang
+          required: false
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Lấy danh sách thương hiệu sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get brands succeed
+                  data:
+                    type: object
+                    properties:
+                      brands:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Brand'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+    delete:
+      tags:
+        - brand
+      summary: Xóa thương hiệu (chỉ có admin mới có quyền truy cập)
+      description: Xóa một hoặc nhiều thương hiệu cùng lúc (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Danh sách id thương hiệu muốn xóa
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                brand_ids:
+                  type: array
+                  items:
+                    type: string
+                    example: 64ae64393ff83b13949af3bd
+        required: true
+      responses:
+        '200':
+          description: Xóa thương hiệu sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Delete brand succeed
+  /brands/{brand_id}:
+    get:
+      tags:
+        - brand
+      summary: Lấy thương hiệu (chỉ có admin mới có quyền truy cập)
+      description: Lấy thông tin chi tiết thương hiệu sản phẩm (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: getBrand
+      parameters:
+        - name: brand_id
+          in: path
+          description: ID của thương hiệu sản phẩm
+          required: true
+          schema:
+            type: string
+            example: 64ae64393ff83b13949af3bd
+      responses:
+        '200':
+          description: Lấy thương hiệu sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get brand succeed
+                  data:
+                    type: object
+                    properties:
+                      brand:
+                        $ref: '#/components/schemas/Brand'
+    put:
+      tags:
+        - brand
+      summary: Cập nhật thương hiệu (chỉ có admin mới có quyền truy cập)
+      description: Cập nhật thông tin thương hiệu sản phẩm (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: updateBrand
+      parameters:
+        - name: brand_id
+          in: path
+          description: ID của thương hiệu sản phẩm
+          required: true
+          schema:
+            type: string
+            example: 64ae64393ff83b13949af3bd
+      requestBody:
+        description: Thông tin thương hiệu sản phẩm
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: CoolerMaster
+        required: true
+      responses:
+        '200':
+          description: Cập nhật thương hiệu sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Update brand succeed
+  # Media
+  /medias:
+    delete:
+      tags:
+        - media
+      summary: Xóa ảnh, video
+      description: Xóa một hoặc nhiều ảnh, video cùng lúc
+      security:
+        - bearerAuth: []
+      operationId: deleteMedias
+      requestBody:
+        description: Danh sách id ảnh, video muốn xóa
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                media_ids:
+                  type: array
+                  items:
+                    type: string
+                    example: 60f9f3cfd5cbe5692367e704
+        required: true
+      responses:
+        '200':
+          description: Xóa ảnh, video thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Delete medias succeed
+  /medias/upload-image:
+    post:
+      tags:
+        - media
+      summary: Tải ảnh lên
+      description: Tải ảnh lên hệ thống
+      operationId: uploadImage
+      requestBody:
+        description: Ảnh cần tải lên
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+        required: true
+      responses:
+        '200':
+          description: Tải ảnh lên thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Upload image succeed
+                  data:
+                    type: object
+                    properties:
+                      medias:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Media'
+  # Review
+  /reviews/product/{product_id}:
+    post:
+      tags:
+        - review
+      summary: Đánh giá sản phẩm
+      description: Đánh giá sản phẩm (một người dùng chỉ có thể đánh giá một sản phẩm một lần)
+      operationId: reviewProduct
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: product_id
+          in: path
+          description: ID của sản phẩm
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      requestBody:
+        description: Thông tin đánh giá. Nếu không có parent_id thì đánh giá này là đánh giá mới, nếu có parent_id thì đánh giá này là trả lời đánh giá của người dùng khác (parent_id là id của đánh giá mà người dùng muốn trả lời), nếu có parent_id thì rating sẽ không được truyền vào vì nó chỉ là một trả lời đánh giá
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: integer
+                  example: 5
+                comment:
+                  type: string
+                  example: Sản phẩm rất tốt
+                parent_id:
+                  type: string
+                  example: null
+        required: true
+      responses:
+        '200':
+          description: Đánh giá sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Add review succeed
+    get:
+      tags:
+        - review
+      summary: Lấy danh sách đánh giá của sản phẩm
+      description: Lấy danh sách đánh giá của sản phẩm (một người dùng chỉ có thể đánh giá một sản phẩm một lần)
+      operationId: getReviews
+      parameters:
+        - name: product_id
+          in: path
+          description: ID của sản phẩm
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      responses:
+        '200':
+          description: Lấy danh sách đánh giá của sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get reviews succeed
+                  data:
+                    type: object
+                    properties:
+                      reviews:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Review'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+  /reviews/detail/product/{product_id}:
+    get:
+      tags:
+        - review
+      summary: Lấy thông tin đánh giá của sản phẩm
+      description: Lấy thông tin đánh giá của sản phẩm (số sao, bình luận, hình ảnh đính kèm)
+      operationId: getReviewDetail
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: product_id
+          in: path
+          description: ID của sản phẩm
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      responses:
+        '200':
+          description: Lấy thông tin đánh giá của sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get review detail succeed
+                  data:
+                    type: object
+                    properties:
+                      review:
+                        $ref: '#/components/schemas/ReviewDetail'
+  /reviews/{review_id}/image/{image_id}:
+    delete:
+      tags:
+        - review
+      summary: Xóa ảnh đính kèm của đánh giá
+      description: Xóa ảnh đính kèm của đánh giá
+      operationId: deleteReviewImage
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: review_id
+          in: path
+          description: ID của đánh giá
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+        - name: image_id
+          in: path
+          description: ID của ảnh đính kèm
+          required: true
+          schema:
+            type: string
+            example: 60f9f3cfd5cbe5692367e704
+      responses:
+        '200':
+          description: Xóa ảnh đính kèm của đánh giá thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Delete review image succeed
+  /reviews/{review_id}:
+    delete:
+      tags:
+        - review
+      summary: Xóa đánh giá
+      description: Xóa đánh giá
+      operationId: deleteReview
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: review_id
+          in: path
+          description: ID của đánh giá
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      responses:
+        '200':
+          description: Xóa đánh giá thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Delete review succeed
+  # Purchase
+  /purchases:
+    post:
+      tags:
+        - purchase
+      summary: Thêm sản phẩm vào giỏ hàng
+      description: Thêm sản phẩm vào giỏ hàng
+      operationId: addProductToCart
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Thông tin sản phẩm
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_id:
+                  type: string
+                  example: 64b8f451a692e0ad3a11afce
+                buy_count:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Thêm sản phẩm vào giỏ hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Add product to cart succeed
+                  data:
+                    type: object
+                    properties:
+                      purchase_id:
+                        type: string
+                        example: 64e4b3858c27d4052cd9bc42
+    get:
+      tags:
+        - purchase
+      summary: Lấy danh sách sản phẩm trong giỏ hàng
+      description: Lấy danh sách sản phẩm trong giỏ hàng của người dùng đang đăng nhập
+      operationId: getCart
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lấy danh sách sản phẩm trong giỏ hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get cart list succeed
+                  data:
+                    type: object
+                    properties:
+                      cart_size:
+                        type: integer
+                        example: 10
+                      cart_list:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Purchase'
+    delete:
+      tags:
+        - purchase
+      summary: Xóa đơn mua khỏi giỏ hàng
+      description: Xóa một hoặc nhiều đơn mua khỏi giỏ hàng
+      operationId: deletePurchase
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Danh sách id đơn mua muốn xóa
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                purchase_ids:
+                  type: array
+                  items:
+                    type: string
+                    example: 64e4ccc098369d3ea404f365
+        required: true
+      responses:
+        '200':
+          description: Xóa đơn mua khỏi giỏ hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Delete purchase succeed
+  /purchases/all:
+    delete:
+      tags:
+        - purchase
+      summary: Xóa tất cả đơn mua khỏi giỏ hàng
+      description: Xóa tất cả đơn mua khỏi giỏ hàng
+      operationId: deleteAllPurchase
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Xóa tất cả đơn mua khỏi giỏ hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Delete all purchase succeed
+  /purchase/{purchase_id}:
+    put:
+      tags:
+        - purchase
+      summary: Cập nhật sản phẩm trong giỏ hàng
+      description: Cập nhật thông tin sản phẩm trong giỏ hàng (số lượng sản phẩm)
+      operationId: updatePurchase
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: purchase_id
+          in: path
+          description: ID của cart item
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      requestBody:
+        description: Thông tin sản phẩm
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                buy_count:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Cập nhật sản phẩm trong giỏ hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Update purchase succeed
+  /purchases/checkout:
+    post:
+      tags:
+        - purchase
+      summary: Thanh toán đơn hàng
+      description: Thanh toán đơn hàng (tạo đơn hàng mới)
+      operationId: checkout
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Thông tin thanh toán đơn hàng (địa chỉ nhận hàng, phương thức thanh toán, phương thức nhận hàng, ghi chú)
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                purchases:
+                  type: array
+                  items:
+                    type: string
+                    example: '64e4b3858c27d4052cd9bc42'
+                customer_gender:
+                  type: integer
+                  example: 0
+                customer_name:
+                  type: string
+                  example: 'Trần Hải Triều'
+                customer_phone:
+                  type: string
+                  example: '0775939704'
+                province:
+                  type: string
+                  example: 'Tiền Giang'
+                district:
+                  type: string
+                  example: 'Cái Bè'
+                ward:
+                  type: string
+                  example: 'Hòa Hưng'
+                street:
+                  type: string
+                  example: 'Khu Phố'
+                note:
+                  type: string
+                  example: 'Giao nhanh'
+                transport_fee:
+                  type: integer
+                  example: 0
+                total_amount:
+                  type: integer
+                  example: 2500000
+                total_amount_reduced:
+                  type: integer
+                  example: 0
+                total_items:
+                  type: integer
+                  example: 6
+                receive_method:
+                  type: integer
+                  example: 0
+                payment_method:
+                  type: integer
+                  example: 0
+                status:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Thanh toán đơn hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Checkout succeed
+                  data:
+                    type: object
+                    properties:
+                      order_id:
+                        type: string
+                        example: 65099b05170bf675585e155f
+  # Order
+  /orders/all:
+    get:
+      tags:
+        - order
+      summary: Lấy tất cả danh sách đơn đặt hàng (chỉ có admin mới có quyền truy cập)
+      description: Lấy danh sách đơn đặt hàng của người dùng đang đăng nhập (chỉ có admin mới có quyền truy cập)
+      operationId: getAllOrders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Trang hiện tại
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng đơn đặt hàng trên một trang
+          required: false
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Lấy danh sách đơn đặt hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get all orders succeed
+                  data:
+                    type: object
+                    properties:
+                      orders:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Order'
+                      quantity:
+                        $ref: '#/components/schemas/OrderQuantity'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+  /orders:
+    get:
+      tags:
+        - order
+      summary: Lấy danh sách đơn đặt hàng
+      description: Lấy danh sách đơn đặt hàng của người dùng đang đăng nhập
+      operationId: getOrders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Trang hiện tại
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng đơn đặt hàng trên một trang
+          required: false
+          schema:
+            type: integer
+            example: 10
+        - name: status
+          in: query
+          description: Trạng thái đơn đặt hàng
+          required: false
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+              - 2
+              - 3
+              - 4
+              - 5
+            example: 0
+      responses:
+        '200':
+          description: Lấy danh sách đơn đặt hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get orders succeed
+                  data:
+                    type: object
+                    properties:
+                      orders:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Order'
+                      quantity:
+                        $ref: '#/components/schemas/OrderQuantity'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+    delete:
+      tags:
+        - order
+      summary: Xóa đơn đặt hàng (chỉ có admin mới có quyền truy cập)
+      description: Xóa một hoặc nhiều đơn đặt hàng cùng lúc (chỉ có admin mới có quyền truy cập)
+      operationId: deleteOrder
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Danh sách id đơn đặt hàng muốn xóa
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_ids:
+                  type: array
+                  items:
+                    type: string
+                    example: 64e4ccc098369d3ea404f365
+        required: true
+      responses:
+        '200':
+          description: Xóa đơn đặt hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Delete orders succeed
+  /orders/{order_id}:
+    get:
+      tags:
+        - order
+      summary: Lấy thông tin chi tiết đơn đặt hàng
+      description: Lấy thông tin chi tiết đơn đặt hàng của người dùng đang đăng nhập
+      operationId: getOrder
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: order_id
+          in: path
+          description: ID của đơn đặt hàng
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      responses:
+        '200':
+          description: Lấy thông tin chi tiết đơn đặt hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get order succeed
+                  data:
+                    type: object
+                    properties:
+                      order:
+                        $ref: '#/components/schemas/Order'
+    patch:
+      tags:
+        - order
+      summary: Cập nhật đơn đặt hàng (chỉ có admin mới có quyền truy cập)
+      description: Cập nhật thông tin đơn đặt hàng (trạng thái đơn đặt hàng) (chỉ có admin mới có quyền truy cập)
+      operationId: updateOrder
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: order_id
+          in: path
+          description: ID của đơn đặt hàng
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      requestBody:
+        description: Thông tin đơn đặt hàng
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                  enum:
+                    - 0
+                    - 1
+                    - 2
+                    - 3
+                    - 4
+                    - 5
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Cập nhật đơn đặt hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Update order status succeed
+                  data:
+                    type: object
+                    properties:
+                      order:
+                        $ref: '#/components/schemas/Order'
+  # Blog
+  /blogs:
+    post:
+      tags:
+        - blog
+      summary: Thêm bài viết (chỉ có admin mới có quyền truy cập)
+      description: Thêm bài viết mới vào hệ thống (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: addBlog
+      requestBody:
+        description: Thông tin bài viết mới
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBlogReqBody'
+        required: true
+      responses:
+        '200':
+          description: Thêm bài viết thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Create blog succeed
+    get:
+      tags:
+        - blog
+      summary: Lấy danh sách bài viết
+      description: Lấy danh sách bài viết
+      operationId: getBlogs
+      parameters:
+        - name: page
+          in: query
+          description: Trang hiện tại
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng bài viết trên một trang
+          required: false
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Lấy danh sách bài viết thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get blogs succeed
+                  data:
+                    type: object
+                    properties:
+                      blogs:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Blog'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+    delete:
+      tags:
+        - blog
+      summary: Xóa bài viết (chỉ có admin mới có quyền truy cập)
+      description: Xóa một hoặc nhiều bài viết cùng lúc (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Danh sách id bài viết muốn xóa
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                blog_ids:
+                  type: array
+                  items:
+                    type: string
+                    example: 64e4ccc098369d3ea404f365
+        required: true
+      responses:
+        '200':
+          description: Xóa bài viết thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Delete blog succeed
+  /blogs/{blog_id}:
+    get:
+      tags:
+        - blog
+      summary: Lấy bài viết
+      description: Lấy thông tin chi tiết bài viết
+      operationId: getBlog
+      parameters:
+        - name: blog_id
+          in: path
+          description: ID của bài viết
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      responses:
+        '200':
+          description: Lấy bài viết thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get blog succeed
+                  data:
+                    type: object
+                    properties:
+                      blog:
+                        $ref: '#/components/schemas/Blog'
+    patch:
+      tags:
+        - blog
+      summary: Cập nhật bài viết (chỉ có admin mới có quyền truy cập)
+      description: Cập nhật thông tin bài viết (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: updateBlog
+      parameters:
+        - name: blog_id
+          in: path
+          description: ID của bài viết
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      requestBody:
+        description: Thông tin bài viết
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBlogReqBody'
+        required: true
+      responses:
+        '200':
+          description: Cập nhật bài viết thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Update blog succeed
+  # Notification
+  /notifications:
+    get:
+      tags:
+        - notification
+      summary: Lấy danh sách thông báo (chỉ có admin mới có quyền truy cập)
+      description: Lấy danh sách thông báo (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: getNotifications
+      parameters:
+        - name: page
+          in: query
+          description: Trang hiện tại
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng thông báo trên một trang
+          required: false
+          schema:
+            type: integer
+            example: 10
+
+      responses:
+        '200':
+          description: Lấy danh sách thông báo thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get notifications succeed
+                  data:
+                    type: object
+                    properties:
+                      unread_count:
+                        type: integer
+                        example: 10
+                      notifications:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Notification'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+    patch:
+      tags:
+        - notification
+      summary: Đánh dấu đã đọc tất cả thông báo (chỉ có admin mới có quyền truy cập)
+      description: Đánh dấu đã đọc tất cả thông báo (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: readAllNotifications
+      responses:
+        '200':
+          description: Đánh dấu đã đọc tất cả thông báo thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Mark as read notification succeed
+    delete:
+      tags:
+        - notification
+      summary: Xóa tất cả thông báo (chỉ có admin mới có quyền truy cập)
+      description: Xóa tất cả thông báo (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: deleteAllNotifications
+      responses:
+        '200':
+          description: Xóa tất cả thông báo thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Delete notifications succeed
+  /notifications/{notification_id}:
+    patch:
+      tags:
+        - notification
+      summary: Đánh dấu đã đọc một thông báo (chỉ có admin mới có quyền truy cập)
+      description: Đánh dấu đã đọc một thông báo (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: readNotification
+      parameters:
+        - name: notification_id
+          in: path
+          description: ID của thông báo
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      responses:
+        '200':
+          description: Đánh dấu đã đọc một thông báo thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Mark as read notification succeed
+    delete:
+      tags:
+        - notification
+      summary: Xóa một thông báo (chỉ có admin mới có quyền truy cập)
+      description: Xóa một thông báo (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: deleteNotification
+      parameters:
+        - name: notification_id
+          in: path
+          description: ID của thông báo
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      responses:
+        '200':
+          description: Xóa một thông báo thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Delete notification succeed
+  # Conversation
+  /conversations/receiver/{receiver_id}:
+    get:
+      tags:
+        - conversation
+      summary: Lấy tin nhắn giữa người dùng đang đăng nhập và một người dùng khác
+      description: Lấy tin nhắn giữa người dùng đang đăng nhập và một người dùng khác (admin chỉ có thể nhắn tin với khách hàng và ngược lại)
+      security:
+        - bearerAuth: []
+      operationId: getConversations
+      parameters:
+        - name: receiver_id
+          in: path
+          description: ID của người dùng muốn nhắn tin
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+        - name: page
+          in: query
+          description: Trang hiện tại
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng tin nhắn trên một trang
+          required: false
+          schema:
+            type: integer
+            example: 20
+      responses:
+        '200':
+          description: Lấy tin nhắn giữa người dùng đang đăng nhập và một người dùng khác thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get conversations succeed
+                  data:
+                    type: object
+                    properties:
+                      conversations:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Conversation'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+  /conversations/receivers:
+    get:
+      tags:
+        - conversation
+      summary: Lấy danh sách người dùng đã nhắn tin với mình
+      description: Lấy danh sách người dùng đã nhắn tin với mình
+      security:
+        - bearerAuth: []
+      operationId: getConversationReceivers
+      parameters:
+        - name: page
+          in: query
+          description: Trang hiện tại
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng người dùng trên một trang
+          required: false
+          schema:
+            type: integer
+            example: 20
+      responses:
+        '200':
+          description: Lấy danh sách người dùng đã nhắn tin với mình thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get conversation receivers succeed
+                  data:
+                    type: object
+                    properties:
+                      receivers:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ConversationReceiver'
+
+# Components
+components:
+  schemas:
+    RefreshToken:
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjUwODMwYzBlN2Q0ZTYyZDJmM2M5NjI2IiwidmVyaWZ5IjoxLCJyb2xlIjoxLCJ0b2tlbl90eXBlIjowLCJpYXQiOjE2OTUwMzY3NTQsImV4cCI6MTY5NTAzNzM1NH0.7cmEDRzcE0NuQ16iRX-XMqjWyFnU4ZzTYXh7Xc2glOI
+        refresh_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjUwODMwYzBlN2Q0ZTYyZDJmM2M5NjI2IiwidmVyaWZ5IjoxLCJyb2xlIjoxLCJ0b2tlbl90eXBlIjoxLCJleHAiOjE3MDM2NzY0NjEsImlhdCI6MTY5NTAzNjc1NH0.TRkCHfZ3zFxOxCFR5X0Xqq4D5_RjCHGxfFU1O5J7Ekg
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: uuid
+          example: 64a4c57e9e3670721ae4be77
+        email:
+          type: string
+          example: haitrieu1811@gmail.com
+        status:
+          type: integer
+          example: 0
+        role:
+          type: integer
+          example: 0
+        avatar:
+          type: string
+          example: 977a9518243f1985fca916609.jpg
+        gender:
+          type: integer
+          example: 0
+        verify:
+          type: integer
+          example: 0
+        date_of_birth:
+          type: integer
+          example: 2000-11-17T17:00:00.000Z
+        fullname:
+          type: string
+          example: Github Copilot
+        phone_number:
+          type: string
+          example: 0775939704
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+    SuccessAuthentication:
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjRhNGM1N2U5ZTM2NzA3MjFhZTRiZTc3IiwidmVyaWZ5IjoxLCJyb2xlIjowLCJ0b2tlbl90eXBlIjowLCJpYXQiOjE2OTUwMzMwODMsImV4cCI6MTY5NTAzMzY4M30.vmuKSMOMLUaFKMu0HQo4zHuS6lSSZKJZnQhfmP2YJfw
+        refresh_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjRhNGM1N2U5ZTM2NzA3MjFhZTRiZTc3IiwidmVyaWZ5IjoxLCJyb2xlIjowLCJ0b2tlbl90eXBlIjoxLCJpYXQiOjE2OTUwMzMwODMsImV4cCI6MTcwMzY3MzA4M30.Ve9cBY7VRBYaDS9TqjW-bHkc6CY3tORsJN8NTr73l68
+        user:
+          $ref: '#/components/schemas/User'
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 100
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 10
+        page_size:
+          type: integer
+          example: 10
+    ViewdProduct:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64c4addc50c11dd939ea30e9
+        product:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 60f9f3cfd5cbe5692367e704
+            name_vi:
+              type: string
+              example: Chuột CoolerMaster MM711 RGB White Matte
+            name_en:
+              type: string
+              example: CoolerMaster MM711 RGB White Matte Mouse
+            thumbnail:
+              type: string
+              example: 60f9f3cfd5cbe5692367e704.jpg
+            price:
+              type: integer
+              example: 1490000
+            price_after_discount:
+              type: integer
+              example: 390000
+            available_count:
+              type: integer
+              example: 10
+            created_at:
+              type: string
+              format: ISO8601
+              example: 2021-07-23T17:00:00.000Z
+            updated_at:
+              type: string
+              format: ISO8601
+              example: 2021-07-23T17:00:00.000Z
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+    ProductItem:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 60f9f3cfd5cbe5692367e704
+        name_vi:
+          type: string
+          example: Chuột CoolerMaster MM711 RGB White Matte
+        name_en:
+          type: string
+          example: CoolerMaster MM711 RGB White Matte Mouse
+        thumbnail:
+          type: string
+          example: 60f9f3cfd5cbe5692367e704.jpg
+        price:
+          type: integer
+          example: 1490000
+        price_after_discount:
+          type: integer
+          example: 390000
+        brand:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 64ae64393ff83b13949af3bd
+            name:
+              type: string
+              example: Dell
+            created_at:
+              type: string
+              format: ISO8601
+              example: 2021-07-23T17:00:00.000Z
+            updated_at:
+              type: string
+              format: ISO8601
+              example: 2021-07-23T17:00:00.000Z
+        category:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 64afbb1839753e4263bc467e
+            name_vi:
+              type: string
+              example: Chuột
+            name_en:
+              type: string
+              example: Mouse
+            created_at:
+              type: string
+              format: ISO8601
+              example: 2021-07-23T17:00:00.000Z
+            updated_at:
+              type: string
+              format: ISO8601
+              example: 2021-07-23T17:00:00.000Z
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2021-07-23T17:00:00.000Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2021-07-23T17:00:00.000Z
+    ProductDetail:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 60f9f3cfd5cbe5692367e704
+        name_vi:
+          type: string
+          example: Chuột CoolerMaster MM711 RGB White Matte
+        name_en:
+          type: string
+          example: Chuột CoolerMaster MM711 RGB White Matte
+        thumbnail:
+          type: string
+          example: 60f9f3cfd5cbe5692367e704.jpg
+        price:
+          type: integer
+          example: 1490000
+        price_after_discount:
+          type: integer
+          example: 390000
+        available_count:
+          type: integer
+          example: 10
+        rating_score:
+          type: number
+          example: 4.5
+        rating_count:
+          type: integer
+          example: 10
+        rating_five_count:
+          type: integer
+          example: 5
+        rating_four_count:
+          type: integer
+          example: 2
+        rating_three_count:
+          type: integer
+          example: 3
+        rating_two_count:
+          type: integer
+          example: 1
+        rating_one_count:
+          type: integer
+          example: 0
+        general_info:
+          type: string
+          example: "<p><strong>Nhà sản xuất</strong> : COOLER MASTER</p>\n<p><strong>Tình trạng</strong>"
+        description:
+          type: string
+          example: "<p><strong>Nhà sản xuất</strong> : COOLER MASTER</p>\n<p><strong>Tình trạng</strong>"
+        author:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 64a4c57e9e3670721ae4be77
+            email:
+              type: string
+              example: haitrieu1811@gmail.com
+            avatar:
+              type: string
+              example: 977a9518243f1985fca916609.jpg
+            fullname:
+              type: string
+              example: Github Copilot
+            phone_number:
+              type: string
+              example: 0775939704
+        brand:
+          $ref: '#/components/schemas/Brand'
+        category:
+          $ref: '#/components/schemas/Category'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2021-07-23T17:00:00.000Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2021-07-23T17:00:00.000Z
+    Image:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64ec81198fa495430dba553d
+        name:
+          type: string
+          example: 03b10c383a958e13e98cd762b.jpg
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2021-07-23T17:00:00.000Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2021-07-23T17:00:00.000Z
+    Address:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 6508f3d604e5de01f7240a43
+        province:
+          type: string
+          example: Tiền Giang
+        district:
+          type: string
+          example: Cái Bè
+        ward:
+          type: string
+          example: Hòa Hưng
+        street:
+          type: string
+          example: 24, tổ 1, ấp Khu Phố
+        type:
+          type: integer
+          enum:
+            - 0
+            - 1
+          example: 0
+        is_default:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+    CreateAddressReqBody:
+      type: object
+      properties:
+        province:
+          type: string
+          example: Tiền Giang
+        district:
+          type: string
+          example: Cái Bè
+        ward:
+          type: string
+          example: Hòa Hưng
+        street:
+          type: string
+          example: 24, tổ 1, ấp Khu Phố
+        type:
+          type: integer
+          enum:
+            - 0
+            - 1
+          example: 0
+    Category:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64b8f36ca692e0ad3a11afcc
+        name_vi:
+          type: string
+          example: Chuột
+        name_en:
+          type: string
+          example: Mouse
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2021-07-23T17:00:00.000Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2021-07-23T17:00:00.000Z
+    Brand:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64b8f385a692e0ad3a11afcd
+        name:
+          type: string
+          example: Dell
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2021-07-23T17:00:00.000Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2021-07-23T17:00:00.000Z
+    Media:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 60f9f3cfd5cbe5692367e704.jpg
+        url:
+          type: string
+          example: https://gearvn-clone-ap-southeast-1.s3.ap-southeast-1.amazonaws.com/images/c637e6e3f7af3a34448894a01.jpg
+        type:
+          type: integer
+          enum:
+            - 0
+            - 1
+          example: 0
+    Purchase:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 65046f1bd10be53db664d8d4
+        unit_price:
+          type: integer
+          example: 2290000
+        unit_price_after_discount:
+          type: integer
+          example: 2990000
+        buy_count:
+          type: integer
+          example: 1
+        status:
+          type: integer
+          enum:
+            - 0
+            - 1
+            - 2
+          example: 1
+        product:
+          $ref: '#/components/schemas/ProductInPurchase'
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+    ProductInPurchase:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 60f9f3cfd5cbe5692367e704
+        name_en:
+          type: string
+          example: CoolerMaster MM711 RGB White Matte Mouse
+        name_vi:
+          type: string
+          example: Chuột CoolerMaster MM711 RGB White Matte
+        thumbnail:
+          type: string
+          example: 60f9f3cfd5cbe5692367e704.jpg
+        price:
+          type: integer
+          example: 1490000
+        price_after_discount:
+          type: integer
+          example: 390000
+        available_count:
+          type: integer
+          example: 10
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2021-07-23T17:00:00.000Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2021-07-23T17:00:00.000Z
+    Order:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 65099b05170bf675585e155f
+        status:
+          type: integer
+          enum:
+            - 0
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+          example: 4
+        customer_name:
+          type: string
+          example: Trần Hải Triều
+        customer_phone:
+          type: string
+          example: 0775939704
+        customer_gender:
+          type: integer
+          enum:
+            - 0
+            - 1
+            - 2
+          example: 0
+        province:
+          type: string
+          example: Tiền Giang
+        district:
+          type: string
+          example: Cái Bè
+        ward:
+          type: string
+          example: Hòa Hưng
+        street:
+          type: string
+          example: 24, tổ 1, ấp Khu Phố
+        note:
+          type: string
+          example: Giao nhanh
+        transport_fee:
+          type: integer
+          example: 0
+        total_amount:
+          type: integer
+          example:
+        total_amount_reduced:
+          type: integer
+          example: 0
+        total_items:
+          type: integer
+          example: 6
+        receive_method:
+          type: integer
+          enum:
+            - 0
+            - 1
+          example: 0
+        payment_method:
+          type: integer
+          enum:
+            - 0
+            - 1
+          example: 0
+        purchases:
+          type: array
+          items:
+            $ref: '#/components/schemas/Purchase'
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+    OrderQuantity:
+      type: object
+      properties:
+        all:
+          type: integer
+          example: 100
+        new:
+          type: integer
+          example: 10
+        processing:
+          type: integer
+          example: 20
+        delivering:
+          type: integer
+          example: 30
+        succeed:
+          type: integer
+          example: 40
+        canceled:
+          type: integer
+          example: 50
+    CreateBlogReqBody:
+      type: object
+      properties:
+        thumbnail:
+          type: string
+          example: 977a9518243f1985fca916609.jpg
+        name_vi:
+          type: string
+          example: 'Tên bài viết'
+        name_en:
+          type: string
+          example: 'Blog name'
+        content_vi:
+          type: string
+          example: 'Nội dung bài viết'
+        content_en:
+          type: string
+          example: 'Blog content'
+    Blog:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64b8f451a692e0ad3a11afce
+        thumbnail:
+          type: string
+          example: 977a9518243f1985fca916609.jpg
+        name_vi:
+          type: string
+          example: 'Tên bài viết'
+        name_en:
+          type: string
+          example: 'Blog name'
+        content_vi:
+          type: string
+          example: 'Nội dung bài viết'
+        content_en:
+          type: string
+          example: 'Blog content'
+        status:
+          type: integer
+          enum:
+            - 0
+            - 1
+            - 2
+          example: 0
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+    Notification:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64b8f451a692e0ad3a11afce
+        type:
+          type: integer
+          enum:
+            - 0
+            - 1
+          example: 0
+        title:
+          type: string
+          example: Có đánh giá mới
+        content:
+          type: string
+          example: <strong>Github Copilot</strong> đã đánh giá sản phẩm <strong>Bàn phím cơ AKKO 3087 v2 DS Ocean Star Akko V3 Switch Cream Yellow</strong>
+        is_read:
+          type: boolean
+          example: false
+        path:
+          type: string
+          example: http://localhost:3000/product/b%C3%A0n-ph%C3%ADm-c%C6%A1-akko-3087-v2-ds-ocean-star-akko-v3-switch-cream-yellow-i-64c8cba642e3fea640a37145
+        sender:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 64a4c57e9e3670721ae4be77
+            email:
+              type: string
+              example: haitrieu1811@gmail.com
+            avatar:
+              type: string
+              example: 977a9518243f1985fca916609.jpg
+            fullname:
+              type: string
+              example: Github Copilot
+            phone_number:
+              type: string
+              example: 0775939704
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+    Conversation:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64b8f451a692e0ad3a11afce
+        content:
+          type: string
+          example: Xin chào
+        is_read:
+          type: boolean
+          example: false
+        sender:
+          $ref: '#/components/schemas/ConversationUser'
+        receiver:
+          $ref: '#/components/schemas/ConversationUser'
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2021-08-01T17:00:00.000Z
+    ConversationUser:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64a4c57e9e3670721ae4be77
+        email:
+          type: string
+          example: haitrieu1811@gmail.com
+        avatar:
+          type: string
+          example: 977a9518243f1985fca916609.jpg
+        fullname:
+          type: string
+          example: Github Copilot
+        phone_number:
+          type: string
+          example: 0775939704
+    ConversationReceiver:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64a4c57e9e3670721ae4be77
+        email:
+          type: string
+          example:
+        fullname:
+          type: string
+          example: Github Copilot
+        avatar:
+          type: string
+          example: 977a9518243f1985fca916609.jpg
+        unread_count:
+          type: integer
+          example: 10
+        last_message:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 64b8f451a692e0ad3a11afce
+            content:
+              type: string
+              example: Xin chào
+            created_at:
+              type: string
+              format: ISO8601
+              example: 2021-08-01T17:00:00.000Z
+            updated_at:
+              type: string
+              format: ISO8601
+              example: 2021-08-01T17:00:00.000Z
+    Review:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '64fec8398d6a8fb013563373'
+        rating:
+          type: integer
+          example: 5
+        comment:
+          type: string
+          example: 'Cảm ơn'
+        author:
+          $ref: '#/components/schemas/ReviewAuthor'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+        replies:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewReply'
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2023-09-11T07:56:41.987Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2023-09-11T07:56:41.987Z
+    ReviewReply:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '64fec8398d6a8fb013563373'
+        rating:
+          type: number
+          example: null
+        comment:
+          type: string
+          example: 'Cảm ơn'
+        images:
+          type: array
+          items:
+            type: string
+          example: []
+        author:
+          $ref: '#/components/schemas/ReviewAuthor'
+        created_at:
+          type: string
+          format: date-time
+          example: '2023-09-11T07:56:41.987Z'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2023-09-11T07:56:41.987Z'
+    ReviewAuthor:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '64a4c57e9e3670721ae4be77'
+        email:
+          type: string
+          example: 'haitrieu1811@gmail.com'
+        avatar:
+          type: string
+          example: '977a9518243f1985fca916609.jpg'
+        fullname:
+          type: string
+          example: 'Github Copilot'
+    ReviewDetail:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '64fec8398d6a8fb013563373'
+        rating:
+          type: integer
+          example: 5
+        comment:
+          type: string
+          example: 'Cảm ơn'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+        created_at:
+          type: string
+          format: ISO8601
+          example: 2023-09-11T07:56:41.987Z
+        updated_at:
+          type: string
+          format: ISO8601
+          example: 2023-09-11T07:56:41.987Z
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

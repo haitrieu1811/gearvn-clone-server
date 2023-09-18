@@ -27,11 +27,11 @@ export const USERS_MESSAGES = {
   EMAIL_VERIFY_TOKEN_IS_REQUIRED: 'Email verify token is required',
   EMAIL_VERIFY_TOKEN_NOT_EXIST: 'Email verify token not exist',
   VERIFY_EMAIL_TOKEN_INVALID: 'Email verify token is invalid',
-  VERIFY_EMAIL_SUCCEED: 'Email verify succeed',
+  VERIFY_EMAIL_SUCCEED: 'Verify email succeed',
   EMAIL_VERIFY_BEFORE: 'Email verify before',
   RESEND_EMAIL_VERIFY_SUCCEED: 'Resend email verify succeed',
   USER_NOT_FOUND: 'User not found',
-  SEND_FORGOT_PASSWORD_EMAIL_SUCCESS: 'Password reset request email has been sent, please check your email',
+  SEND_FORGOT_PASSWORD_EMAIL_SUCCESS: 'Reset password request email has been sent, please check your email',
   USER_IS_UNVERIFIED: 'User is unverified',
   FORGOT_PASSWORD_TOKEN_IS_REQUIRED: 'Forgot password token is required',
   FORGOT_PASSWORD_TOKEN_NOT_EXIST: 'Forgot password token not exist',
@@ -92,14 +92,14 @@ export const USERS_MESSAGES = {
   GET_ADDRESSES_SUCCEED: 'Get addresses succeed',
   ADDRESS_IS_DEFAULT: 'Address is default',
   FORGOT_PASSWORD_TOKEN_IS_INVALID: 'Forgot password token is invalid',
-  VERIFY_EMAIL_VERIFY_TOKEN_SUCCEED: 'Verify email verify token succeed',
+  VERIFY_FORFOT_PASSWORD_TOKEN_SUCCEED: 'Verify forgot password token succeed',
   USER_ID_IS_REQUIRED: 'User id is required',
   USER_ID_IS_INVALID: 'User id is invalid',
   USER_NOT_EXISTED: 'User not existed'
 } as const;
 
 export const CATEGORIES_MESSAGES = {
-  GET_LIST_SUCCEED: 'Get category list succeed',
+  GET_LIST_SUCCEED: 'Get categories succeed',
   NAME_IS_REQUIRED: 'Category name is required',
   NAME_MUST_BE_A_STRING: 'Category name must be a string',
   NAME_IS_EXIST: 'Category name is exist',
@@ -118,7 +118,7 @@ export const MEDIAS_MESSAGES = {
   IMAGE_FIELD_IS_REQUIRED: 'Image field is required',
   FILE_NOT_FOUND: 'File not found',
   UPLOAD_IMAGE_SUCCEED: 'Upload image succeed',
-  DELETE_IMAGES_SUCCEED: 'Delete images succeed',
+  DELETE_IMAGES_SUCCEED: 'Delete medias succeed',
   MEDIA_IDS_IS_REQUIRED: 'Media ids is required',
   MEDIA_IDS_MUST_BE_ARRAY: 'Media ids must be array',
   MEDIA_IDS_MUST_BE_ARRAY_AND_NOT_EMPTY: 'Media ids must be array and not empty',
@@ -167,7 +167,7 @@ export const PRODUCTS_MESSAGES = {
   DELETE_PRODUCT_SUCCEED: 'Delete product succeed',
   GET_PRODUCT_LIST_SUCCEED: 'Get product list succeed',
   GET_PRODUCT_DETAIL_SUCCEED: 'Get product detail succeed',
-  GET_BRANDS_SUCCEED: 'Get brands list succeed',
+  GET_BRANDS_SUCCEED: 'Get brands succeed',
   GET_BRAND_SUCCEED: 'Get brand succeed',
   CATEGORY_ID_IS_REQUIRED: 'Category id is required',
   CATEGORY_ID_IS_INVALID: 'Category id is invalid',
@@ -258,9 +258,13 @@ export const ORDERS_MESSAGES = {
   STATUS_IS_REQUIRED: 'Status is required',
   STATUS_IS_INVALID: 'Status is invalid',
   UPDATE_ORDER_STATUS_SUCCEED: 'Update order status succeed',
-  DELETE_ORDER_SUCCEED: 'Delete order succeed',
+  DELETE_ORDER_SUCCEED: 'Delete orders succeed',
   GET_ORDERS_QUANTITY_SUCCEED: 'Get orders quantity succeed',
-  GET_ORDER_DETAIL_SUCCEED: 'Get order detail succeed'
+  GET_ORDER_DETAIL_SUCCEED: 'Get order detail succeed',
+  ORDER_IDS_IS_REQUIRED: 'Order ids is required',
+  ORDER_IDS_MUST_BE_AN_ARRAY: 'Order ids must be an array',
+  ORDER_IDS_IS_INVALID: 'Order ids is invalid',
+  ORDER_IDS_MUST_HAVE_AT_LEAST_ONE_ELEMENT: 'Order ids must have at least one element'
 } as const;
 
 export const BLOGS_MESSAGES = {
@@ -293,10 +297,10 @@ export const NOTIFICATIONS_MESSAGES = {
   NOTIFICATION_TITLE_MUST_BE_A_STRING: 'Notification title must be a string',
   NOTIFICATION_CONTENT_IS_REQUIRED: 'Notification content is required',
   NOTIFICATION_CONTENT_MUST_BE_A_STRING: 'Notification content must be a string',
-  GET_NOTIFICATION_LIST_SUCCEED: 'Get notification list succeed',
+  GET_NOTIFICATION_LIST_SUCCEED: 'Get notifications succeed',
   NOTIFICATION_PATH_MUST_BE_A_STRING: 'Notification path must be a string',
   NOTIFICATION_PATH_IS_INVALID: 'Notification path must be a valid url',
-  DELETE_NOTIFICATION_SUCCEED: 'Delete notification succeed',
+  DELETE_NOTIFICATION_SUCCEED: 'Delete notifications succeed',
   NOTIFICATION_ID_IS_REQUIRED: 'Notification id is required',
   NOTIFICATION_ID_IS_INVALID: 'Notification id is invalid',
   NOTIFICATION_ID_IS_NOT_EXISTED: 'Notification id is not existed',

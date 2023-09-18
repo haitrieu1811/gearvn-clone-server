@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 
-interface ProductReviewConstructor {
+interface ReviewConstructor {
   _id?: ObjectId;
   product_id: string;
   user_id: string;
@@ -12,7 +12,7 @@ interface ProductReviewConstructor {
   updated_at?: Date;
 }
 
-class ProductReview {
+class Review {
   _id?: ObjectId;
   product_id: ObjectId;
   user_id: ObjectId;
@@ -33,7 +33,7 @@ class ProductReview {
     images,
     created_at,
     updated_at
-  }: ProductReviewConstructor) {
+  }: ReviewConstructor) {
     const date = new Date();
     this._id = _id;
     this.product_id = new ObjectId(product_id);
@@ -47,4 +47,4 @@ class ProductReview {
   }
 }
 
-export default ProductReview;
+export default Review;

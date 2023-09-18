@@ -106,7 +106,7 @@ export const forgotPasswordController = async (
 // Xác thực email verify token
 export const verifyEmailVerifyController = async (req: Request, res: Response) => {
   return res.json({
-    message: USERS_MESSAGES.VERIFY_EMAIL_VERIFY_TOKEN_SUCCEED
+    message: USERS_MESSAGES.VERIFY_FORFOT_PASSWORD_TOKEN_SUCCEED
   });
 };
 

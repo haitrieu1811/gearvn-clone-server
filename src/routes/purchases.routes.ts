@@ -24,7 +24,7 @@ const purchasesRouter = Router();
 
 // Thêm vào giỏ hàng
 purchasesRouter.post(
-  '/add-to-cart',
+  '/',
   accessTokenValidator,
   verifiedUserValidator,
   addToCartValidator,
@@ -32,7 +32,7 @@ purchasesRouter.post(
 );
 
 // Lấy danh sách giỏ hàng
-purchasesRouter.get('/get-cart', accessTokenValidator, wrapRequestHandler(getCartListController));
+purchasesRouter.get('/', accessTokenValidator, wrapRequestHandler(getCartListController));
 
 // Cập nhật giỏ hàng
 purchasesRouter.put(
@@ -55,7 +55,7 @@ purchasesRouter.delete(
 
 // Xóa tất cả giỏ hàng
 purchasesRouter.delete(
-  '/delete-all',
+  '/all',
   accessTokenValidator,
   verifiedUserValidator,
   wrapRequestHandler(deleteAllPurchaseController)

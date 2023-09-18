@@ -19,7 +19,6 @@ export interface UpdateAddressRequestBody {
   ward: string;
   street: string;
   type: AddressType;
-  is_default: boolean;
 }
 
 export interface UpdateAddressRequestParams extends ParamsDictionary {

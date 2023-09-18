@@ -3,9 +3,9 @@ import { Request, Response } from 'express';
 import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 import { ImageIdRequestParams } from '~/models/requests/Media.requests';
 import { ProductIdRequestParams } from '~/models/requests/Product.requests';
-import { AddReviewRequestBody, ReviewIdRequestParams } from '~/models/requests/ProductReview.requests';
+import { AddReviewRequestBody, ReviewIdRequestParams } from '~/models/requests/Review.requests';
 import { TokenPayload } from '~/models/requests/User.requests';
-import productReviewsService from '~/services/productReviews.services';
+import productReviewsService from '~/services/reviews.services';
 
 // Thêm đánh giá sản phẩm
 export const addReviewController = async (

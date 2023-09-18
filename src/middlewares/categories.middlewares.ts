@@ -24,42 +24,18 @@ const nameSchema: ParamSchema = {
   }
 };
 
-const nameViSchema: ParamSchema = {
-  ...nameSchema
-  // custom: {
-  //   options: async (value: string) => {
-  //     const category = await databaseService.categories.findOne({ name_vi: value });
-  //     if (category) {
-  //       throw new Error(CATEGORIES_MESSAGES.NAME_IS_EXIST);
-  //     }
-  //     return true;
-  //   }
-  // }
-};
-
-const nameEnSchema: ParamSchema = {
-  ...nameSchema
-  // custom: {
-  //   options: async (value: string) => {
-  //     const category = await databaseService.categories.findOne({ name_en: value });
-  //     if (category) {
-  //       throw new Error(CATEGORIES_MESSAGES.NAME_IS_EXIST);
-  //     }
-  //     return true;
-  //   }
-  // }
-};
-
-export const createValidator = validate(
+// Tạo danh mục sản phẩm
+export const createCategoryValidator = validate(
   checkSchema(
     {
-      name_vi: nameViSchema,
-      name_en: nameEnSchema
+      name_vi: nameSchema,
+      name_en: nameSchema
     },
     ['body']
   )
 );
 
+// Kiểm tra danh mục tồn tại
 export const categoryExistValidator = validate(
   checkSchema(
     {
@@ -88,15 +64,16 @@ export const categoryExistValidator = validate(
   )
 );
 
-export const updateValidator = validate(
+// Cập nhật danh mục sản phẩm
+export const updateCategoryValidator = validate(
   checkSchema(
     {
       name_vi: {
-        ...nameViSchema,
+        ...nameSchema,
         optional: true
       },
       name_en: {
-        ...nameEnSchema,
+        ...nameSchema,
         optional: true
       }
     },
@@ -104,7 +81,8 @@ export const updateValidator = validate(
   )
 );
 
-export const deleteValidator = validate(
+// Xóa danh mục sản phẩm
+export const deleteCategoryValidator = validate(
   checkSchema(
     {
       category_ids: {

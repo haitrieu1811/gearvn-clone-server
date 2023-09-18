@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 
 import {
-  DeleteOrderRequestParams,
+  DeleteOrdersRequestBody,
   GetOrderDetailParams,
   GetOrdersRequestQuery,
   UpdateStatusRequestBody,
@@ -12,23 +12,23 @@ import { TokenPayload } from '~/models/requests/User.requests';
 import orderService from '~/services/orders.services';
 
 // Lấy danh sách tất cả đơn hàng
-export const getAllController = async (
+export const getAllOrdersController = async (
   req: Request<ParamsDictionary, any, any, GetOrdersRequestQuery>,
   res: Response
 ) => {
   const { query } = req;
-  const result = await orderService.getAll(query);
+  const result = await orderService.getOrders({ query });
   return res.json(result);
 };
 
 // Lấy danh sách đơn hàng theo từng user đăng nhập
-export const getListController = async (
+export const getOrdersController = async (
   req: Request<ParamsDictionary, any, any, GetOrdersRequestQuery>,
   res: Response
 ) => {
   const { query } = req;
   const { user_id } = req.decoded_authorization as TokenPayload;
-  const result = await orderService.getList({ query, user_id });
+  const result = await orderService.getOrders({ query, user_id });
   return res.json(result);
 };
 
@@ -37,13 +37,6 @@ export const getOrderDetailController = async (req: Request<GetOrderDetailParams
   const { order_id } = req.params;
   const { user_id } = req.decoded_authorization as TokenPayload;
   const result = await orderService.getDetail({ order_id, user_id });
-  return res.json(result);
-};
-
-// Lấy số lượng đơn hàng
-export const getQuantityController = async (req: Request, res: Response) => {
-  const { user_id } = req.decoded_authorization as TokenPayload;
-  const result = await orderService.getQuantity(user_id);
   return res.json(result);
 };
 
@@ -59,8 +52,11 @@ export const updateStatusController = async (
 };
 
 // Xóa đơn hàng
-export const deleteOrderController = async (req: Request<DeleteOrderRequestParams>, res: Response) => {
-  const { order_id } = req.params;
-  const result = await orderService.deleteOrder(order_id);
+export const deleteOrdersController = async (
+  req: Request<ParamsDictionary, any, DeleteOrdersRequestBody>,
+  res: Response
+) => {
+  const { order_ids } = req.body;
+  const result = await orderService.deleteOrder(order_ids);
   return res.json(result);
 };

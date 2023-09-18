@@ -10,7 +10,7 @@ import Media from '~/models/schemas/Media.schema';
 import Notification from '~/models/schemas/Notification.schema';
 import Order from '~/models/schemas/Order.schema';
 import Product from '~/models/schemas/Product.schema';
-import ProductReview from '~/models/schemas/ProductReview.schema';
+import Review from '~/models/schemas/Review.schema';
 import Purchase from '~/models/schemas/Purchase.schema';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import User from '~/models/schemas/User.schema';
@@ -61,6 +61,14 @@ class DatabaseService {
     }
   }
 
+  async indexOrders() {
+    const isExist = await this.orders.indexExists(['user_id_1', 'user_id_1_status_1']);
+    if (!isExist) {
+      await this.orders.createIndex({ user_id: 1 });
+      await this.orders.createIndex({ user_id: 1, status: 1 });
+    }
+  }
+
   async indexRefreshTokens() {
     const isExist = await this.refresh_tokens.indexExists(['token_1', 'exp_1']);
     if (!isExist) {
@@ -69,10 +77,10 @@ class DatabaseService {
     }
   }
 
-  async indexProductReviews() {
-    const isExist = await this.productReviews.indexExists(['product_id_1_user_id_1_parent_id_1']);
+  async indexReviews() {
+    const isExist = await this.reviews.indexExists(['product_id_1_user_id_1_parent_id_1']);
     if (!isExist) {
-      await this.productReviews.createIndex({ product_id: 1, user_id: 1, parent_id: 1 });
+      await this.reviews.createIndex({ product_id: 1, user_id: 1, parent_id: 1 });
     }
   }
 
@@ -148,8 +156,8 @@ class DatabaseService {
     return this.db.collection(ENV_CONFIG.DB_ADDRESSES_COLLECTION);
   }
 
-  get productReviews(): Collection<ProductReview> {
-    return this.db.collection(ENV_CONFIG.DB_PRODUCT_REVIEWS_COLLECTION);
+  get reviews(): Collection<Review> {
+    return this.db.collection(ENV_CONFIG.DB_REVIEWS_COLLECTION);
   }
 
   get notifications(): Collection<Notification> {

@@ -31,7 +31,7 @@ export enum OrderStatus {
   Processing,
   Delivering,
   Succeed,
-  Cancelled
+  Canceled
 }
 
 export enum PurchaseStatus {

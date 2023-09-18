@@ -1,50 +1,74 @@
 import { Router } from 'express';
+
 import {
-  createController,
-  deleteController,
-  getListController,
-  getOneController,
-  updateController
+  createCategoryController,
+  deleteCategoryController,
+  getCategoriesController,
+  getCategoryController,
+  updateCategoryController
 } from '~/controllers/categories.controllers';
 import {
   categoryExistValidator,
-  createValidator,
-  deleteValidator,
-  updateValidator
+  deleteCategoryValidator,
+  updateCategoryValidator
 } from '~/middlewares/categories.middlewares';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
-import { accessTokenValidator } from '~/middlewares/users.middlewares';
+import { accessTokenValidator, adminRoleValidator, verifiedUserValidator } from '~/middlewares/users.middlewares';
 import { CreateCategoryRequestBody, UpdateCategoryRequestBody } from '~/models/requests/Category.requests';
 import { wrapRequestHandler } from '~/utils/handler';
 
 const categoriesRouter = Router();
 
 // Lấy danh sách danh mục
-categoriesRouter.get('/', wrapRequestHandler(getListController));
+categoriesRouter.get(
+  '/',
+  accessTokenValidator,
+  verifiedUserValidator,
+  adminRoleValidator,
+  wrapRequestHandler(getCategoriesController)
+);
 
 // Lấy thông tin 1 danh mục
-categoriesRouter.get('/:category_id', categoryExistValidator, wrapRequestHandler(getOneController));
+categoriesRouter.get(
+  '/:category_id',
+  accessTokenValidator,
+  verifiedUserValidator,
+  adminRoleValidator,
+  categoryExistValidator,
+  wrapRequestHandler(getCategoryController)
+);
 
 // Tạo mới danh mục
 categoriesRouter.post(
   '/',
   accessTokenValidator,
-  createValidator,
+  verifiedUserValidator,
+  adminRoleValidator,
+  createCategoryController,
   filterReqBodyMiddleware<CreateCategoryRequestBody>(['name_vi', 'name_en']),
-  wrapRequestHandler(createController)
+  wrapRequestHandler(createCategoryController)
 );
 
 // Cập nhật danh mục
 categoriesRouter.patch(
   '/:category_id',
   accessTokenValidator,
-  updateValidator,
+  verifiedUserValidator,
+  adminRoleValidator,
+  updateCategoryValidator,
   categoryExistValidator,
   filterReqBodyMiddleware<UpdateCategoryRequestBody>(['name_vi', 'name_en']),
-  wrapRequestHandler(updateController)
+  wrapRequestHandler(updateCategoryController)
 );
 
 // Xóa danh mục
-categoriesRouter.delete('/', accessTokenValidator, deleteValidator, wrapRequestHandler(deleteController));
+categoriesRouter.delete(
+  '/',
+  accessTokenValidator,
+  verifiedUserValidator,
+  adminRoleValidator,
+  deleteCategoryValidator,
+  wrapRequestHandler(deleteCategoryController)
+);
 
 export default categoriesRouter;

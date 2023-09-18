@@ -22,7 +22,7 @@ const reviewIdSchema: ParamSchema = {
           status: HTTP_STATUS.BAD_REQUEST
         });
       }
-      const review = await databaseService.productReviews.findOne({
+      const review = await databaseService.reviews.findOne({
         _id: new ObjectId(value)
       });
       if (!review) {

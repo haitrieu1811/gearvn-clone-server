@@ -107,7 +107,7 @@ usersRouter.put(
 );
 
 // Lấy danh sách tài khoản người dùng
-usersRouter.get('/list', accessTokenValidator, adminRoleValidator, wrapRequestHandler(getUsersController));
+usersRouter.get('/', accessTokenValidator, adminRoleValidator, wrapRequestHandler(getUsersController));
 
 // Xóa tài khoản người dùng
 usersRouter.delete(

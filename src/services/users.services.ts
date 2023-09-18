@@ -162,7 +162,8 @@ class UserService {
           projection: {
             password: 0,
             email_verify_token: 0,
-            forgot_password_token: 0
+            forgot_password_token: 0,
+            addresses: 0
           }
         }
       ),
@@ -271,7 +272,13 @@ class UserService {
           }
         },
         {
-          returnDocument: 'after'
+          returnDocument: 'after',
+          projection: {
+            password: 0,
+            email_verify_token: 0,
+            forgot_password_token: 0,
+            addresses: 0
+          }
         }
       )
     ]);
@@ -362,7 +369,8 @@ class UserService {
           projection: {
             password: 0,
             email_verify_token: 0,
-            forgot_password_token: 0
+            forgot_password_token: 0,
+            addresses: 0
           }
         }
       )
@@ -415,10 +423,7 @@ class UserService {
           password: 0,
           email_verify_token: 0,
           forgot_password_token: 0,
-          addresses: 0,
-          status: 0,
-          role: 0,
-          verify: 0
+          addresses: 0
         }
       }
     );
@@ -450,7 +455,8 @@ class UserService {
         projection: {
           password: 0,
           email_verify_token: 0,
-          forgot_password_token: 0
+          forgot_password_token: 0,
+          addresses: 0
         }
       }
     );
@@ -521,7 +527,8 @@ class UserService {
             projection: {
               password: 0,
               email_verify_token: 0,
-              forgot_password_token: 0
+              forgot_password_token: 0,
+              addresses: 0
             }
           }
         )

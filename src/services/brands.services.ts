@@ -1,13 +1,13 @@
 import { ObjectId } from 'mongodb';
 
 import { PRODUCTS_MESSAGES } from '~/constants/messages';
-import { GetBrandsRequestQuery } from '~/models/requests/Brand.requests';
+import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 import Brand from '~/models/schemas/Brand.schema';
 import databaseService from './database.services';
 
 class BrandsService {
   // Lấy danh sách nhãn hiệu
-  async getBrands(query: GetBrandsRequestQuery) {
+  async getBrands(query: PaginationRequestQuery) {
     const { limit, page } = query;
     const _limit = Number(limit) || 0;
     const _page = Number(page) || 1;

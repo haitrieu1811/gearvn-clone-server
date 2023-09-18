@@ -17,7 +17,7 @@ import databaseService from './database.services';
 class ProductService {
   // Tạo sản phẩm mới
   async createProduct({ payload, user_id }: { payload: CreateProductRequestBody; user_id: string }) {
-    const { images } = payload;
+    const { images, brand_id, category_id } = payload;
     let insertedIds: ObjectId[] = [];
     if (images && images.length > 0) {
       const _images = images.map((image) => new Media({ name: image, type: MediaType.Image }));
@@ -27,8 +27,8 @@ class ProductService {
     await databaseService.products.insertOne(
       new Product({
         ...payload,
-        brand_id: new ObjectId(payload.brand_id),
-        category_id: new ObjectId(payload.category_id),
+        brand_id: new ObjectId(brand_id),
+        category_id: new ObjectId(category_id),
         user_id: new ObjectId(user_id),
         images: insertedIds
       })
@@ -254,7 +254,7 @@ class ProductService {
         },
         {
           $lookup: {
-            from: 'product_reviews',
+            from: 'reviews',
             localField: '_id',
             foreignField: 'product_id',
             as: 'product_reviews'
@@ -391,9 +391,6 @@ class ProductService {
             description: {
               $first: '$description'
             },
-            specifications: {
-              $first: '$specifications'
-            },
             author: {
               $first: '$author'
             },
@@ -428,11 +425,6 @@ class ProductService {
             'author.forgot_password_token': 0,
             'author.created_at': 0,
             'author.updated_at': 0,
-            'category.updated_at': 0,
-            'brand.created_at': 0,
-            'brand.updated_at': 0,
-            'images.created_at': 0,
-            'images.updated_at': 0,
             'images.type': 0
           }
         }

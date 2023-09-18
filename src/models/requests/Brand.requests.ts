@@ -1,12 +1,6 @@
 import { ParamsDictionary } from 'express-serve-static-core';
 import { ObjectId } from 'mongodb';
 
-// Lấy danh sách nhãn hiệu (query)
-export interface GetBrandsRequestQuery {
-  page?: string;
-  limit?: string;
-}
-
 // Lấy thông tin chi tiết nhãn hiệu (params)
 export interface GetBrandRequestParams extends ParamsDictionary {
   brand_id: string;

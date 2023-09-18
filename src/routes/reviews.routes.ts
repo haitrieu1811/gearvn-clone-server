@@ -6,18 +6,18 @@ import {
   deleteReviewImageController,
   getReviewDetailController,
   getReviewsController
-} from '~/controllers/productReviews.controllers';
+} from '~/controllers/reviews.controllers';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
-import { addReviewValidator, checkReviewExistValidator } from '~/middlewares/productReviews.middlewares';
 import { checkProductExist } from '~/middlewares/products.middlewares';
+import { addReviewValidator, checkReviewExistValidator } from '~/middlewares/reviews.middlewares';
 import { accessTokenValidator, verifiedUserValidator } from '~/middlewares/users.middlewares';
-import { AddReviewRequestBody } from '~/models/requests/ProductReview.requests';
+import { AddReviewRequestBody } from '~/models/requests/Review.requests';
 import { wrapRequestHandler } from '~/utils/handler';
 
-const productReviewsRouter = Router();
+const reivewsRouter = Router();
 
 // Thêm đánh giá cho sản phẩm
-productReviewsRouter.post(
+reivewsRouter.post(
   '/product/:product_id',
   accessTokenValidator,
   verifiedUserValidator,
@@ -28,10 +28,10 @@ productReviewsRouter.post(
 );
 
 // Lấy danh sách đánh giá theo từng sản phẩm
-productReviewsRouter.get('/product/:product_id', checkProductExist, wrapRequestHandler(getReviewsController));
+reivewsRouter.get('/product/:product_id', checkProductExist, wrapRequestHandler(getReviewsController));
 
 // Lấy thông tin chi tiết của một đánh giá
-productReviewsRouter.get(
+reivewsRouter.get(
   '/detail/product/:product_id',
   accessTokenValidator,
   verifiedUserValidator,
@@ -39,7 +39,7 @@ productReviewsRouter.get(
 );
 
 // Xóa hình ảnh đính kèm của đánh giá
-productReviewsRouter.delete(
+reivewsRouter.delete(
   '/:review_id/image/:image_id',
   accessTokenValidator,
   verifiedUserValidator,
@@ -48,7 +48,7 @@ productReviewsRouter.delete(
 );
 
 // Xóa một đánh giá của sản phẩm
-productReviewsRouter.delete(
+reivewsRouter.delete(
   '/:review_id',
   accessTokenValidator,
   verifiedUserValidator,
@@ -56,4 +56,4 @@ productReviewsRouter.delete(
   wrapRequestHandler(deleteReviewController)
 );
 
-export default productReviewsRouter;
+export default reivewsRouter;

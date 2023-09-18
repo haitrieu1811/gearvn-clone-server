@@ -43,7 +43,7 @@ productsRouter.post(
 );
 
 // Cập nhật thông tin sản phẩm
-productsRouter.patch(
+productsRouter.put(
   '/:product_id',
   accessTokenValidator,
   adminRoleValidator,

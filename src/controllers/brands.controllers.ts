@@ -5,15 +5,15 @@ import {
   CreateBrandRequestBody,
   DeleteBrandRequestBody,
   GetBrandRequestParams,
-  GetBrandsRequestQuery,
   UpdateBrandRequestBody,
   UpdateBrandRequestParams
 } from '~/models/requests/Brand.requests';
+import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 import brandsService from '~/services/brands.services';
 
 // Lấy danh sách nhãn hiệu
 export const getBrandsController = async (
-  req: Request<ParamsDictionary, any, any, GetBrandsRequestQuery>,
+  req: Request<ParamsDictionary, any, any, PaginationRequestQuery>,
   res: Response
 ) => {
   const { query } = req;

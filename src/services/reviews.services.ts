@@ -2,10 +2,10 @@ import { ObjectId } from 'mongodb';
 
 import { MediaType } from '~/constants/enum';
 import { PRODUCTS_MESSAGES } from '~/constants/messages';
-import { AddReviewRequestBody } from '~/models/requests/ProductReview.requests';
+import { AddReviewRequestBody } from '~/models/requests/Review.requests';
 import Media from '~/models/schemas/Media.schema';
 import databaseService from './database.services';
-import ProductReview from '~/models/schemas/ProductReview.schema';
+import ProductReview from '~/models/schemas/Review.schema';
 import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 import mediaService from './medias.services';
 
@@ -22,7 +22,7 @@ class ProductReviewsService {
           type: MediaType.Image
         })
     );
-    const product_review = await databaseService.productReviews.findOne({
+    const product_review = await databaseService.reviews.findOne({
       product_id: new ObjectId(product_id),
       user_id: new ObjectId(user_id),
       parent_id: null
@@ -33,7 +33,7 @@ class ProductReviewsService {
     }
     // Kiểm tra xem người dùng đã đánh giá sản phẩm này chưa
     if (product_review && !parent_id) {
-      await databaseService.productReviews.updateOne(
+      await databaseService.reviews.updateOne(
         {
           product_id: new ObjectId(product_id),
           user_id: new ObjectId(user_id),
@@ -56,7 +56,7 @@ class ProductReviewsService {
       );
       message = PRODUCTS_MESSAGES.UPDATE_REVIEW_SUCCEED;
     } else {
-      await databaseService.productReviews.insertOne(
+      await databaseService.reviews.insertOne(
         new ProductReview({
           rating,
           comment,
@@ -83,18 +83,10 @@ class ProductReviewsService {
       parent_id: null
     };
     const [reviews, total] = await Promise.all([
-      databaseService.productReviews
+      databaseService.reviews
         .aggregate([
           {
             $match
-          },
-          {
-            $lookup: {
-              from: 'product_reviews',
-              localField: '_id',
-              foreignField: 'parent_id',
-              as: 'replies'
-            }
           },
           {
             $lookup: {
@@ -102,6 +94,11 @@ class ProductReviewsService {
               localField: 'user_id',
               foreignField: '_id',
               as: 'author'
+            }
+          },
+          {
+            $unwind: {
+              path: '$author'
             }
           },
           {
@@ -113,34 +110,11 @@ class ProductReviewsService {
             }
           },
           {
-            $unwind: {
-              path: '$author'
-            }
-          },
-          {
-            $group: {
-              _id: '$_id',
-              rating: {
-                $first: '$rating'
-              },
-              comment: {
-                $first: '$comment'
-              },
-              author: {
-                $first: '$author'
-              },
-              images: {
-                $first: '$images'
-              },
-              replies: {
-                $first: '$replies'
-              },
-              created_at: {
-                $first: '$created_at'
-              },
-              updated_at: {
-                $first: '$updated_at'
-              }
+            $lookup: {
+              from: 'reviews',
+              localField: '_id',
+              foreignField: 'parent_id',
+              as: 'replies'
             }
           },
           {
@@ -154,26 +128,18 @@ class ProductReviewsService {
               from: 'users',
               localField: 'replies.user_id',
               foreignField: '_id',
-              as: 'reply_users'
-            }
-          },
-          {
-            $addFields: {
-              'replies.author': {
-                $filter: {
-                  input: '$reply_users',
-                  as: 'item',
-                  cond: {
-                    $eq: ['$$item._id', '$replies.user_id']
-                  }
-                }
-              }
+              as: 'reply_user'
             }
           },
           {
             $unwind: {
-              path: '$replies.author',
+              path: '$reply_user',
               preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $addFields: {
+              'replies.author': '$reply_user'
             }
           },
           {
@@ -188,11 +154,11 @@ class ProductReviewsService {
               author: {
                 $first: '$author'
               },
-              replies: {
-                $push: '$replies'
-              },
               images: {
                 $first: '$images'
+              },
+              replies: {
+                $push: '$replies'
               },
               created_at: {
                 $first: '$created_at'
@@ -203,11 +169,30 @@ class ProductReviewsService {
             }
           },
           {
+            $addFields: {
+              replies: {
+                $cond: {
+                  if: {
+                    $eq: [
+                      {
+                        $first: '$replies'
+                      },
+                      {}
+                    ]
+                  },
+                  then: [],
+                  else: '$replies'
+                }
+              }
+            }
+          },
+          {
             $project: {
               'images.created_at': 0,
               'images.updated_at': 0,
               'images.type': 0,
               'author.password': 0,
+              'author.phone_number': 0,
               'author.status': 0,
               'author.role': 0,
               'author.verify': 0,
@@ -222,8 +207,8 @@ class ProductReviewsService {
               'replies.product_id': 0,
               'replies.user_id': 0,
               'replies.parent_id': 0,
-              'replies.rating': 0,
               'replies.author.password': 0,
+              'replies.author.phone_number': 0,
               'replies.author.status': 0,
               'replies.author.role': 0,
               'replies.author.verify': 0,
@@ -251,7 +236,7 @@ class ProductReviewsService {
           }
         ])
         .toArray(),
-      databaseService.productReviews.countDocuments($match)
+      databaseService.reviews.countDocuments($match)
     ]);
     return {
       message: PRODUCTS_MESSAGES.GET_REVIEWS_SUCCEED,
@@ -269,7 +254,7 @@ class ProductReviewsService {
 
   // Lấy chi tiết đánh giá
   async getReviewDetail({ product_id, user_id }: { product_id: string; user_id: string }) {
-    const review = await databaseService.productReviews
+    const review = await databaseService.reviews
       .aggregate([
         {
           $match: {
@@ -308,9 +293,7 @@ class ProductReviewsService {
         },
         {
           $project: {
-            'images.type': 0,
-            'images.created_at': 0,
-            'images.updated_at': 0
+            'images.type': 0
           }
         }
       ])
@@ -329,7 +312,7 @@ class ProductReviewsService {
       databaseService.medias.deleteOne({
         _id: new ObjectId(image_id)
       }),
-      databaseService.productReviews.updateOne(
+      databaseService.reviews.updateOne(
         {
           images: {
             $elemMatch: {
@@ -352,10 +335,10 @@ class ProductReviewsService {
   // Xóa một đánh giá
   async deleteReview(review_id: string) {
     const [{ value }] = await Promise.all([
-      databaseService.productReviews.findOneAndDelete({
+      databaseService.reviews.findOneAndDelete({
         _id: new ObjectId(review_id)
       }),
-      databaseService.productReviews.deleteMany({
+      databaseService.reviews.deleteMany({
         parent_id: new ObjectId(review_id)
       })
     ]);

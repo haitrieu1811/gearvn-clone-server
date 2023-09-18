@@ -16,36 +16,29 @@ class PurchaseService {
   // Thêm sản phẩm vào giỏ hàng
   async addToCart({ payload, user_id }: { payload: AddToCartRequestBody; user_id: string }) {
     const { product_id, buy_count } = payload;
-    // eslint-disable-next-line prefer-const
-    let [purchase, product] = await Promise.all([
-      databaseService.purchases.findOne({
-        product_id: new ObjectId(product_id),
-        user_id: new ObjectId(new ObjectId(user_id)),
-        status: PurchaseStatus.InCart
-      }),
+    // Điều kiện kiểm tra sản phẩm có tồn tại hay không
+    const match = {
+      product_id: new ObjectId(product_id),
+      user_id: new ObjectId(new ObjectId(user_id)),
+      status: PurchaseStatus.InCart
+    };
+    const [purchase, product] = await Promise.all([
+      databaseService.purchases.findOne(match),
       databaseService.products.findOne({
         _id: new ObjectId(product_id)
       })
     ]);
+    let purchase_id: ObjectId;
     if (purchase) {
-      const { value } = await databaseService.purchases.findOneAndUpdate(
-        {
-          product_id: new ObjectId(product_id),
-          user_id: new ObjectId(new ObjectId(user_id))
+      await databaseService.purchases.updateOne(match, {
+        $set: {
+          buy_count: purchase.buy_count + buy_count
         },
-        {
-          $set: {
-            buy_count: purchase.buy_count + buy_count
-          },
-          $currentDate: {
-            updated_at: true
-          }
-        },
-        {
-          returnDocument: 'after'
+        $currentDate: {
+          updated_at: true
         }
-      );
-      purchase = value;
+      });
+      purchase_id = (purchase as WithId<Purchase>)._id;
     } else {
       const { insertedId } = await databaseService.purchases.insertOne(
         new Purchase({
@@ -56,14 +49,12 @@ class PurchaseService {
           unit_price_after_discount: (product as WithId<Product>).price_after_discount
         })
       );
-      purchase = await databaseService.purchases.findOne({
-        _id: new ObjectId(insertedId)
-      });
+      purchase_id = insertedId;
     }
     return {
       message: PURCHASES_MESSAGES.ADD_TO_CART_SUCCEED,
       data: {
-        purchase
+        purchase_id
       }
     };
   }

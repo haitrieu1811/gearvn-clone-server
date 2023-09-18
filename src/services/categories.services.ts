@@ -1,22 +1,24 @@
 import { ObjectId } from 'mongodb';
 
 import { CATEGORIES_MESSAGES } from '~/constants/messages';
-import { GetCategoriesRequestQuery } from '~/models/requests/Category.requests';
+import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 import Category, { CategoryType } from '~/models/schemas/Category.schema';
 import databaseService from './database.services';
 
 class CategoryService {
   // Lấy danh sách danh mục
-  async getList(query: GetCategoriesRequestQuery) {
+  async getCategories(query: PaginationRequestQuery) {
     const { page, limit } = query;
     const _limit = Number(limit) || 0;
     const _page = Number(page) || 1;
-    const skip = (_page - 1) * _limit;
     const [total, categories] = await Promise.all([
       databaseService.categories.countDocuments(),
-      databaseService.categories.find({}).skip(skip).limit(_limit).toArray()
+      databaseService.categories
+        .find({})
+        .skip((_page - 1) * _limit)
+        .limit(_limit)
+        .toArray()
     ]);
-    const pageSize = Math.ceil(total / _limit);
     return {
       message: CATEGORIES_MESSAGES.GET_LIST_SUCCEED,
       data: {
@@ -25,14 +27,14 @@ class CategoryService {
           total,
           page: _page,
           limit: _limit,
-          page_size: pageSize
+          page_size: _limit ? Math.ceil(total / _limit) : 1
         }
       }
     };
   }
 
   // Lấy thông tin chi tiết 1 danh mục
-  async getOne(category_id: string) {
+  async getCategory(category_id: string) {
     const category = await databaseService.categories.findOne({ _id: new ObjectId(category_id) });
     return {
       message: CATEGORIES_MESSAGES.GET_CATEGORY_SUCCEED,
@@ -43,7 +45,7 @@ class CategoryService {
   }
 
   // Tạo mới danh mục
-  async create(payload: CategoryType) {
+  async createCategory(payload: CategoryType) {
     await databaseService.categories.insertOne(new Category(payload));
     return {
       message: CATEGORIES_MESSAGES.CREATE_SUCCEED
@@ -51,7 +53,7 @@ class CategoryService {
   }
 
   // Cập nhật danh mục
-  async update({ payload, category_id }: { payload: CategoryType; category_id: string }) {
+  async updateCategory({ payload, category_id }: { payload: CategoryType; category_id: string }) {
     const result = await databaseService.categories.findOneAndUpdate(
       {
         _id: new ObjectId(category_id)
@@ -75,7 +77,7 @@ class CategoryService {
   }
 
   // Xóa danh mục
-  async delete(category_ids: ObjectId[]) {
+  async deleteCategory(category_ids: ObjectId[]) {
     const _category_ids = category_ids.map((id) => new ObjectId(id));
     const { deletedCount } = await databaseService.categories.deleteMany({
       _id: {

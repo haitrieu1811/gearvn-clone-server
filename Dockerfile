@@ -9,6 +9,7 @@ COPY tsconfig.json .
 COPY ecosystem.config.js .
 COPY .env.production .
 COPY ./src ./src
+COPY swagger.yaml .
 
 RUN apk add python3
 RUN npm install pm2 -g

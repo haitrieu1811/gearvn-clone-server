@@ -48,7 +48,7 @@ addressesRouter.put(
   verifiedUserValidator,
   addressExistValidator,
   updateAddressValidator,
-  filterReqBodyMiddleware<UpdateAddressRequestBody>(['province', 'district', 'ward', 'street', 'type', 'is_default']),
+  filterReqBodyMiddleware<UpdateAddressRequestBody>(['province', 'district', 'ward', 'street', 'type']),
   wrapRequestHandler(updateAddressController)
 );
 
