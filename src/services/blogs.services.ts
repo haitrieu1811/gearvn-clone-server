@@ -58,23 +58,74 @@ class BlogService {
     const { page, limit } = query;
     const _page = Number(page) || 1;
     const _limit = Number(limit) || 10;
-    const skip = (_page - 1) * _limit;
     const [blogs, total] = await Promise.all([
       databaseService.blogs
-        .find(
-          {},
+        .aggregate([
           {
-            projection: {
-              status: 0,
-              user_id: 0
+            $lookup: {
+              from: 'users',
+              localField: 'user_id',
+              foreignField: '_id',
+              as: 'author'
             }
+          },
+          {
+            $unwind: {
+              path: '$author'
+            }
+          },
+          {
+            $group: {
+              _id: '$_id',
+              thumbnail: {
+                $first: '$thumbnail'
+              },
+              name_vi: {
+                $first: '$name_vi'
+              },
+              name_en: {
+                $first: '$name_en'
+              },
+              content_vi: {
+                $first: '$content_vi'
+              },
+              content_en: {
+                $first: '$content_en'
+              },
+              status: {
+                $first: '$status'
+              },
+              author: {
+                $first: '$author'
+              },
+              created_at: {
+                $first: '$created_at'
+              },
+              updated_at: {
+                $first: '$updated_at'
+              }
+            }
+          },
+          {
+            $project: {
+              'author.password': 0,
+              'author.email_verify_token': 0,
+              'author.forgot_password_token': 0,
+              'author.addresses': 0
+            }
+          },
+          {
+            $sort: {
+              created_at: -1
+            }
+          },
+          {
+            $skip: (_page - 1) * _limit
+          },
+          {
+            $limit: _limit
           }
-        )
-        .skip(skip)
-        .limit(_limit)
-        .sort({
-          created_at: -1
-        })
+        ])
         .toArray(),
       databaseService.blogs.countDocuments()
     ]);
@@ -95,11 +146,72 @@ class BlogService {
 
   // Lấy chi tiết blog
   async getBlog(blog_id: string) {
-    const blog = await databaseService.blogs.findOne({ _id: new ObjectId(blog_id) });
+    const blog = await databaseService.blogs
+      .aggregate([
+        {
+          $match: {
+            _id: new ObjectId(blog_id)
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'user_id',
+            foreignField: '_id',
+            as: 'author'
+          }
+        },
+        {
+          $unwind: {
+            path: '$author'
+          }
+        },
+        {
+          $group: {
+            _id: '$_id',
+            thumbnail: {
+              $first: '$thumbnail'
+            },
+            name_vi: {
+              $first: '$name_vi'
+            },
+            name_en: {
+              $first: '$name_en'
+            },
+            content_vi: {
+              $first: '$content_vi'
+            },
+            content_en: {
+              $first: '$content_en'
+            },
+            status: {
+              $first: '$status'
+            },
+            author: {
+              $first: '$author'
+            },
+            created_at: {
+              $first: '$created_at'
+            },
+            updated_at: {
+              $first: '$updated_at'
+            }
+          }
+        },
+        {
+          $project: {
+            'author.password': 0,
+            'author.email_verify_token': 0,
+            'author.forgot_password_token': 0,
+            'author.addresses': 0
+          }
+        }
+      ])
+      .toArray();
     return {
       message: BLOGS_MESSAGES.GET_BLOG_DETAIL_SUCCEED,
       data: {
-        blog
+        blog: blog[0]
       }
     };
   }

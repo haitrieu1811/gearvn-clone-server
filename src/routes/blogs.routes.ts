@@ -20,6 +20,7 @@ import { wrapRequestHandler } from '~/utils/handler';
 
 const blogsRouter = Router();
 
+// Tạo blog
 blogsRouter.post(
   '/',
   accessTokenValidator,
@@ -29,6 +30,8 @@ blogsRouter.post(
   filterReqBodyMiddleware<CreateBlogRequestBody>(['content_en', 'content_vi', 'name_en', 'name_vi', 'thumbnail']),
   wrapRequestHandler(createBlogController)
 );
+
+// Cập nhật blog
 blogsRouter.patch(
   '/:blog_id',
   accessTokenValidator,
@@ -46,6 +49,8 @@ blogsRouter.patch(
   ]),
   wrapRequestHandler(updateBlogController)
 );
+
+// Xoá blog
 blogsRouter.delete(
   '/',
   accessTokenValidator,
@@ -54,7 +59,11 @@ blogsRouter.delete(
   deleteBlogValidator,
   wrapRequestHandler(deleteBlogController)
 );
+
+// Lấy danh sách blog
 blogsRouter.get('/', wrapRequestHandler(getBlogListController));
+
+// Lấy chi tiết blog
 blogsRouter.get('/:blog_id', blogExistValidator, wrapRequestHandler(getBlogDetailController));
 
 export default blogsRouter;
