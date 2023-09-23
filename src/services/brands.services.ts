@@ -9,14 +9,82 @@ class BrandsService {
   // Lấy danh sách nhãn hiệu
   async getBrands(query: PaginationRequestQuery) {
     const { limit, page } = query;
-    const _limit = Number(limit) || 0;
     const _page = Number(page) || 1;
-    const skip = (_page - 1) * _limit;
+    const _limit = Number(limit) || 1000;
     const [total, brands] = await Promise.all([
       await databaseService.brands.countDocuments(),
-      await databaseService.brands.find({}).skip(skip).limit(_limit).toArray()
+      await databaseService.brands
+        .aggregate([
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'user_id',
+              foreignField: '_id',
+              as: 'author'
+            }
+          },
+          {
+            $unwind: {
+              path: '$author'
+            }
+          },
+          {
+            $lookup: {
+              from: 'products',
+              localField: '_id',
+              foreignField: 'brand_id',
+              as: 'product_count'
+            }
+          },
+          {
+            $addFields: {
+              product_count: {
+                $size: '$product_count'
+              }
+            }
+          },
+          {
+            $group: {
+              _id: '$_id',
+              name: {
+                $first: '$name'
+              },
+              product_count: {
+                $first: '$product_count'
+              },
+              author: {
+                $first: '$author'
+              },
+              created_at: {
+                $first: '$created_at'
+              },
+              updated_at: {
+                $first: '$updated_at'
+              }
+            }
+          },
+          {
+            $project: {
+              'author.password': 0,
+              'author.addresses': 0,
+              'author.email_verify_token': 0,
+              'author.forgot_password_token': 0
+            }
+          },
+          {
+            $sort: {
+              updated_at: -1
+            }
+          },
+          {
+            $skip: (_page - 1) * _limit
+          },
+          {
+            $limit: _limit
+          }
+        ])
+        .toArray()
     ]);
-    const pageSize = Math.ceil(total / _limit);
     return {
       message: PRODUCTS_MESSAGES.GET_BRANDS_SUCCEED,
       data: {
@@ -25,7 +93,7 @@ class BrandsService {
           total,
           page: _page,
           limit: _limit,
-          page_size: pageSize
+          page_size: Math.ceil(total / _limit)
         }
       }
     };

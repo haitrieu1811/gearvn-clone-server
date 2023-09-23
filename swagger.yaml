@@ -2867,6 +2867,11 @@ components:
         name_en:
           type: string
           example: Mouse
+        product_count:
+          type: integer
+          example: 10
+        author:
+          $ref: '#/components/schemas/User'
         created_at:
           type: string
           format: ISO8601
@@ -2884,6 +2889,11 @@ components:
         name:
           type: string
           example: Dell
+        product_count:
+          type: integer
+          example: 10
+        author:
+          $ref: '#/components/schemas/User'
         created_at:
           type: string
           format: ISO8601

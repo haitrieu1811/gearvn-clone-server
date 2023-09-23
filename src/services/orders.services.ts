@@ -178,7 +178,7 @@ class OrderService {
   }
 
   // Lấy thông tin chi tiết đơn hàng
-  async getDetail({ order_id, user_id }: { order_id: string; user_id: string }) {
+  async getOrder({ order_id, user_id }: { order_id: string; user_id: string }) {
     const order = await databaseService.orders
       .aggregate([
         {

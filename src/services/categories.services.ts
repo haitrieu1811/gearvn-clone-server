@@ -9,14 +9,83 @@ class CategoryService {
   // Lấy danh sách danh mục
   async getCategories(query: PaginationRequestQuery) {
     const { page, limit } = query;
-    const _limit = Number(limit) || 0;
     const _page = Number(page) || 1;
+    const _limit = Number(limit) || 1000;
     const [total, categories] = await Promise.all([
       databaseService.categories.countDocuments(),
       databaseService.categories
-        .find({})
-        .skip((_page - 1) * _limit)
-        .limit(_limit)
+        .aggregate([
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'user_id',
+              foreignField: '_id',
+              as: 'author'
+            }
+          },
+          {
+            $unwind: {
+              path: '$author'
+            }
+          },
+          {
+            $lookup: {
+              from: 'products',
+              localField: '_id',
+              foreignField: 'category_id',
+              as: 'product_count'
+            }
+          },
+          {
+            $addFields: {
+              product_count: {
+                $size: '$product_count'
+              }
+            }
+          },
+          {
+            $group: {
+              _id: '$_id',
+              name_vi: {
+                $first: '$name_vi'
+              },
+              name_en: {
+                $first: '$name_en'
+              },
+              product_count: {
+                $first: '$product_count'
+              },
+              author: {
+                $first: '$author'
+              },
+              created_at: {
+                $first: '$created_at'
+              },
+              updated_at: {
+                $first: '$updated_at'
+              }
+            }
+          },
+          {
+            $project: {
+              'author.password': 0,
+              'author.addresses': 0,
+              'author.email_verify_token': 0,
+              'author.forgot_password_token': 0
+            }
+          },
+          {
+            $sort: {
+              updated_at: -1
+            }
+          },
+          {
+            $skip: (_page - 1) * _limit
+          },
+          {
+            $limit: _limit
+          }
+        ])
         .toArray()
     ]);
     return {
@@ -27,7 +96,7 @@ class CategoryService {
           total,
           page: _page,
           limit: _limit,
-          page_size: _limit ? Math.ceil(total / _limit) : 1
+          page_size: Math.ceil(total / _limit)
         }
       }
     };

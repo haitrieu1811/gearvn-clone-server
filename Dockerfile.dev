@@ -9,7 +9,6 @@ COPY tsconfig.json .
 COPY ecosystem.config.js .
 COPY .env.development .
 COPY ./src ./src
-COPY ./openapi ./openapi
 COPY swagger.yaml .
 
 RUN apk add python3

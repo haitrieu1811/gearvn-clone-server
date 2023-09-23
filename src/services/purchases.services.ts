@@ -140,7 +140,7 @@ class PurchaseService {
       }
     });
     return {
-      message: `Delete ${purchase_ids.length} purchase succeed`
+      message: `Xóa ${purchase_ids.length} sản phẩm thành công`
     };
   }
 
