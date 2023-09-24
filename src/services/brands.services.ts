@@ -111,8 +111,8 @@ class BrandsService {
   }
 
   // Tạo nhãn hiệu mới
-  async createBrand(name: string) {
-    await databaseService.brands.insertOne(new Brand({ name }));
+  async createBrand({ name, user_id }: { name: string; user_id: string }) {
+    await databaseService.brands.insertOne(new Brand({ name, user_id: new ObjectId(user_id) }));
     return {
       message: PRODUCTS_MESSAGES.CREATE_BRAND_SUCCEED
     };

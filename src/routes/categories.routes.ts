@@ -14,7 +14,7 @@ import {
 } from '~/middlewares/categories.middlewares';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import { accessTokenValidator, adminRoleValidator, verifiedUserValidator } from '~/middlewares/users.middlewares';
-import { CreateCategoryRequestBody, UpdateCategoryRequestBody } from '~/models/requests/Category.requests';
+import { CreateCategoryRequestBody } from '~/models/requests/Category.requests';
 import { wrapRequestHandler } from '~/utils/handler';
 
 const categoriesRouter = Router();
@@ -57,7 +57,7 @@ categoriesRouter.patch(
   adminRoleValidator,
   updateCategoryValidator,
   categoryExistValidator,
-  filterReqBodyMiddleware<UpdateCategoryRequestBody>(['name_vi', 'name_en']),
+  filterReqBodyMiddleware<CreateCategoryRequestBody>(['name_vi', 'name_en']),
   wrapRequestHandler(updateCategoryController)
 );
 

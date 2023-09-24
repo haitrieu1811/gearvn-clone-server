@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb';
 interface BrandType {
   _id?: ObjectId;
   name: string;
+  user_id: ObjectId;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -10,16 +11,17 @@ interface BrandType {
 class Brand {
   _id?: ObjectId;
   name: string;
+  user_id: ObjectId;
   created_at: Date;
   updated_at: Date;
 
-  constructor(brand: BrandType) {
+  constructor({ _id, name, user_id, created_at, updated_at }: BrandType) {
     const date = new Date();
-
-    this._id = brand._id;
-    this.name = brand.name;
-    this.created_at = date;
-    this.updated_at = date;
+    this._id = _id;
+    this.name = name;
+    this.user_id = user_id;
+    this.created_at = created_at || date;
+    this.updated_at = updated_at || date;
   }
 }
 

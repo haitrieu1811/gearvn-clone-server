@@ -6,16 +6,7 @@ export interface CreateCategoryRequestBody {
   name_en: string;
 }
 
-export interface GetCategoryRequestParams extends ParamsDictionary {
-  category_id: string;
-}
-
-export interface UpdateCategoryRequestBody {
-  name_vi: string;
-  name_en: string;
-}
-
-export interface UpdateCategoryRequestParams extends ParamsDictionary {
+export interface CategoryIdRequestParams extends ParamsDictionary {
   category_id: string;
 }
 

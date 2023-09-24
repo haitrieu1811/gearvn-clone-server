@@ -224,7 +224,7 @@ class ProductReviewsService {
           },
           {
             $sort: {
-              created_at: 1,
+              created_at: -1,
               'replies.created_at': 1
             }
           },

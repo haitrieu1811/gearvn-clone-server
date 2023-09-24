@@ -1,8 +1,9 @@
 import { ObjectId } from 'mongodb';
 
 import { CATEGORIES_MESSAGES } from '~/constants/messages';
+import { CreateCategoryRequestBody } from '~/models/requests/Category.requests';
 import { PaginationRequestQuery } from '~/models/requests/Common.requests';
-import Category, { CategoryType } from '~/models/schemas/Category.schema';
+import Category from '~/models/schemas/Category.schema';
 import databaseService from './database.services';
 
 class CategoryService {
@@ -114,15 +115,20 @@ class CategoryService {
   }
 
   // Tạo mới danh mục
-  async createCategory(payload: CategoryType) {
-    await databaseService.categories.insertOne(new Category(payload));
+  async createCategory({ payload, user_id }: { payload: CreateCategoryRequestBody; user_id: string }) {
+    await databaseService.categories.insertOne(
+      new Category({
+        ...payload,
+        user_id: new ObjectId(user_id)
+      })
+    );
     return {
       message: CATEGORIES_MESSAGES.CREATE_SUCCEED
     };
   }
 
   // Cập nhật danh mục
-  async updateCategory({ payload, category_id }: { payload: CategoryType; category_id: string }) {
+  async updateCategory({ payload, category_id }: { payload: CreateCategoryRequestBody; category_id: string }) {
     const result = await databaseService.categories.findOneAndUpdate(
       {
         _id: new ObjectId(category_id)

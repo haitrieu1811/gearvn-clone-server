@@ -4,7 +4,7 @@ import omitBy from 'lodash/omitBy';
 import { ObjectId, WithId } from 'mongodb';
 
 import { ENV_CONFIG } from '~/constants/config';
-import { TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
+import { OrderStatus, TokenType, UserRole, UserVerifyStatus } from '~/constants/enum';
 import { USERS_MESSAGES } from '~/constants/messages';
 import { GetUsersRequestQuery, UpdateMeRequestBody } from '~/models/requests/User.requests';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
@@ -14,6 +14,7 @@ import { hashPassword } from '~/utils/crypto';
 import { sendForgotPasswordEmail, sendVerifyEmail } from '~/utils/email';
 import { signToken, verifyToken } from '~/utils/jwt';
 import databaseService from './database.services';
+import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 config();
 
 interface SignToken {
@@ -687,6 +688,225 @@ class UserService {
       )
       .toArray();
     return admin_ids.map((admin) => admin._id);
+  }
+
+  // Lấy danh sách khách hàng
+  async getCustomers(query: PaginationRequestQuery) {
+    const { page, limit } = query;
+    const _page = Number(page) || 1;
+    const _limit = Number(limit) || 20;
+    const [customers, total] = await Promise.all([
+      databaseService.users
+        .aggregate([
+          {
+            $match: {
+              role: UserRole.Customer
+            }
+          },
+          {
+            $lookup: {
+              from: 'orders',
+              localField: '_id',
+              foreignField: 'user_id',
+              as: 'orders'
+            }
+          },
+          {
+            $addFields: {
+              new_orders: {
+                $filter: {
+                  input: '$orders',
+                  as: 'item',
+                  cond: {
+                    $eq: ['$$item.status', OrderStatus.New]
+                  }
+                }
+              },
+              processing_orders: {
+                $filter: {
+                  input: '$orders',
+                  as: 'item',
+                  cond: {
+                    $eq: ['$$item.status', OrderStatus.Processing]
+                  }
+                }
+              },
+              delivering_orders: {
+                $filter: {
+                  input: '$orders',
+                  as: 'item',
+                  cond: {
+                    $eq: ['$$item.status', OrderStatus.Delivering]
+                  }
+                }
+              },
+              succeed_orders: {
+                $filter: {
+                  input: '$orders',
+                  as: 'item',
+                  cond: {
+                    $eq: ['$$item.status', OrderStatus.Succeed]
+                  }
+                }
+              },
+              canceled_orders: {
+                $filter: {
+                  input: '$orders',
+                  as: 'item',
+                  cond: {
+                    $eq: ['$$item.status', OrderStatus.Canceled]
+                  }
+                }
+              }
+            }
+          },
+          {
+            $addFields: {
+              orders_count: {
+                $size: '$orders'
+              },
+              new_orders_count: {
+                $size: '$new_orders'
+              },
+              processing_orders_count: {
+                $size: '$processing_orders'
+              },
+              delivering_orders_count: {
+                $size: '$delivering_orders'
+              },
+              succeed_orders_count: {
+                $size: '$succeed_orders'
+              },
+              canceled_orders_count: {
+                $size: '$canceled_orders'
+              },
+              orders_total: {
+                $sum: '$orders.total_amount'
+              },
+              new_orders_total: {
+                $sum: '$new_orders.total_amount'
+              },
+              processing_orders_total: {
+                $sum: '$processing_orders.total_amount'
+              },
+              delivering_orders_total: {
+                $sum: '$delivering_orders.total_amount'
+              },
+              succeed_orders_total: {
+                $sum: '$succeed_orders.total_amount'
+              },
+              canceled_orders_total: {
+                $sum: '$canceled_orders.total_amount'
+              },
+              addresses_count: {
+                $size: '$addresses'
+              }
+            }
+          },
+          {
+            $group: {
+              _id: '$_id',
+              email: {
+                $first: '$email'
+              },
+              fullname: {
+                $first: '$fullname'
+              },
+              phone_number: {
+                $first: '$phone_number'
+              },
+              status: {
+                $first: '$status'
+              },
+              role: {
+                $first: '$role'
+              },
+              avatar: {
+                $first: '$avatar'
+              },
+              gender: {
+                $first: '$gender'
+              },
+              verify: {
+                $first: '$verify'
+              },
+              orders_count: {
+                $first: '$orders_count'
+              },
+              new_orders_count: {
+                $first: '$new_orders_count'
+              },
+              processing_orders_count: {
+                $first: '$processing_orders_count'
+              },
+              delivering_orders_count: {
+                $first: '$delivering_orders_count'
+              },
+              succeed_orders_count: {
+                $first: '$succeed_orders_count'
+              },
+              canceled_orders_count: {
+                $first: '$canceled_orders_count'
+              },
+              orders_total: {
+                $first: '$orders_total'
+              },
+              new_orders_total: {
+                $first: '$new_orders_total'
+              },
+              processing_orders_total: {
+                $first: '$processing_orders_total'
+              },
+              delivering_orders_total: {
+                $first: '$delivering_orders_total'
+              },
+              succeed_orders_total: {
+                $first: '$succeed_orders_total'
+              },
+              canceled_orders_total: {
+                $first: '$canceled_orders_total'
+              },
+              addresses_count: {
+                $first: '$addresses_count'
+              },
+              date_of_birth: {
+                $first: '$date_of_birth'
+              },
+              created_at: {
+                $first: '$created_at'
+              },
+              updated_at: {
+                $first: '$updated_at'
+              }
+            }
+          },
+          {
+            $sort: {
+              updated_at: -1
+            }
+          },
+          {
+            $skip: 0
+          },
+          {
+            $limit: 20
+          }
+        ])
+        .toArray(),
+      databaseService.users.countDocuments({ role: UserRole.Customer })
+    ]);
+    return {
+      message: USERS_MESSAGES.GET_CUSTOMERS_SUCCEED,
+      data: {
+        customers,
+        pagination: {
+          total,
+          page: _page,
+          limit: _limit,
+          page_size: Math.ceil(total / _limit)
+        }
+      }
+    };
   }
 }
 

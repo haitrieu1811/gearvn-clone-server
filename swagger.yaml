@@ -556,6 +556,50 @@ paths:
                           $ref: '#/components/schemas/User'
                       pagination:
                         $ref: '#/components/schemas/Pagination'
+  /users/customers:
+    get:
+      tags:
+        - user
+      summary: Lấy danh sách khách hàng (chỉ có admin mới có quyền truy cập)
+      description: Lấy danh sách khách hàng trong hệ thống (chỉ có admin mới có quyền truy cập)
+      operationId: getCustomers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Trang hiện tại
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng khách hàng trên một trang
+          required: false
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Lấy danh sách khách hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Get customers list succeed
+                  data:
+                    type: object
+                    properties:
+                      customers:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Customer'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
   # Product
   /products:
     post:
@@ -3361,6 +3405,87 @@ components:
           type: string
           format: ISO8601
           example: 2023-09-11T07:56:41.987Z
+    Customer:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '64e9f3cfd5cbe5692367e704'
+        email:
+          type: string
+          example: 'haitrieu2527@gmail.com'
+        fullname:
+          type: string
+          example: 'Trần Hải Triều'
+        phone_number:
+          type: string
+          example: '775939704'
+        status:
+          type: integer
+          example: 0
+        role:
+          type: integer
+          example: 1
+        avatar:
+          type: string
+          example: '977a9518243f1985fca916609.jpg'
+        gender:
+          type: integer
+          example: 0
+        verify:
+          type: integer
+          example: 1
+        orders_count:
+          type: integer
+          example: 0
+        new_orders_count:
+          type: integer
+          example: 0
+        processing_orders_count:
+          type: integer
+          example: 0
+        delivering_orders_count:
+          type: integer
+          example: 0
+        succeed_orders_count:
+          type: integer
+          example: 0
+        canceled_orders_count:
+          type: integer
+          example: 0
+        orders_total:
+          type: integer
+          example: 0
+        new_orders_total:
+          type: integer
+          example: 0
+        processing_orders_total:
+          type: integer
+          example: 0
+        delivering_orders_total:
+          type: integer
+          example: 0
+        succeed_orders_total:
+          type: integer
+          example: 0
+        canceled_orders_total:
+          type: integer
+          example: 0
+        addresses_count:
+          type: integer
+          example: 1
+        date_of_birth:
+          type: string
+          format: date-time
+          example: '2000-11-17T17:00:00.000Z'
+        created_at:
+          type: string
+          format: date-time
+          example: '2023-08-26T12:45:03.778Z'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2023-09-19T01:21:57.490Z'
 
   securitySchemes:
     bearerAuth:

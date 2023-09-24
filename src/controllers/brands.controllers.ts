@@ -1,14 +1,9 @@
 import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 
-import {
-  CreateBrandRequestBody,
-  DeleteBrandRequestBody,
-  GetBrandRequestParams,
-  UpdateBrandRequestBody,
-  UpdateBrandRequestParams
-} from '~/models/requests/Brand.requests';
+import { BrandIdRequestParams, CreateBrandRequestBody, DeleteBrandRequestBody } from '~/models/requests/Brand.requests';
 import { PaginationRequestQuery } from '~/models/requests/Common.requests';
+import { TokenPayload } from '~/models/requests/User.requests';
 import brandsService from '~/services/brands.services';
 
 // Lấy danh sách nhãn hiệu
@@ -22,7 +17,7 @@ export const getBrandsController = async (
 };
 
 // Lấy thông tin chi tiết nhãn hiệu
-export const getBrandController = async (req: Request<GetBrandRequestParams>, res: Response) => {
+export const getBrandController = async (req: Request<BrandIdRequestParams>, res: Response) => {
   const { brand_id } = req.params;
   const result = await brandsService.getBrand(brand_id);
   return res.json(result);
@@ -34,13 +29,14 @@ export const createBrandController = async (
   res: Response
 ) => {
   const { name } = req.body;
-  const result = await brandsService.createBrand(name);
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const result = await brandsService.createBrand({ name, user_id });
   return res.json(result);
 };
 
 // Cập nhật nhãn hiệu
 export const updateBrandController = async (
-  req: Request<UpdateBrandRequestParams, any, UpdateBrandRequestBody>,
+  req: Request<BrandIdRequestParams, any, CreateBrandRequestBody>,
   res: Response
 ) => {
   const { brand_id } = req.params;

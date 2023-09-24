@@ -5,6 +5,7 @@ import { ObjectId } from 'mongodb';
 import { UserVerifyStatus } from '~/constants/enum';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { USERS_MESSAGES } from '~/constants/messages';
+import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 import {
   AddViewedProductRequestBody,
   ChangePasswordRequestBody,
@@ -200,5 +201,15 @@ export const getViewedProductsController = async (req: Request, res: Response) =
 // Lấy số lượng của mỗi collection
 export const getQuantityPerCollectionController = async (req: Request, res: Response) => {
   const result = await userService.getQuantityPerCollection();
+  return res.json(result);
+};
+
+// Lấy danh sách khách hàng
+export const getCustomersController = async (
+  req: Request<ParamsDictionary, any, any, PaginationRequestQuery>,
+  res: Response
+) => {
+  const { query } = req;
+  const result = await userService.getCustomers(query);
   return res.json(result);
 };

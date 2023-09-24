@@ -5,6 +5,7 @@ import {
   changePasswordController,
   deleteUserController,
   forgotPasswordController,
+  getCustomersController,
   getMeController,
   getQuantityPerCollectionController,
   getUsersController,
@@ -136,6 +137,15 @@ usersRouter.get(
   verifiedUserValidator,
   adminRoleValidator,
   wrapRequestHandler(getQuantityPerCollectionController)
+);
+
+// Lấy danh sách khách hàng
+usersRouter.get(
+  '/customers',
+  accessTokenValidator,
+  verifiedUserValidator,
+  adminRoleValidator,
+  wrapRequestHandler(getCustomersController)
 );
 
 export default usersRouter;
