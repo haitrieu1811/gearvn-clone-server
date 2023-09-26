@@ -15,6 +15,7 @@ import Purchase from '~/models/schemas/Purchase.schema';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import User from '~/models/schemas/User.schema';
 import ViewedProduct from '~/models/schemas/ViewedProduct.schema';
+import Voucher from '~/models/schemas/Voucher.schema';
 
 const uri = `mongodb+srv://${ENV_CONFIG.DB_USERNAME}:${ENV_CONFIG.DB_PASSWORD}@gearvn-clone-cluster.ur6rvkl.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -112,6 +113,15 @@ class DatabaseService {
     }
   }
 
+  async indexVouchers() {
+    const isExist = await this.vouchers.indexExists(['discount_unit_1', 'code_1', 'code_1_is_used_1']);
+    if (!isExist) {
+      await this.vouchers.createIndex({ discount_unit: 1 });
+      await this.vouchers.createIndex({ code: 1 }, { unique: true });
+      await this.vouchers.createIndex({ code: 1, is_used: 1 });
+    }
+  }
+
   get users(): Collection<User> {
     return this.db.collection(ENV_CONFIG.DB_USERS_COLLECTION);
   }
@@ -166,6 +176,10 @@ class DatabaseService {
 
   get conversations(): Collection<Conversation> {
     return this.db.collection(ENV_CONFIG.DB_CONVERSATIONS_COLLECTION);
+  }
+
+  get vouchers(): Collection<Voucher> {
+    return this.db.collection(ENV_CONFIG.DB_VOUCHERS_COLLECTION);
   }
 }
 

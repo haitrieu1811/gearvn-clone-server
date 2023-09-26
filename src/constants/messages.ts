@@ -320,3 +320,43 @@ export const CONVERSATIONS_MESSAGES = {
   SENDER_NOT_EXISTED: 'Người gửi không tồn tại',
   GET_RECEIVERS_SUCCESS: 'Lấy danh sách người nhận thành công'
 } as const;
+
+export const VOUCHERS_MESSAGES = {
+  VOUCHER_NAME_MUST_BE_A_IS_STRING: 'Tên voucher phải là một chuỗi',
+  VOUCHER_DESCRIPTION_MUST_BE_A_IS_STRING: 'Mô tả voucher phải là một chuỗi',
+  VOUCHER_DISCOUNT_IS_REQUIRED: 'Số tiền/phần trăm giảm giá là bắt buộc',
+  VOUCHER_DISCOUNT_MUST_BE_A_NUMERIC: 'Số tiền/phần trăm giảm giá phải là một số',
+  VOUCHER_DISCOUNT_MUST_BE_A_POSITIVE_NUMBER: 'Số tiền/phần trăm giảm giá phải là một số dương',
+  VOUCHER_DISCOUNT_MUST_BE_LESS_THAN_100_PERCENT: 'Phần trăm giảm giá phải nhỏ hơn 100%',
+  VOUCHER_DISCOUNT_UNIT_IS_REQUIRED: 'Đơn vị giảm giá là bắt buộc',
+  VOUCHER_DISCOUNT_UNIT_IS_INVALID: 'Đơn vị giảm giá không hợp lệ',
+  VOUCHER_CODE_IS_REQUIRED: 'Mã voucher là bắt buộc',
+  VOUCHER_CODE_MUST_BE_A_IS_STRING: 'Mã voucher phải là một chuỗi',
+  CREATE_VOUCHER_SUCCEDD: 'Tạo voucher thành công',
+  GET_VOUCHERS_SUCCEDD: 'Lấy danh sách voucher thành công',
+  UPDATE_VOUCHER_SUCCEDD: 'Cập nhật voucher thành công',
+  VOUCHER_ID_IS_REQUIRED: 'Yêu cầu ID voucher',
+  VOUCHER_ID_IS_INVALID: 'ID voucher không hợp lệ',
+  VOUCHER_NOT_FOUND: 'Không tìm thấy voucher',
+  VOUCHER_IDS_IS_REQUIRED: 'Yêu cầu một mảng các ID voucher',
+  VOUCHER_IDS_MUST_BE_AN_ARRAY: 'ID voucher phải là một mảng',
+  VOUCHER_IDS_MUST_HAVE_AT_LEAST_ONE_ELEMENT: 'ID voucher phải có ít nhất 1 phần tử',
+  VOUCHER_IDS_IS_INVALID: 'Có ít nhất một ID voucher không hợp lệ ở trong mảng',
+  USE_VOUCHER_SUCCEDD: 'Sử dụng voucher thành công',
+  VOUCHER_IS_INVALID: 'Voucher không hợp lệ',
+  VOUCHER_CODE_IS_EXISTED: 'Mã voucher đã tồn tại',
+  VOUCHER_IS_USED: 'Voucher đã được sử dụng',
+  GET_VOUCHER_SUCCEDD: 'Lấy voucher thành công',
+  APPLY_VOUCHER_SUCCEDD: 'Áp dụng voucher thành công',
+  ORIGINAL_PRICE_IS_REQUIRED: 'Yêu cầu giá gốc',
+  ORIGINAL_PRICE_MUST_BE_A_NUMERIC: 'Giá gốc phải là một số',
+  ORIGINAL_PRICE_MUST_BE_A_POSITIVE_NUMBER: 'Giá gốc phải là một số dương'
+} as const;
+
+export const COMMON_MESSAGES = {
+  PAGE_MUST_BE_A_NUMBER: 'Page phải là một số',
+  PAGE_MUST_BE_A_POSITIVE_NUMBER: 'Page phải là một số dương',
+  LIMIT_MUST_BE_A_NUMBER: 'Limit phải là một số',
+  LIMIT_MUST_BE_A_POSITIVE_NUMBER: 'Limit phải là một số dương',
+  LIMIT_MUST_BE_LESS_THAN_100: 'Limit phải nhỏ hơn 100'
+} as const;

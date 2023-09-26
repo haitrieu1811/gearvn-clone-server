@@ -167,6 +167,14 @@ export const checkoutValidator = validate(
           errorMessage: PURCHASES_MESSAGES.TRANSPORT_FEE_MUST_BE_A_NUMBER
         }
       },
+      total_amount_before_discount: {
+        notEmpty: {
+          errorMessage: PURCHASES_MESSAGES.TOTAL_AMOUNT_IS_REQUIRED
+        },
+        isNumeric: {
+          errorMessage: PURCHASES_MESSAGES.TOTAL_AMOUNT_MUST_BE_A_NUMBER
+        }
+      },
       total_amount: {
         notEmpty: {
           errorMessage: PURCHASES_MESSAGES.TOTAL_AMOUNT_IS_REQUIRED

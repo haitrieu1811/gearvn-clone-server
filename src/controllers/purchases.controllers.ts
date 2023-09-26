@@ -6,7 +6,7 @@ import {
   CheckoutRequestBody,
   DeletePurchaseRequestBody,
   UpdatePurchaseRequestBody,
-  UpdatePurchaseRequestParams
+  PurchaseIdRequestParams
 } from '~/models/requests/Purchase.requests';
 import { TokenPayload } from '~/models/requests/User.requests';
 import purchaseService from '~/services/purchases.services';
@@ -25,7 +25,7 @@ export const getCartListController = async (req: Request, res: Response) => {
 };
 
 export const updatePurchaseController = async (
-  req: Request<UpdatePurchaseRequestParams, any, UpdatePurchaseRequestBody>,
+  req: Request<PurchaseIdRequestParams, any, UpdatePurchaseRequestBody>,
   res: Response
 ) => {
   const { body: payload } = req;

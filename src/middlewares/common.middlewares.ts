@@ -5,9 +5,11 @@ import { JsonWebTokenError } from 'jsonwebtoken';
 
 import { ENV_CONFIG } from '~/constants/config';
 import HTTP_STATUS from '~/constants/httpStatus';
-import { USERS_MESSAGES } from '~/constants/messages';
+import { COMMON_MESSAGES, USERS_MESSAGES } from '~/constants/messages';
 import { ErrorWithStatus } from '~/models/Errors';
 import { verifyToken } from '~/utils/jwt';
+import { validate } from '~/utils/validation';
+import { checkSchema } from 'express-validator';
 
 type FilterKeys<T> = Array<keyof T>;
 
@@ -42,3 +44,57 @@ export const verifyAccessToken = async (access_token: string, req?: Request) => 
     });
   }
 };
+
+export const paginationValidator = validate(
+  checkSchema(
+    {
+      page: {
+        optional: true,
+        custom: {
+          options: (value: number) => {
+            if (isNaN(Number(value))) {
+              throw new ErrorWithStatus({
+                message: COMMON_MESSAGES.PAGE_MUST_BE_A_NUMBER,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            if (value < 1) {
+              throw new ErrorWithStatus({
+                message: COMMON_MESSAGES.PAGE_MUST_BE_A_POSITIVE_NUMBER,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            return true;
+          }
+        }
+      },
+      limit: {
+        optional: true,
+        custom: {
+          options: (value: number) => {
+            if (isNaN(Number(value))) {
+              throw new ErrorWithStatus({
+                message: COMMON_MESSAGES.LIMIT_MUST_BE_A_NUMBER,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            if (value < 1) {
+              throw new ErrorWithStatus({
+                message: COMMON_MESSAGES.LIMIT_MUST_BE_A_POSITIVE_NUMBER,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            if (value > 100) {
+              throw new ErrorWithStatus({
+                message: COMMON_MESSAGES.LIMIT_MUST_BE_LESS_THAN_100,
+                status: HTTP_STATUS.BAD_REQUEST
+              });
+            }
+            return true;
+          }
+        }
+      }
+    },
+    ['query']
+  )
+);

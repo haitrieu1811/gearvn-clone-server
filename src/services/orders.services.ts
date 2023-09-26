@@ -89,6 +89,9 @@ class OrderService {
                 transport_fee: {
                   $first: '$transport_fee'
                 },
+                total_amount_before_discount: {
+                  $first: '$total_amount_before_discount'
+                },
                 total_amount: {
                   $first: '$total_amount'
                 },
@@ -245,6 +248,9 @@ class OrderService {
             },
             transport_fee: {
               $first: '$transport_fee'
+            },
+            total_amount_before_discount: {
+              $first: '$total_amount_before_discount'
             },
             total_amount: {
               $first: '$total_amount'

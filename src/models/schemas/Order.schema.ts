@@ -14,6 +14,7 @@ interface OrderConstructor {
   street: string;
   note?: string;
   transport_fee?: number;
+  total_amount_before_discount: number;
   total_amount: number;
   total_amount_reduced?: number;
   total_items: number;
@@ -37,6 +38,7 @@ class Order {
   street: string;
   note: string;
   transport_fee: number;
+  total_amount_before_discount: number;
   total_amount: number;
   total_amount_reduced: number;
   total_items: number;
@@ -59,6 +61,7 @@ class Order {
     street,
     note,
     transport_fee,
+    total_amount_before_discount,
     total_amount,
     total_amount_reduced,
     total_items,
@@ -81,6 +84,7 @@ class Order {
     this.street = street;
     this.note = note || '';
     this.transport_fee = transport_fee || 0;
+    this.total_amount_before_discount = total_amount_before_discount;
     this.total_amount = total_amount;
     this.total_amount_reduced = total_amount_reduced || 0;
     this.total_items = total_items;

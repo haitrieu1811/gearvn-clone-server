@@ -74,3 +74,8 @@ export enum NotificationType {
   NewOrder,
   NewReview
 }
+
+export enum VoucherDiscountUnit {
+  Price,
+  Percentage
+}

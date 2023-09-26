@@ -3,11 +3,8 @@ import { ObjectId } from 'mongodb';
 import { Server } from 'socket.io';
 
 import { ENV_CONFIG } from '~/constants/config';
-import { NotificationType, UserVerifyStatus } from '~/constants/enum';
-import HTTP_STATUS from '~/constants/httpStatus';
-import { USERS_MESSAGES } from '~/constants/messages';
-import { verifyAccessToken } from '~/middlewares/common.middlewares';
-import { ErrorWithStatus } from '~/models/Errors';
+import { NotificationType } from '~/constants/enum';
+import { accessTokenValidator } from '~/middlewares/socket.middlewares';
 import { TokenPayload } from '~/models/requests/User.requests';
 import conversationsService from '~/services/conversations.services';
 import notificationsService from '~/services/notifications.services';
@@ -20,37 +17,15 @@ const initSocket = (httpServer: HttpServer) => {
     }
   });
 
-  // Socket users
+  // Connnected users
   const users: {
     [key: string]: {
       socket_id: string;
     };
   } = {};
 
-  // Socket middleware
-  io.use(async (socket, next) => {
-    const { Authorization } = socket.handshake.auth;
-    const access_token = Authorization.split(' ')[1];
-    try {
-      const decoded_authorization = await verifyAccessToken(access_token);
-      const { verify } = decoded_authorization as TokenPayload;
-      if (verify === UserVerifyStatus.Unverified) {
-        throw new ErrorWithStatus({
-          message: USERS_MESSAGES.USER_IS_UNVERIFIED,
-          status: HTTP_STATUS.FORBIDDEN
-        });
-      }
-      socket.handshake.auth.decoded_authorization = decoded_authorization;
-      socket.handshake.auth.access_token = access_token;
-      next();
-    } catch (error) {
-      next({
-        message: 'Unauthorized',
-        name: 'UnauthorizedError',
-        data: error
-      });
-    }
-  });
+  // Middlewares
+  io.use(accessTokenValidator);
 
   io.on('connection', (socket) => {
     console.log(`User ${socket.id} connected`);
@@ -61,6 +36,24 @@ const initSocket = (httpServer: HttpServer) => {
         socket_id: socket.id
       };
     }
+
+    // Đăng nhập
+    socket.on('login', () => {
+      if (user_id) {
+        users[user_id] = {
+          socket_id: socket.id
+        };
+        console.log(`User ${socket.id} connected`);
+        console.log('Users connected: ', users);
+      }
+    });
+
+    // Đăng xuất
+    socket.on('logout', () => {
+      delete users[user_id];
+      console.log(`User ${socket.id} disconnected`);
+      console.log('Users connected: ', users);
+    });
 
     // Có đánh giá mới
     socket.on('new_review', async (data) => {
@@ -133,6 +126,7 @@ const initSocket = (httpServer: HttpServer) => {
       });
     });
 
+    // Ngắt kết nối
     socket.on('disconnect', () => {
       delete users[user_id];
       console.log(`User ${socket.id} disconnected`);

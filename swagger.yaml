@@ -38,6 +38,8 @@ tags:
     description: Tất cả các API liên quan đến review (đánh giá sản phẩm)
   - name: purchase
     description: Tất cả các API liên quan đến purchase (đơn mua)
+  - name: voucher
+    description: Tất cả các API liên quan đến voucher (mã giảm giá)
   - name: order
     description: Tất cả các API liên quan đến order (đơn đặt hàng) - một order là tập hợp của nhiều purchase
   - name: blog
@@ -152,6 +154,12 @@ paths:
                   message:
                     type: string
                     example: Logout succeed
+                  data:
+                    type: object
+                    properties:
+                      user_id:
+                        type: string
+                        example: 64a4c57e9e3670721ae4be77
   /users/verify-email:
     post:
       tags:
@@ -1925,6 +1933,298 @@ paths:
                       order_id:
                         type: string
                         example: 65099b05170bf675585e155f
+  # Voucher
+  /vouchers:
+    post:
+      tags:
+        - voucher
+      summary: Thêm mã giảm giá (chỉ có admin mới có quyền truy cập)
+      description: Thêm mã giảm giá mới vào hệ thống (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: addVoucher
+      requestBody:
+        description: Thông tin mã giảm giá mới
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVoucher'
+        required: true
+      responses:
+        '200':
+          description: Thêm mã giảm giá thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Tạo voucher thành công
+    get:
+      tags:
+        - voucher
+      summary: Lấy danh sách mã giảm giá (chỉ có admin mới có quyền truy cập)
+      description: Lấy danh sách mã giảm giá (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: getVouchers
+      parameters:
+        - name: page
+          in: query
+          description: Trang hiện tại
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng mã giảm giá trên một trang
+          required: false
+          schema:
+            type: integer
+            example: 10
+        - name: unit
+          in: query
+          description: Đơn vị giảm giá (price, percentage)
+          required: false
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+            example: 0
+        - name: is_used
+          in: query
+          description: Trạng thái mã giảm giá (đã sử dụng, chưa sử dụng)
+          required: false
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+            example: 0
+      responses:
+        '200':
+          description: Lấy danh sách mã giảm giá thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Lấy danh sách voucher thành công
+                  data:
+                    type: object
+                    properties:
+                      vouchers:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Voucher'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+    delete:
+      tags:
+        - voucher
+      summary: Xóa mã giảm giá (chỉ có admin mới có quyền truy cập)
+      description: Xóa một hoặc nhiều mã giảm giá cùng lúc (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Danh sách id mã giảm giá muốn xóa
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                voucher_ids:
+                  type: array
+                  items:
+                    type: string
+                    example: 64b8f451a692e0ad3a11afce
+        required: true
+      responses:
+        '200':
+          description: Xóa mã giảm giá thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Xóa voucher thành công
+  /vouchers/{voucher_id}:
+    get:
+      tags:
+        - voucher
+      summary: Lấy thông tin mã giảm giá theo voucher_id (chỉ có admin mới có quyền truy cập)
+      description: Lấy thông tin mã giảm giá theo voucher_id (chỉ có admin mới có quyền truy cập)
+      operationId: getVoucherById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: voucher_id
+          in: path
+          description: ID của mã giảm giá
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      responses:
+        '200':
+          description: Lấy thông tin mã giảm giá thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Lấy voucher thành công
+                  data:
+                    type: object
+                    properties:
+                      voucher:
+                        $ref: '#/components/schemas/Voucher'
+    put:
+      tags:
+        - voucher
+      summary: Cập nhật mã giảm giá (chỉ có admin mới có quyền truy cập)
+      description: Cập nhật thông tin mã giảm giá (chỉ có admin mới có quyền truy cập)
+      security:
+        - bearerAuth: []
+      operationId: updateVoucher
+      parameters:
+        - name: voucher_id
+          in: path
+          description: ID của mã giảm giá
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      requestBody:
+        description: Thông tin mã giảm giá
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVoucher'
+        required: true
+      responses:
+        '200':
+          description: Cập nhật mã giảm giá thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Cập nhật voucher thành công
+  /vouchers/code/{voucher_code}:
+    get:
+      tags:
+        - voucher
+      summary: Lấy thông tin mã giảm giá theo voucher_code
+      description: Lấy thông tin mã giảm giá theo voucher_code
+      operationId: getVoucherByCode
+      parameters:
+        - name: voucher_code
+          in: path
+          description: ID của mã giảm giá
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      responses:
+        '200':
+          description: Lấy thông tin mã giảm giá thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Lấy voucher thành công
+                  data:
+                    type: object
+                    properties:
+                      voucher:
+                        $ref: '#/components/schemas/Voucher'
+  /vouchers/use/code/{voucher_code}:
+    patch:
+      tags:
+        - voucher
+      summary: Sử dụng mã giảm giá
+      description: Sử dụng mã giảm giá
+      operationId: useVoucher
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: voucher_code
+          in: path
+          description: Mã giảm giá
+          required: true
+          schema:
+            type: string
+            example: 64b8f451a692e0ad3a11afce
+      responses:
+        '200':
+          description: Sử dụng mã giảm giá thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Sử dụng voucher thành công
+                  data:
+                    type: object
+                    properties:
+                      voucher:
+                        $ref: '#/components/schemas/Voucher'
+  /vouchers/apply:
+    post:
+      tags:
+        - voucher
+      summary: Áp dụng mã giảm giá
+      description: Áp dụng mã giảm giá
+      operationId: applyVoucher
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Thông tin mã giảm giá
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                voucher_code:
+                  type: string
+                  example: hpyEVhCuYLgb
+        required: true
+      responses:
+        '200':
+          description: Áp dụng mã giảm giá thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Áp dụng voucher thành công
+                  data:
+                    type: object
+                    properties:
+                      total_reduced:
+                        type: integer
+                        example: 100000
+                      voucher:
+                        $ref: '#/components/schemas/Voucher'
   # Order
   /orders/all:
     get:
@@ -3486,6 +3786,62 @@ components:
           type: string
           format: date-time
           example: '2023-09-19T01:21:57.490Z'
+    Voucher:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: '6512d674e9fdbfdf4919b24c'
+        name:
+          type: string
+          example: ''
+        description:
+          type: string
+          example: ''
+        discount:
+          type: integer
+          example: 30
+        discount_unit:
+          type: integer
+          enum:
+            - 0
+            - 1
+          example: 1
+        code:
+          type: string
+          example: 'gearvnvoucher'
+        is_used:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          example: '2023-09-26T13:02:44.567Z'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2023-09-26T13:06:11.975Z'
+    CreateVoucher:
+      type: object
+      properties:
+        name:
+          type: string
+          example: ''
+        description:
+          type: string
+          example: ''
+        discount:
+          type: integer
+          example: 30
+        discount_unit:
+          type: integer
+          enum:
+            - 0
+            - 1
+          example: 1
+        code:
+          type: string
+          example: 'gearvnvoucher'
 
   securitySchemes:
     bearerAuth:

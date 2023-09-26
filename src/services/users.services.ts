@@ -205,9 +205,12 @@ class UserService {
 
   // Đăng xuất
   async logout(refresh_token: string) {
-    await databaseService.refresh_tokens.deleteOne({ token: refresh_token });
+    const { value } = await databaseService.refresh_tokens.findOneAndDelete({ token: refresh_token });
     return {
-      message: USERS_MESSAGES.LOGOUT_SUCCEED
+      message: USERS_MESSAGES.LOGOUT_SUCCEED,
+      data: {
+        user_id: value?.user_id
+      }
     };
   }
 

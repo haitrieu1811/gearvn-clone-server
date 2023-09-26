@@ -79,6 +79,7 @@ purchasesRouter.post(
     'receive_method',
     'status',
     'street',
+    'total_amount_before_discount',
     'total_amount',
     'total_amount_reduced',
     'total_items',
