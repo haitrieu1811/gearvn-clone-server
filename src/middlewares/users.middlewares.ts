@@ -532,7 +532,7 @@ export const roleValidator = validate(
 );
 
 // Xóa tài khoản người dùng
-export const deleteUserValidator = validate(
+export const deleteUsersValidator = validate(
   checkSchema(
     {
       user_ids: {

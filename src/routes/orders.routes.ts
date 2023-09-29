@@ -3,7 +3,7 @@ import { Router } from 'express';
 import {
   deleteOrdersController,
   getAllOrdersController,
-  getOrderDetailController,
+  getOrderController,
   getOrdersController,
   updateStatusController
 } from '~/controllers/orders.controllers';
@@ -20,7 +20,7 @@ ordersRouter.get('/all', accessTokenValidator, adminRoleValidator, wrapRequestHa
 ordersRouter.get('/', accessTokenValidator, wrapRequestHandler(getOrdersController));
 
 // Lấy thông tin chi tiết một đơn hàng
-ordersRouter.get('/:order_id', accessTokenValidator, orderExistValidator, wrapRequestHandler(getOrderDetailController));
+ordersRouter.get('/:order_id', accessTokenValidator, orderExistValidator, wrapRequestHandler(getOrderController));
 
 // Cập nhật trạng thái đơn hàng
 ordersRouter.patch(

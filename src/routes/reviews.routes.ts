@@ -47,7 +47,7 @@ reivewsRouter.delete(
   wrapRequestHandler(deleteReviewImageController)
 );
 
-// Xóa một đánh giá của sản phẩm
+// Xóa một đánh giá
 reivewsRouter.delete(
   '/:review_id',
   accessTokenValidator,

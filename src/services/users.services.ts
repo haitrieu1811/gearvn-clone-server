@@ -556,7 +556,7 @@ class UserService {
   }
 
   // Xóa tài khoản
-  async deleteUser(user_ids: ObjectId[]) {
+  async deleteUsers(user_ids: ObjectId[]) {
     const _user_ids = user_ids.map((id) => new ObjectId(id));
     const { deletedCount } = await databaseService.users.deleteMany({
       _id: {

@@ -3,7 +3,7 @@ import { Router } from 'express';
 import {
   addViewedProductController,
   changePasswordController,
-  deleteUserController,
+  deleteUsersController,
   forgotPasswordController,
   getCustomersController,
   getMeController,
@@ -23,16 +23,16 @@ import {
 } from '~/controllers/users.controllers';
 import { filterReqBodyMiddleware } from '~/middlewares/common.middlewares';
 import {
-  registerValidator,
   accessTokenValidator,
   addViewedProductValidator,
   adminRoleValidator,
   changePasswordValidator,
-  deleteUserValidator,
+  deleteUsersValidator,
   emailVerifyTokenValidator,
   forgotPasswordValidator,
   loginValidator,
   refreshTokenValidator,
+  registerValidator,
   resetPasswordValidator,
   roleValidator,
   updateMeValidator,
@@ -115,8 +115,8 @@ usersRouter.delete(
   '/',
   accessTokenValidator,
   adminRoleValidator,
-  deleteUserValidator,
-  wrapRequestHandler(deleteUserController)
+  deleteUsersValidator,
+  wrapRequestHandler(deleteUsersController)
 );
 
 // Thêm một lịch sử xem sản phẩm

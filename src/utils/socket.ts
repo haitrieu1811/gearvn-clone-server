@@ -39,13 +39,12 @@ const initSocket = (httpServer: HttpServer) => {
 
     // Đăng nhập
     socket.on('login', () => {
-      if (user_id) {
-        users[user_id] = {
-          socket_id: socket.id
-        };
-        console.log(`User ${socket.id} connected`);
-        console.log('Users connected: ', users);
-      }
+      if (!user_id) return;
+      users[user_id] = {
+        socket_id: socket.id
+      };
+      console.log(`User ${socket.id} connected`);
+      console.log('Users connected: ', users);
     });
 
     // Đăng xuất
@@ -96,7 +95,7 @@ const initSocket = (httpServer: HttpServer) => {
 
     // Có đơn hàng mới
     socket.on('new_order', async (data) => {
-      const { sender, content, title } = data.payload;
+      const { sender, content, title, path } = data.payload;
       // Thêm thông báo vào database
       const admin_ids = await userService.getAdminIds();
       const [new_notification] = await Promise.all(
@@ -107,10 +106,13 @@ const initSocket = (httpServer: HttpServer) => {
               content,
               type: NotificationType.NewOrder,
               sender_id: new ObjectId(sender._id),
-              receiver_id: admin_id
+              receiver_id: admin_id,
+              path
             })
         )
       );
+      console.log(new_notification);
+
       // Gửi thông báo đến người nhận (admin)
       const receiver_socket_ids = admin_ids
         .map((admin_id) => {

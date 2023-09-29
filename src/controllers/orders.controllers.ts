@@ -33,10 +33,9 @@ export const getOrdersController = async (
 };
 
 // Lấy thông tin chi tiết đơn hàng
-export const getOrderDetailController = async (req: Request<GetOrderDetailParams>, res: Response) => {
+export const getOrderController = async (req: Request<GetOrderDetailParams>, res: Response) => {
   const { order_id } = req.params;
-  const { user_id } = req.decoded_authorization as TokenPayload;
-  const result = await orderService.getOrder({ order_id, user_id });
+  const result = await orderService.getOrder(order_id);
   return res.json(result);
 };
 

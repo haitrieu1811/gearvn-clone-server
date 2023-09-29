@@ -171,12 +171,12 @@ export const getUsersController = async (
 };
 
 // Xóa tài khoản
-export const deleteUserController = async (
+export const deleteUsersController = async (
   req: Request<ParamsDictionary, any, DeleteUserRequestBody>,
   res: Response
 ) => {
   const { user_ids } = req.body;
-  const result = await userService.deleteUser(user_ids);
+  const result = await userService.deleteUsers(user_ids);
   return res.json(result);
 };
 
