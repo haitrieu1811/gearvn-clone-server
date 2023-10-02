@@ -3,4 +3,4 @@ services:
   gearvn-clone:
     image: haitrieu1811/gearvn-clone:v2
     ports:
-      - '5000:4000'
+      - '4000:4000'

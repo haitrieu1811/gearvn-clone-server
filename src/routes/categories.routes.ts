@@ -20,13 +20,7 @@ import { wrapRequestHandler } from '~/utils/handler';
 const categoriesRouter = Router();
 
 // Lấy danh sách danh mục
-categoriesRouter.get(
-  '/',
-  accessTokenValidator,
-  verifiedUserValidator,
-  adminRoleValidator,
-  wrapRequestHandler(getCategoriesController)
-);
+categoriesRouter.get('/', wrapRequestHandler(getCategoriesController));
 
 // Lấy thông tin 1 danh mục
 categoriesRouter.get(

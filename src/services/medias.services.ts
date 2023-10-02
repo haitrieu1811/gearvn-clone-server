@@ -39,13 +39,6 @@ class MediaService {
           url: (s3Result as CompleteMultipartUploadCommandOutput).Location as string,
           type: MediaType.Image
         };
-        // return {
-        //   name: newFullName,
-        //   url: isProduction
-        //     ? `${ENV_CONFIG.HOST}/static/image/${newFullName}`
-        //     : `http://localhost:${ENV_CONFIG.PORT}/static/image/${newFullName}`,
-        //   type: MediaType.Image
-        // };
       })
     );
     return {

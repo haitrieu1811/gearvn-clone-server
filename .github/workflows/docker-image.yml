@@ -37,4 +37,4 @@ jobs:
             docker pull haitrieu1811/gearvn-clone:v2
             docker stop gearvn-clone
             docker rm gearvn-clone
-            docker run -dp 3000:3000 --name gearvn-clone --restart unless-stopped haitrieu1811/gearvn-clone:v2
+            docker run -dp 4000:4000 --name gearvn-clone --restart unless-stopped haitrieu1811/gearvn-clone:v2
