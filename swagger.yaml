@@ -18,6 +18,8 @@ externalDocs:
   description: Find out more about Swagger
   url: http://swagger.io
 servers:
+  - url: https://api.gearvnclone.com
+    description: Production server
   - url: http://localhost:4000
     description: Local server
 

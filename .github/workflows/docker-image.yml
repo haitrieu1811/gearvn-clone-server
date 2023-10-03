@@ -34,7 +34,8 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-            docker pull haitrieu1811/gearvn-clone:v2
             docker stop gearvn-clone
             docker rm gearvn-clone
+            docker image rm haitrieu1811/gearvn-clone:v2
+            docker pull haitrieu1811/gearvn-clone:v2
             docker run -dp 4000:4000 --name gearvn-clone --restart unless-stopped haitrieu1811/gearvn-clone:v2

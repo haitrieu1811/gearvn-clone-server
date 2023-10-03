@@ -37,23 +37,6 @@ const initSocket = (httpServer: HttpServer) => {
       };
     }
 
-    // Đăng nhập
-    socket.on('login', () => {
-      if (!user_id) return;
-      users[user_id] = {
-        socket_id: socket.id
-      };
-      console.log(`User ${socket.id} connected`);
-      console.log('Users connected: ', users);
-    });
-
-    // Đăng xuất
-    socket.on('logout', () => {
-      delete users[user_id];
-      console.log(`User ${socket.id} disconnected`);
-      console.log('Users connected: ', users);
-    });
-
     // Có đánh giá mới
     socket.on('new_review', async (data) => {
       const { title, content, path, sender_id, receiver_id } = data;
@@ -111,7 +94,6 @@ const initSocket = (httpServer: HttpServer) => {
             })
         )
       );
-      console.log(new_notification);
 
       // Gửi thông báo đến người nhận (admin)
       const receiver_socket_ids = admin_ids

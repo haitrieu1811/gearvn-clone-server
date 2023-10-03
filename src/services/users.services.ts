@@ -306,20 +306,16 @@ class UserService {
   // Gửi lại email xác thực
   async resendEmailVerify({ user_id, role, email }: { user_id: string; role: UserRole; email: string }) {
     const email_verify_token = await this.signEmailVerifyToken({ user_id, verify: UserVerifyStatus.Unverified, role });
-    await databaseService.users.updateOne(
-      {
-        _id: new ObjectId(user_id)
-      },
-      {
-        $set: {
-          email_verify_token
-        },
-        $currentDate: {
-          updated_at: true
+    await Promise.all([
+      databaseService.users.updateOne(
+        { _id: new ObjectId(user_id) },
+        {
+          $set: { email_verify_token },
+          $currentDate: { updated_at: true }
         }
-      }
-    );
-    await sendVerifyEmail(email, email_verify_token);
+      ),
+      sendVerifyEmail(email, email_verify_token)
+    ]);
     return {
       message: USERS_MESSAGES.RESEND_EMAIL_VERIFY_SUCCEED
     };
@@ -334,8 +330,10 @@ class UserService {
       verify,
       role
     });
-    await databaseService.users.updateOne({ _id }, { $set: { forgot_password_token } });
-    await sendForgotPasswordEmail(email, forgot_password_token);
+    await Promise.all([
+      databaseService.users.updateOne({ _id }, { $set: { forgot_password_token } }),
+      sendForgotPasswordEmail(email, forgot_password_token)
+    ]);
     return {
       message: USERS_MESSAGES.SEND_FORGOT_PASSWORD_EMAIL_SUCCESS
     };
