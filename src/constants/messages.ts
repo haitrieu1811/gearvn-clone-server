@@ -94,7 +94,8 @@ export const USERS_MESSAGES = {
   USER_ID_IS_REQUIRED: 'ID người dùng là bắt buộc',
   USER_ID_IS_INVALID: 'ID người dùng không hợp lệ',
   USER_NOT_EXISTED: 'Người dùng không tồn tại',
-  GET_CUSTOMERS_SUCCEED: 'Lấy danh sách khách hàng thành công'
+  GET_CUSTOMERS_SUCCEED: 'Lấy danh sách khách hàng thành công',
+  PHONE_NUMBER_IS_INVALID: 'Số điện thoại không hợp lệ'
 } as const;
 
 export const CATEGORIES_MESSAGES = {

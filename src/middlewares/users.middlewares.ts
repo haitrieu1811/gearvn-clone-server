@@ -165,19 +165,12 @@ export const fullNameSchema: ParamSchema = {
 };
 
 export const phoneNumberSchema: ParamSchema = {
-  optional: true,
-  custom: {
-    options: async (value: string, { req }) => {
-      if (!value) {
-        throw new Error(USERS_MESSAGES.PHONE_NUMBER_IS_REQUIRED);
-      }
-      const { user_id } = req.decoded_authorization as TokenPayload;
-      const user = await databaseService.users.findOne({ phone_number: value });
-      if (user && user._id.toString() !== user_id) {
-        throw new Error(USERS_MESSAGES.PHONE_NUMBER_IS_EXIST);
-      }
-      return true;
-    }
+  notEmpty: {
+    errorMessage: USERS_MESSAGES.PHONE_NUMBER_IS_REQUIRED
+  },
+  isMobilePhone: {
+    options: ['vi-VN'],
+    errorMessage: USERS_MESSAGES.PHONE_NUMBER_IS_INVALID
   }
 };
 
@@ -488,7 +481,22 @@ export const updateMeValidator = validate(
     {
       fullname: fullNameSchema,
       gender: genderSchema,
-      phone_number: phoneNumberSchema,
+      phone_number: {
+        ...phoneNumberSchema,
+        custom: {
+          options: async (value: string, { req }) => {
+            const { user_id } = (req as Request).decoded_authorization as TokenPayload;
+            const user = await databaseService.users.findOne({
+              phone_number: value,
+              _id: {
+                $ne: new ObjectId(user_id)
+              }
+            });
+            if (user) throw new Error(USERS_MESSAGES.PHONE_NUMBER_IS_EXIST);
+            return true;
+          }
+        }
+      },
       date_of_birth: {
         optional: true,
         isISO8601: {

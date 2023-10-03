@@ -102,6 +102,7 @@ const purchaseIdsSchema: ParamSchema = {
   }
 };
 
+// Thêm sản phẩm vào giỏ hàng
 export const addToCartValidator = validate(
   checkSchema(
     {
@@ -112,6 +113,7 @@ export const addToCartValidator = validate(
   )
 );
 
+// Kiểm tra sản phẩm đã tồn tại trong giỏ hàng hay chưa
 export const checkPurchaseExist = validate(
   checkSchema(
     {
@@ -121,6 +123,7 @@ export const checkPurchaseExist = validate(
   )
 );
 
+// Cập nhật số lượng sản phẩm trong giỏ hàng
 export const updatePurchaseValidator = validate(
   checkSchema(
     {
@@ -130,6 +133,7 @@ export const updatePurchaseValidator = validate(
   )
 );
 
+// Xóa sản phẩm trong giỏ hàng
 export const deletePurchaseValidator = validate(
   checkSchema(
     {
@@ -139,6 +143,7 @@ export const deletePurchaseValidator = validate(
   )
 );
 
+// Thanh toán
 export const checkoutValidator = validate(
   checkSchema(
     {
