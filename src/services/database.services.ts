@@ -47,11 +47,13 @@ class DatabaseService {
       '_id_1_phone_number_1'
     ]);
     if (!isExist) {
-      await this.users.createIndex({ email: 1 }, { unique: true });
-      await this.users.createIndex({ addresses: 1 });
-      await this.users.createIndex({ forgot_password_token: 1 });
-      await this.users.createIndex({ role: 1 });
-      await this.users.createIndex({ _id: 1, phone_number: 1 });
+      await Promise.all([
+        this.users.createIndex({ email: 1 }, { unique: true }),
+        this.users.createIndex({ addresses: 1 }),
+        this.users.createIndex({ forgot_password_token: 1 }),
+        this.users.createIndex({ role: 1 }),
+        this.users.createIndex({ _id: 1, phone_number: 1 })
+      ]);
     }
   }
 
@@ -72,23 +74,35 @@ class DatabaseService {
   async indexOrders() {
     const isExist = await this.orders.indexExists(['user_id_1', 'user_id_1_status_1']);
     if (!isExist) {
-      await this.orders.createIndex({ user_id: 1 });
-      await this.orders.createIndex({ user_id: 1, status: 1 });
+      await Promise.all([
+        this.orders.createIndex({ 'items.product_id': 1 }),
+        this.orders.createIndex({ 'items.product_id': 1, status: 1 })
+      ]);
     }
   }
 
   async indexRefreshTokens() {
     const isExist = await this.refresh_tokens.indexExists(['token_1', 'exp_1']);
     if (!isExist) {
-      await this.refresh_tokens.createIndex({ token: 1 }, { unique: true });
-      await this.refresh_tokens.createIndex({ exp: 1 }, { expireAfterSeconds: 0 });
+      await Promise.all([
+        this.refresh_tokens.createIndex({ token: 1 }, { unique: true }),
+        this.refresh_tokens.createIndex({ exp: 1 }, { expireAfterSeconds: 0 })
+      ]);
     }
   }
 
   async indexReviews() {
-    const isExist = await this.reviews.indexExists(['product_id_1_user_id_1_parent_id_1']);
+    const isExist = await this.reviews.indexExists([
+      'product_id_1_user_id_1_parent_id_1',
+      'parent_id_1',
+      'parent_id_1_product_id_1'
+    ]);
     if (!isExist) {
-      await this.reviews.createIndex({ product_id: 1, user_id: 1, parent_id: 1 });
+      await Promise.all([
+        this.reviews.createIndex({ product_id: 1, user_id: 1, parent_id: 1 }),
+        this.reviews.createIndex({ parent_id: 1 }),
+        this.reviews.createIndex({ parent_id: 1, product_id: 1 })
+      ]);
     }
   }
 
@@ -99,9 +113,11 @@ class DatabaseService {
       '_id_1_receiver_id_1_is_read_1'
     ]);
     if (!isExist) {
-      await this.notifications.createIndex({ receiver_id: 1 });
-      await this.notifications.createIndex({ receiver_id: 1, is_read: 1 });
-      await this.notifications.createIndex({ _id: 1, receiver_id: 1, is_read: 1 });
+      await Promise.all([
+        this.notifications.createIndex({ receiver_id: 1 }),
+        this.notifications.createIndex({ receiver_id: 1, is_read: 1 }),
+        this.notifications.createIndex({ _id: 1, receiver_id: 1, is_read: 1 })
+      ]);
     }
   }
 
@@ -113,19 +129,23 @@ class DatabaseService {
       'receiver_id_1'
     ]);
     if (!isExist) {
-      await this.conversations.createIndex({ sender_id: 1, receiver_id: 1 });
-      await this.conversations.createIndex({ sender_id: 1, receiver_id: 1, is_read: 1 });
-      await this.conversations.createIndex({ sender_id: 1 });
-      await this.conversations.createIndex({ receiver_id: 1 });
+      await Promise.all([
+        this.conversations.createIndex({ sender_id: 1, receiver_id: 1 }),
+        this.conversations.createIndex({ sender_id: 1, receiver_id: 1, is_read: 1 }),
+        this.conversations.createIndex({ sender_id: 1 }),
+        this.conversations.createIndex({ receiver_id: 1 })
+      ]);
     }
   }
 
   async indexVouchers() {
     const isExist = await this.vouchers.indexExists(['discount_unit_1', 'code_1', 'code_1_is_used_1']);
     if (!isExist) {
-      await this.vouchers.createIndex({ discount_unit: 1 });
-      await this.vouchers.createIndex({ code: 1 }, { unique: true });
-      await this.vouchers.createIndex({ code: 1, is_used: 1 });
+      await Promise.all([
+        this.vouchers.createIndex({ discount_unit: 1 }),
+        this.vouchers.createIndex({ code: 1 }, { unique: true }),
+        this.vouchers.createIndex({ code: 1, is_used: 1 })
+      ]);
     }
   }
 

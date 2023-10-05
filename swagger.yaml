@@ -1515,6 +1515,50 @@ paths:
                         items:
                           $ref: '#/components/schemas/Media'
   # Review
+  /reviews:
+    get:
+      tags:
+        - review
+      summary: Lấy danh sách đánh giá (chỉ có admin mới có quyền truy cập)
+      description: Lấy danh sách đánh giá (chỉ có admin mới có quyền truy cập)
+      operationId: getReviews
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Trang hiện tại
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng đánh giá trên một trang
+          required: false
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Lấy danh sách đánh giá thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Lấy danh sách đánh giá thành công
+                  data:
+                    type: object
+                    properties:
+                      reviews:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Review'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
   /reviews/product/{product_id}:
     post:
       tags:
@@ -1565,7 +1609,7 @@ paths:
         - review
       summary: Lấy danh sách đánh giá của sản phẩm
       description: Lấy danh sách đánh giá của sản phẩm (một người dùng chỉ có thể đánh giá một sản phẩm một lần)
-      operationId: getReviews
+      operationId: getReviewsByProductId
       parameters:
         - name: product_id
           in: path
@@ -3625,6 +3669,8 @@ components:
           example: 'Cảm ơn'
         author:
           $ref: '#/components/schemas/ReviewAuthor'
+        product:
+          $ref: '#/components/schemas/ProductItem'
         images:
           type: array
           items:

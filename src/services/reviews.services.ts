@@ -1,4 +1,6 @@
 import { ObjectId } from 'mongodb';
+import omitBy from 'lodash/omitBy';
+import isUndefined from 'lodash/isUndefined';
 
 import { MediaType } from '~/constants/enum';
 import { PRODUCTS_MESSAGES } from '~/constants/messages';
@@ -73,15 +75,18 @@ class ProductReviewsService {
   }
 
   // Lấy danh sách đánh giá theo từng sản phẩm
-  async getReviews({ page, limit, product_id }: PaginationRequestQuery & { product_id: string }) {
+  async getReviews({ page, limit, product_id }: PaginationRequestQuery & { product_id?: string }) {
     // Phân trang
     const _page = Number(page) || 1;
     const _limit = Number(limit) || 10;
     // Điều kiện tìm kiếm
-    const $match = {
-      product_id: new ObjectId(product_id),
-      parent_id: null
-    };
+    const $match = omitBy(
+      {
+        product_id: product_id ? new ObjectId(product_id) : undefined,
+        parent_id: null
+      },
+      isUndefined
+    );
     const [reviews, total] = await Promise.all([
       databaseService.reviews
         .aggregate([
@@ -99,6 +104,19 @@ class ProductReviewsService {
           {
             $unwind: {
               path: '$author'
+            }
+          },
+          {
+            $lookup: {
+              from: 'products',
+              localField: 'product_id',
+              foreignField: '_id',
+              as: 'product'
+            }
+          },
+          {
+            $unwind: {
+              path: '$product'
             }
           },
           {
@@ -154,6 +172,9 @@ class ProductReviewsService {
               author: {
                 $first: '$author'
               },
+              product: {
+                $first: '$product'
+              },
               images: {
                 $first: '$images'
               },
@@ -204,6 +225,13 @@ class ProductReviewsService {
               'author.gender': 0,
               'author.phoneNumber': 0,
               'author.date_of_birth': 0,
+              'product.general_info': 0,
+              'product.description': 0,
+              'product.images': 0,
+              'product.brand_id': 0,
+              'product.category_id': 0,
+              'product.user_id': 0,
+              'product.available_count': 0,
               'replies.product_id': 0,
               'replies.user_id': 0,
               'replies.parent_id': 0,
@@ -225,7 +253,7 @@ class ProductReviewsService {
           {
             $sort: {
               created_at: -1,
-              'replies.created_at': 1
+              'replies.created_at': -1
             }
           },
           {

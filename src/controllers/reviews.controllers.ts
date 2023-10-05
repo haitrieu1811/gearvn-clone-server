@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { ParamsDictionary } from 'express-serve-static-core';
 
 import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 import { ImageIdRequestParams } from '~/models/requests/Media.requests';
@@ -20,6 +21,16 @@ export const addReviewController = async (
 
 // Lấy danh sách đánh giá theo từng sản phẩm
 export const getReviewsController = async (
+  req: Request<ParamsDictionary, any, any, PaginationRequestQuery>,
+  res: Response
+) => {
+  const { page, limit } = req.query;
+  const result = await productReviewsService.getReviews({ page, limit });
+  return res.json(result);
+};
+
+// Lấy danh sách đánh giá theo từng sản phẩm
+export const getReviewsByProductIdController = async (
   req: Request<ProductIdRequestParams, any, any, PaginationRequestQuery>,
   res: Response
 ) => {
