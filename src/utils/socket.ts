@@ -63,17 +63,21 @@ const initSocket = (httpServer: HttpServer) => {
 
     // Có tin nhắn mới
     socket.on('new_message', async (data) => {
-      const { content, sender_id, receiver_id } = data;
-      // Thêm thông báo vào database
-      const new_conversation = await conversationsService.addConversation({
+      const { conversation_id, receiver_id, sender_id, content } = data.payload;
+      const new_message = await conversationsService.createMessage({
         content,
+        conversation_id: new ObjectId(conversation_id),
         sender_id: new ObjectId(sender_id),
         receiver_id: new ObjectId(receiver_id)
       });
       // Gửi tin nhắn mới đến người nhận nếu người nhận đang online ở client
       if (!(receiver_id in users)) return;
       const receiver_socket_id = users[receiver_id].socket_id;
-      socket.to(receiver_socket_id).emit('receive_message', new_conversation);
+      socket.to(receiver_socket_id).emit('receive_message', {
+        payload: {
+          new_message
+        }
+      });
     });
 
     // Có đơn hàng mới
@@ -94,7 +98,6 @@ const initSocket = (httpServer: HttpServer) => {
             })
         )
       );
-
       // Gửi thông báo đến người nhận (admin)
       const receiver_socket_ids = admin_ids
         .map((admin_id) => {

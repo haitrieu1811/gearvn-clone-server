@@ -16,6 +16,7 @@ import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import User from '~/models/schemas/User.schema';
 import ViewedProduct from '~/models/schemas/ViewedProduct.schema';
 import Voucher from '~/models/schemas/Voucher.schema';
+import Message from '~/models/schemas/Message.schema';
 
 const uri = `mongodb+srv://${ENV_CONFIG.DB_USERNAME}:${ENV_CONFIG.DB_PASSWORD}@gearvn-clone-cluster.ur6rvkl.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -122,19 +123,16 @@ class DatabaseService {
   }
 
   async indexConversations() {
-    const isExist = await this.conversations.indexExists([
-      'sender_id_1_receiver_id_1',
-      'sender_id_1_receiver_id_1_is_read_1',
-      'sender_id_1',
-      'receiver_id_1'
-    ]);
+    const isExist = await this.conversations.indexExists(['user_ids_1']);
     if (!isExist) {
-      await Promise.all([
-        this.conversations.createIndex({ sender_id: 1, receiver_id: 1 }),
-        this.conversations.createIndex({ sender_id: 1, receiver_id: 1, is_read: 1 }),
-        this.conversations.createIndex({ sender_id: 1 }),
-        this.conversations.createIndex({ receiver_id: 1 })
-      ]);
+      await Promise.all([this.conversations.createIndex({ user_ids: 1 })]);
+    }
+  }
+
+  async indexMessages() {
+    const isExist = await this.messages.indexExists(['conversation_id_1']);
+    if (!isExist) {
+      await Promise.all([this.messages.createIndex({ conversation_id: 1 })]);
     }
   }
 
@@ -203,6 +201,10 @@ class DatabaseService {
 
   get conversations(): Collection<Conversation> {
     return this.db.collection(ENV_CONFIG.DB_CONVERSATIONS_COLLECTION);
+  }
+
+  get messages(): Collection<Message> {
+    return this.db.collection(ENV_CONFIG.DB_MESSAGES_COLLECTION);
   }
 
   get vouchers(): Collection<Voucher> {

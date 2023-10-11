@@ -3,29 +3,188 @@ import { ObjectId } from 'mongodb';
 import { CONVERSATIONS_MESSAGES } from '~/constants/messages';
 import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 import Conversation from '~/models/schemas/Conversation.schema';
+import Message from '~/models/schemas/Message.schema';
 import databaseService from './database.services';
-import { UserRole } from '~/constants/enum';
 
 class ConversationsService {
+  // Tạo một cuộc trò chuyện mới
+  async createConversation(user_ids: string[]) {
+    await databaseService.conversations.insertOne(
+      new Conversation({
+        user_ids: user_ids.map((user_id) => new ObjectId(user_id))
+      })
+    );
+    return {
+      message: CONVERSATIONS_MESSAGES.CREATE_CONVERSATION_SUCCEED
+    };
+  }
+
+  // Lấy danh sách cuộc trò chuyện của một người dùng
+  async getConversations({ query, user_id }: { query: PaginationRequestQuery; user_id: string }) {
+    const { page, limit } = query;
+    const _page = Number(page) || 1;
+    const _limit = Number(limit) || 10;
+    const [conversations, total] = await Promise.all([
+      databaseService.conversations
+        .aggregate([
+          {
+            $match: {
+              user_ids: {
+                $in: [new ObjectId(user_id)]
+              }
+            }
+          },
+          {
+            $addFields: {
+              receiver: {
+                $filter: {
+                  input: '$user_ids',
+                  as: 'item',
+                  cond: {
+                    $ne: ['$$item', new ObjectId(user_id)]
+                  }
+                }
+              }
+            }
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'receiver',
+              foreignField: '_id',
+              as: 'receiver'
+            }
+          },
+          {
+            $unwind: {
+              path: '$receiver'
+            }
+          },
+          {
+            $lookup: {
+              from: 'messages',
+              localField: '_id',
+              foreignField: 'conversation_id',
+              as: 'messages'
+            }
+          },
+          {
+            $addFields: {
+              message_count: {
+                $size: '$messages'
+              },
+              unread_message_count: {
+                $size: {
+                  $filter: {
+                    input: '$messages',
+                    as: 'item',
+                    cond: {
+                      $and: [
+                        {
+                          $eq: ['$$item.is_read', false]
+                        },
+                        {
+                          $eq: ['$$item.receiver_id', new ObjectId(user_id)]
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              latest_message: {
+                $last: '$messages'
+              }
+            }
+          },
+          {
+            $group: {
+              _id: '$_id',
+              message_count: {
+                $first: '$message_count'
+              },
+              unread_message_count: {
+                $first: '$unread_message_count'
+              },
+              receiver: {
+                $first: '$receiver'
+              },
+              latest_message: {
+                $first: '$latest_message'
+              },
+              created_at: {
+                $first: '$created_at'
+              },
+              updated_at: {
+                $first: '$updated_at'
+              }
+            }
+          },
+          {
+            $project: {
+              'receiver.password': 0,
+              'receiver.addresses': 0,
+              'receiver.email_verify_token': 0,
+              'receiver.forgot_password_token': 0,
+              'latest_message.conversation_id': 0,
+              'latest_message.sender_id': 0,
+              'latest_message.receiver_id': 0
+            }
+          },
+          {
+            $sort: {
+              'latest_message.created_at': -1
+            }
+          },
+          {
+            $skip: (_page - 1) * _limit
+          },
+          {
+            $limit: _limit
+          }
+        ])
+        .toArray(),
+      databaseService.conversations.countDocuments({
+        user_ids: {
+          $in: [new ObjectId(user_id)]
+        }
+      })
+    ]);
+    return {
+      message: CONVERSATIONS_MESSAGES.GET_CONVERSATIONS_SUCCEED,
+      data: {
+        conversations,
+        pagination: {
+          total,
+          page: _page,
+          limit: _limit,
+          page_size: Math.ceil(total / _limit)
+        }
+      }
+    };
+  }
+
   // Thêm một tin nhắn mới (chỉ dùng ở server)
-  async addConversation({
+  async createMessage({
+    conversation_id,
     content,
     sender_id,
     receiver_id
   }: {
+    conversation_id: ObjectId;
     content: string;
     sender_id: ObjectId;
     receiver_id: ObjectId;
   }) {
-    const { insertedId } = await databaseService.conversations.insertOne(
-      new Conversation({
+    const { insertedId } = await databaseService.messages.insertOne(
+      new Message({
+        conversation_id,
         content,
         receiver_id,
         sender_id,
         is_read: false
       })
     );
-    const conversation = await databaseService.conversations
+    const messages = await databaseService.messages
       .aggregate([
         {
           $match: {
@@ -61,6 +220,9 @@ class ConversationsService {
         {
           $group: {
             _id: '$_id',
+            conversation_id: {
+              $first: '$conversation_id'
+            },
             content: {
               $first: '$content'
             },
@@ -84,63 +246,41 @@ class ConversationsService {
         {
           $project: {
             'sender.password': 0,
-            'sender.status': 0,
-            'sender.role': 0,
-            'sender.gender': 0,
-            'sender.verify': 0,
-            'sender.phoneNumber': 0,
             'sender.addresses': 0,
-            'sender.date_of_birth': 0,
             'sender.email_verify_token': 0,
             'sender.forgot_password_token': 0,
-            'sender.created_at': 0,
-            'sender.updated_at': 0,
             'receiver.password': 0,
-            'receiver.status': 0,
-            'receiver.role': 0,
-            'receiver.gender': 0,
-            'receiver.verify': 0,
-            'receiver.phoneNumber': 0,
             'receiver.addresses': 0,
-            'receiver.date_of_birth': 0,
             'receiver.email_verify_token': 0,
-            'receiver.forgot_password_token': 0,
-            'receiver.created_at': 0,
-            'receiver.updated_at': 0
+            'receiver.forgot_password_token': 0
           }
         }
       ])
       .toArray();
-    return conversation[0];
+    return messages[0];
   }
 
   // Lấy danh sách tin nhắn
-  async getConversations({
-    receiver_id,
-    sender_id,
-    page,
-    limit
-  }: { receiver_id: string; sender_id: string } & PaginationRequestQuery) {
+  async getMessages({
+    conversation_id,
+    user_id,
+    query
+  }: {
+    conversation_id: string;
+    user_id: string;
+    query: PaginationRequestQuery;
+  }) {
+    const { page, limit } = query;
     // Phân trang
     const _page = Number(page) || 1;
     const _limit = Number(limit) || 20;
-    const $match = {
-      $or: [
-        {
-          sender_id: new ObjectId(receiver_id),
-          receiver_id: new ObjectId(sender_id)
-        },
-        {
-          sender_id: new ObjectId(sender_id),
-          receiver_id: new ObjectId(receiver_id)
-        }
-      ]
-    };
-    const [conversations, total] = await Promise.all([
-      databaseService.conversations
+    const [messages, total] = await Promise.all([
+      databaseService.messages
         .aggregate([
           {
-            $match
+            $match: {
+              conversation_id: new ObjectId(conversation_id)
+            }
           },
           {
             $lookup: {
@@ -171,6 +311,9 @@ class ConversationsService {
           {
             $group: {
               _id: '$_id',
+              conversation_id: {
+                $first: '$conversation_id'
+              },
               content: {
                 $first: '$content'
               },
@@ -194,29 +337,13 @@ class ConversationsService {
           {
             $project: {
               'sender.password': 0,
-              'sender.status': 0,
-              'sender.role': 0,
-              'sender.gender': 0,
-              'sender.verify': 0,
-              'sender.phoneNumber': 0,
               'sender.addresses': 0,
-              'sender.date_of_birth': 0,
               'sender.email_verify_token': 0,
               'sender.forgot_password_token': 0,
-              'sender.created_at': 0,
-              'sender.updated_at': 0,
               'receiver.password': 0,
-              'receiver.status': 0,
-              'receiver.role': 0,
-              'receiver.gender': 0,
-              'receiver.verify': 0,
-              'receiver.phoneNumber': 0,
               'receiver.addresses': 0,
-              'receiver.date_of_birth': 0,
               'receiver.email_verify_token': 0,
-              'receiver.forgot_password_token': 0,
-              'receiver.created_at': 0,
-              'receiver.updated_at': 0
+              'receiver.forgot_password_token': 0
             }
           },
           {
@@ -232,11 +359,12 @@ class ConversationsService {
           }
         ])
         .toArray(),
-      databaseService.conversations.countDocuments($match),
-      databaseService.conversations.updateMany(
+      databaseService.messages.countDocuments({ conversation_id: new ObjectId(conversation_id) }),
+      databaseService.messages.updateMany(
         {
-          sender_id: new ObjectId(receiver_id),
-          receiver_id: new ObjectId(sender_id)
+          conversation_id: new ObjectId(conversation_id),
+          receiver_id: new ObjectId(user_id),
+          is_read: false
         },
         {
           $set: {
@@ -251,228 +379,13 @@ class ConversationsService {
     return {
       message: CONVERSATIONS_MESSAGES.GET_CONVERSATIONS_SUCCESS,
       data: {
-        conversations,
+        messages,
         pagination: {
           page: _page,
           limit: _limit,
           total,
           page_size: Math.ceil(total / _limit)
         }
-      }
-    };
-  }
-
-  // Lấy một tin nhắn
-  async getConversation(conversation_id: string) {
-    const conversation = await databaseService.conversations
-      .aggregate([
-        {
-          $match: {
-            _id: new ObjectId(conversation_id)
-          }
-        },
-        {
-          $lookup: {
-            from: 'users',
-            localField: 'sender_id',
-            foreignField: '_id',
-            as: 'sender'
-          }
-        },
-        {
-          $unwind: {
-            path: '$sender'
-          }
-        },
-        {
-          $lookup: {
-            from: 'users',
-            localField: 'receiver_id',
-            foreignField: '_id',
-            as: 'receiver'
-          }
-        },
-        {
-          $unwind: {
-            path: '$receiver'
-          }
-        },
-        {
-          $group: {
-            _id: '$_id',
-            content: {
-              $first: '$content'
-            },
-            is_read: {
-              $first: '$is_read'
-            },
-            sender: {
-              $first: '$sender'
-            },
-            receiver: {
-              $first: '$receiver'
-            },
-            created_at: {
-              $first: '$created_at'
-            },
-            updated_at: {
-              $first: '$updated_at'
-            }
-          }
-        },
-        {
-          $project: {
-            'sender.password': 0,
-            'sender.status': 0,
-            'sender.role': 0,
-            'sender.gender': 0,
-            'sender.verify': 0,
-            'sender.phoneNumber': 0,
-            'sender.addresses': 0,
-            'sender.date_of_birth': 0,
-            'sender.email_verify_token': 0,
-            'sender.forgot_password_token': 0,
-            'sender.created_at': 0,
-            'sender.updated_at': 0,
-            'receiver.password': 0,
-            'receiver.status': 0,
-            'receiver.role': 0,
-            'receiver.gender': 0,
-            'receiver.verify': 0,
-            'receiver.phoneNumber': 0,
-            'receiver.addresses': 0,
-            'receiver.date_of_birth': 0,
-            'receiver.email_verify_token': 0,
-            'receiver.forgot_password_token': 0,
-            'receiver.created_at': 0,
-            'receiver.updated_at': 0
-          }
-        }
-      ])
-      .toArray();
-    return conversation[0];
-  }
-
-  // Lấy danh sách người mà mình đã nhắn tin
-  async getReceivers({ user_id, role }: { user_id: string; role: UserRole }) {
-    const _role = role === UserRole.Admin ? UserRole.Customer : UserRole.Admin;
-    const receivers = await databaseService.users
-      .aggregate([
-        {
-          $match: {
-            role: _role
-          }
-        },
-        {
-          $lookup: {
-            from: 'conversations',
-            localField: '_id',
-            foreignField: 'sender_id',
-            as: 'messages_send'
-          }
-        },
-        {
-          $lookup: {
-            from: 'conversations',
-            localField: '_id',
-            foreignField: 'receiver_id',
-            as: 'messages_receive'
-          }
-        },
-        {
-          $addFields: {
-            messages_send_to_you: {
-              $filter: {
-                input: '$messages_send',
-                as: 'item',
-                cond: {
-                  $eq: ['$$item.receiver_id', new ObjectId(user_id)]
-                }
-              }
-            },
-            messages_receive_from_you: {
-              $filter: {
-                input: '$messages_receive',
-                as: 'item',
-                cond: {
-                  $eq: ['$$item.sender_id', new ObjectId(user_id)]
-                }
-              }
-            }
-          }
-        },
-        {
-          $addFields: {
-            messages_send_to_you_but_unread: {
-              $filter: {
-                input: '$messages_send_to_you',
-                as: 'item',
-                cond: {
-                  $eq: ['$$item.is_read', false]
-                }
-              }
-            }
-          }
-        },
-        {
-          $addFields: {
-            unread_count: {
-              $size: '$messages_send_to_you_but_unread'
-            },
-            messages_send_and_receive_with_you: {
-              $concatArrays: ['$messages_send_to_you', '$messages_receive_from_you']
-            }
-          }
-        },
-        {
-          $unwind: {
-            path: '$messages_send_and_receive_with_you',
-            preserveNullAndEmptyArrays: true
-          }
-        },
-        {
-          $sort: {
-            messages_send_and_receive_with_you: -1
-          }
-        },
-        {
-          $group: {
-            _id: '$_id',
-            email: {
-              $first: '$email'
-            },
-            fullname: {
-              $first: '$fullname'
-            },
-            avatar: {
-              $first: '$avatar'
-            },
-            unread_count: {
-              $first: '$unread_count'
-            },
-            last_message: {
-              $first: '$messages_send_and_receive_with_you'
-            }
-          }
-        },
-        {
-          $project: {
-            'last_message.sender_id': 0,
-            'last_message.receiver_id': 0,
-            'last_message.is_read': 0
-          }
-        },
-        {
-          $sort: {
-            'last_message.created_at': -1
-          }
-        }
-      ])
-      .toArray();
-    return {
-      message: CONVERSATIONS_MESSAGES.GET_RECEIVERS_SUCCESS,
-      data: {
-        receivers
       }
     };
   }

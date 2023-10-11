@@ -2801,19 +2801,63 @@ paths:
                     type: string
                     example: Delete notification succeed
   # Conversation
-  /conversations/receiver/{receiver_id}:
+  /conversations:
     get:
       tags:
         - conversation
-      summary: Lấy tin nhắn giữa người dùng đang đăng nhập và một người dùng khác
-      description: Lấy tin nhắn giữa người dùng đang đăng nhập và một người dùng khác (admin chỉ có thể nhắn tin với khách hàng và ngược lại)
+      summary: Lấy danh sách cuộc trò chuyện
+      description: Lấy danh sách cuộc trò chuyện
+      operationId: getConversations
       security:
         - bearerAuth: []
-      operationId: getConversations
       parameters:
-        - name: receiver_id
+        - name: page
+          in: query
+          description: Trang hiện tại
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng cuộc trò chuyện trên một trang
+          required: false
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Lấy danh sách cuộc trò chuyện thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Lấy danh sách cuộc trò chuyện thành công
+                  data:
+                    type: object
+                    properties:
+                      conversations:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Conversation'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+  /conversations/{conversation_id}/messages:
+    get:
+      tags:
+        - conversation
+      summary: Lấy danh sách tin nhắn trong cuộc trò chuyện
+      description: Lấy danh sách tin nhắn trong cuộc trò chuyện
+      operationId: getMessages
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: conversation_id
           in: path
-          description: ID của người dùng muốn nhắn tin
+          description: ID của cuộc trò chuyện
           required: true
           schema:
             type: string
@@ -2831,10 +2875,10 @@ paths:
           required: false
           schema:
             type: integer
-            example: 20
+            example: 10
       responses:
         '200':
-          description: Lấy tin nhắn giữa người dùng đang đăng nhập và một người dùng khác thành công
+          description: Lấy danh sách tin nhắn trong cuộc trò chuyện thành công
           content:
             application/json:
               schema:
@@ -2842,59 +2886,16 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Get conversations succeed
+                    example: Lấy danh sách tin nhắn thành công
                   data:
                     type: object
                     properties:
-                      conversations:
+                      messages:
                         type: array
                         items:
-                          $ref: '#/components/schemas/Conversation'
+                          $ref: '#/components/schemas/Message'
                       pagination:
                         $ref: '#/components/schemas/Pagination'
-  /conversations/receivers:
-    get:
-      tags:
-        - conversation
-      summary: Lấy danh sách người dùng đã nhắn tin với mình
-      description: Lấy danh sách người dùng đã nhắn tin với mình
-      security:
-        - bearerAuth: []
-      operationId: getConversationReceivers
-      parameters:
-        - name: page
-          in: query
-          description: Trang hiện tại
-          required: false
-          schema:
-            type: integer
-            example: 1
-        - name: limit
-          in: query
-          description: Số lượng người dùng trên một trang
-          required: false
-          schema:
-            type: integer
-            example: 20
-      responses:
-        '200':
-          description: Lấy danh sách người dùng đã nhắn tin với mình thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Get conversation receivers succeed
-                  data:
-                    type: object
-                    properties:
-                      receivers:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ConversationReceiver'
-
 # Components
 components:
   schemas:
@@ -3584,16 +3585,34 @@ components:
         _id:
           type: string
           example: 64b8f451a692e0ad3a11afce
-        content:
-          type: string
-          example: Xin chào
-        is_read:
-          type: boolean
-          example: false
-        sender:
-          $ref: '#/components/schemas/ConversationUser'
+        message_count:
+          type: integer
+          example: 10
+        unread_message_count:
+          type: integer
+          example: 5
         receiver:
-          $ref: '#/components/schemas/ConversationUser'
+          $ref: '#/components/schemas/User'
+        latest_message:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: '652625e74fe71fd8b5842f85'
+            content:
+              type: string
+              example: 'hehe'
+            is_read:
+              type: boolean
+              example: true
+            created_at:
+              type: string
+              format: date-time
+              example: '2023-10-11T04:34:47.786Z'
+            updated_at:
+              type: string
+              format: date-time
+              example: '2023-10-11T04:42:50.537Z'
         created_at:
           type: string
           format: ISO8601
@@ -3602,59 +3621,33 @@ components:
           type: string
           format: ISO8601
           example: 2021-08-01T17:00:00.000Z
-    ConversationUser:
+    Message:
       type: object
       properties:
         _id:
           type: string
-          example: 64a4c57e9e3670721ae4be77
-        email:
+          example: '652625d14fe71fd8b5842f84'
+        conversation_id:
           type: string
-          example: haitrieu1811@gmail.com
-        avatar:
+          example: '65254889b371108cbaf739a7'
+        content:
           type: string
-          example: 977a9518243f1985fca916609.jpg
-        fullname:
+          example: '2121'
+        is_read:
+          type: boolean
+          example: true
+        sender:
+          $ref: '#/components/schemas/User'
+        receiver:
+          $ref: '#/components/schemas/User'
+        created_at:
           type: string
-          example: Github Copilot
-        phone_number:
+          format: date-time
+          example: '2023-10-11T04:34:25.978Z'
+        updated_at:
           type: string
-          example: 0775939704
-    ConversationReceiver:
-      type: object
-      properties:
-        _id:
-          type: string
-          example: 64a4c57e9e3670721ae4be77
-        email:
-          type: string
-          example:
-        fullname:
-          type: string
-          example: Github Copilot
-        avatar:
-          type: string
-          example: 977a9518243f1985fca916609.jpg
-        unread_count:
-          type: integer
-          example: 10
-        last_message:
-          type: object
-          properties:
-            _id:
-              type: string
-              example: 64b8f451a692e0ad3a11afce
-            content:
-              type: string
-              example: Xin chào
-            created_at:
-              type: string
-              format: ISO8601
-              example: 2021-08-01T17:00:00.000Z
-            updated_at:
-              type: string
-              format: ISO8601
-              example: 2021-08-01T17:00:00.000Z
+          format: date-time
+          example: '2023-10-11T04:42:50.537Z'
     Review:
       type: object
       properties:

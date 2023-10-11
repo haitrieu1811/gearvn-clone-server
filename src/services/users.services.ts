@@ -909,6 +909,31 @@ class UserService {
       }
     };
   }
+
+  // Lấy danh sách nhân viên hỗ trợ khách hàng
+  async getSellers() {
+    const sellers = await databaseService.users
+      .find(
+        {
+          role: UserRole.Seller
+        },
+        {
+          projection: {
+            password: 0,
+            email_verify_token: 0,
+            forgot_password_token: 0,
+            addresses: 0
+          }
+        }
+      )
+      .toArray();
+    return {
+      message: USERS_MESSAGES.GET_SELLERS_SUCCEED,
+      data: {
+        sellers
+      }
+    };
+  }
 }
 
 const userService = new UserService();

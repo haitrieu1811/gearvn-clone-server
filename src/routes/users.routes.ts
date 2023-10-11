@@ -8,6 +8,7 @@ import {
   getCustomersController,
   getMeController,
   getQuantityPerCollectionController,
+  getSellersController,
   getUsersController,
   getViewedProductsController,
   loginController,
@@ -147,5 +148,8 @@ usersRouter.get(
   adminRoleValidator,
   wrapRequestHandler(getCustomersController)
 );
+
+// Lấy danh sách nhân viên hỗ trợ khách hàng
+usersRouter.get('/sellers', accessTokenValidator, verifiedUserValidator, wrapRequestHandler(getSellersController));
 
 export default usersRouter;

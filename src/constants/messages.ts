@@ -95,7 +95,8 @@ export const USERS_MESSAGES = {
   USER_ID_IS_INVALID: 'ID người dùng không hợp lệ',
   USER_NOT_EXISTED: 'Người dùng không tồn tại',
   GET_CUSTOMERS_SUCCEED: 'Lấy danh sách khách hàng thành công',
-  PHONE_NUMBER_IS_INVALID: 'Số điện thoại không hợp lệ'
+  PHONE_NUMBER_IS_INVALID: 'Số điện thoại không hợp lệ',
+  GET_SELLERS_SUCCEED: 'Lấy danh sách người bán thành công'
 } as const;
 
 export const CATEGORIES_MESSAGES = {
@@ -319,7 +320,15 @@ export const CONVERSATIONS_MESSAGES = {
   SENDER_ID_IS_REQUIRED: 'Yêu cầu ID người gửi',
   SENDER_ID_IS_INVALID: 'ID người gửi không hợp lệ',
   SENDER_NOT_EXISTED: 'Người gửi không tồn tại',
-  GET_RECEIVERS_SUCCESS: 'Lấy danh sách người nhận thành công'
+  GET_RECEIVERS_SUCCESS: 'Lấy danh sách người nhận thành công',
+  CREATE_CONVERSATION_SUCCEED: 'Tạo cuộc trò chuyện thành công',
+  CONVERSATION_ALREADY_EXISTED: 'Cuộc trò chuyện đã tồn tại',
+  GET_CONVERSATIONS_SUCCEED: 'Lấy danh sách cuộc trò chuyện thành công',
+  CONVERSATION_ID_IS_REQUIRED: 'Yêu cầu ID cuộc trò chuyện',
+  CONVERSATION_ID_MUST_BE_A_STRING: 'ID cuộc trò chuyện phải là một chuỗi',
+  CONVERSATION_ID_INVALID: 'ID cuộc trò chuyện không hợp lệ',
+  CONVERSATION_NOT_FOUND: 'Không tìm thấy cuộc trò chuyện',
+  CONVERSATION_ACCESS_DENIED: 'Truy cập cuộc trò chuyện bị từ chối'
 } as const;
 
 export const VOUCHERS_MESSAGES = {

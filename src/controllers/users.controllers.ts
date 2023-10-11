@@ -213,3 +213,9 @@ export const getCustomersController = async (
   const result = await userService.getCustomers(query);
   return res.json(result);
 };
+
+// Lấy danh sách nhân viên hỗ trợ khách hàng
+export const getSellersController = async (req: Request, res: Response) => {
+  const result = await userService.getSellers();
+  return res.json(result);
+};

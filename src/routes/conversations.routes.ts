@@ -1,27 +1,50 @@
 import { Router } from 'express';
 
-import { getConversationsController, getReceiversController } from '~/controllers/conversations.controllers';
-import { receiverIdValidator } from '~/middlewares/conversations.middlewares';
+import {
+  createConversationController,
+  getConversationsController,
+  getMessagesController
+} from '~/controllers/conversations.controllers';
+import { paginationValidator } from '~/middlewares/common.middlewares';
+import {
+  conversationAccessValidator,
+  conversationExistValidator,
+  conversationIdValidator,
+  createConversationValidator
+} from '~/middlewares/conversations.middlewares';
 import { accessTokenValidator, verifiedUserValidator } from '~/middlewares/users.middlewares';
 import { wrapRequestHandler } from '~/utils/handler';
 
 const conversationsRouter = Router();
 
-// Lấy danh sách tin nhắn
-conversationsRouter.get(
-  '/receiver/:receiver_id',
+// Tạo một cuộc trò chuyện mới
+conversationsRouter.post(
+  '/',
   accessTokenValidator,
   verifiedUserValidator,
-  receiverIdValidator,
+  createConversationValidator,
+  conversationExistValidator,
+  wrapRequestHandler(createConversationController)
+);
+
+// Lấy danh sách cuộc trò chuyện
+conversationsRouter.get(
+  '/',
+  accessTokenValidator,
+  verifiedUserValidator,
+  paginationValidator,
   wrapRequestHandler(getConversationsController)
 );
 
-// Lấy danh sách người dùng đã nhắn tin
+// Lấy danh sách tin nhắn
 conversationsRouter.get(
-  '/receivers',
+  '/:conversation_id/messages',
   accessTokenValidator,
   verifiedUserValidator,
-  wrapRequestHandler(getReceiversController)
+  conversationIdValidator,
+  conversationAccessValidator,
+  paginationValidator,
+  wrapRequestHandler(getMessagesController)
 );
 
 export default conversationsRouter;

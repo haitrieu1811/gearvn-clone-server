@@ -38,6 +38,7 @@ databaseService.connect().then(() => {
   databaseService.indexReviews();
   databaseService.indexNotifications();
   databaseService.indexConversations();
+  databaseService.indexMessages();
   databaseService.indexVouchers();
 });
 
