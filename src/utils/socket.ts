@@ -3,12 +3,12 @@ import { ObjectId } from 'mongodb';
 import { Server } from 'socket.io';
 
 import { ENV_CONFIG } from '~/constants/config';
-import { NotificationType } from '~/constants/enum';
+import { UserRole } from '~/constants/enum';
 import { accessTokenValidator } from '~/middlewares/socket.middlewares';
 import { TokenPayload } from '~/models/requests/User.requests';
-import conversationsService from '~/services/conversations.services';
-import notificationsService from '~/services/notifications.services';
-import userService from '~/services/users.services';
+import Message from '~/models/schemas/Message.schema';
+import Notification from '~/models/schemas/Notification.schema';
+import databaseService from '~/services/database.services';
 
 const initSocket = (httpServer: HttpServer) => {
   const io = new Server(httpServer, {
@@ -37,73 +37,46 @@ const initSocket = (httpServer: HttpServer) => {
       };
     }
 
-    // Có đánh giá mới
-    socket.on('new_review', async (data) => {
-      const { title, content, path, sender_id, receiver_id } = data;
-      // Thêm thông báo vào database
-      const new_notification = await notificationsService.addNotification({
-        title,
-        content,
-        path,
-        type: NotificationType.NewReview,
-        sender_id: new ObjectId(sender_id),
-        receiver_id: new ObjectId(receiver_id)
-      });
-      // Hiển thị đánh giá mới ngay lập tức cho mọi người
-      socket.broadcast.emit('receive_product_review');
-      // Gửi thông báo đến người nhận
-      if (!(receiver_id in users)) return;
-      const receiver_socket_id = users[receiver_id].socket_id;
-      socket.to(receiver_socket_id).emit('receive_notification', {
-        payload: {
-          new_notification
-        }
-      });
-    });
-
     // Có tin nhắn mới
     socket.on('new_message', async (data) => {
-      const { conversation_id, receiver_id, sender_id, content } = data.payload;
-      const new_message = await conversationsService.createMessage({
-        content,
-        conversation_id: new ObjectId(conversation_id),
-        sender_id: new ObjectId(sender_id),
-        receiver_id: new ObjectId(receiver_id)
-      });
-      // Gửi tin nhắn mới đến người nhận nếu người nhận đang online ở client
-      if (!(receiver_id in users)) return;
-      const receiver_socket_id = users[receiver_id].socket_id;
-      socket.to(receiver_socket_id).emit('receive_message', {
-        payload: {
-          new_message
-        }
-      });
+      const { new_message } = data.payload;
+      const { conversation_id, receiver_id, sender_id, content } = new_message;
+      // Gửi tin nhắn mới đến người nhận nếu người nhận đang online
+      if (receiver_id in users) {
+        const receiver_socket_id = users[receiver_id].socket_id;
+        socket.to(receiver_socket_id).emit('receive_message', {
+          payload: {
+            new_message: {
+              ...new_message,
+              is_sender: false
+            }
+          }
+        });
+      }
+      // Thêm tin nhắn vào database
+      await databaseService.messages.insertOne(
+        new Message({
+          conversation_id: new ObjectId(conversation_id),
+          sender_id: new ObjectId(sender_id),
+          receiver_id: new ObjectId(receiver_id),
+          content,
+          is_read: false
+        })
+      );
     });
 
-    // Có đơn hàng mới
-    socket.on('new_order', async (data) => {
-      const { sender, content, title, path } = data.payload;
-      // Thêm thông báo vào database
-      const admin_ids = await userService.getAdminIds();
-      const [new_notification] = await Promise.all(
-        admin_ids.map(
-          async (admin_id) =>
-            await notificationsService.addNotification({
-              title,
-              content,
-              type: NotificationType.NewOrder,
-              sender_id: new ObjectId(sender._id),
-              receiver_id: admin_id,
-              path
-            })
-        )
-      );
+    // Có thông báo mới
+    socket.on('new_notification', async (data) => {
+      const { new_notification } = data.payload;
+      const { type, title, content, path, sender } = new_notification;
+      const admins = await databaseService.users.find({ role: UserRole.Admin }, { projection: { _id: 1 } }).toArray();
+      const admin_ids = admins.map((admin) => admin._id.toString());
       // Gửi thông báo đến người nhận (admin)
       const receiver_socket_ids = admin_ids
         .map((admin_id) => {
-          const _admin_id = admin_id.toString();
-          if (!(_admin_id in users)) return '';
-          return users[_admin_id].socket_id;
+          const _admin_ids = admin_id.toString();
+          if (!(_admin_ids in users)) return '';
+          return users[_admin_ids].socket_id;
         })
         .filter((socket_id) => !!socket_id);
       socket.to(receiver_socket_ids).emit('receive_notification', {
@@ -111,6 +84,23 @@ const initSocket = (httpServer: HttpServer) => {
           new_notification
         }
       });
+      // Thêm thông báo vào database
+      await Promise.all(
+        admin_ids.map(
+          async (admin_id) =>
+            await databaseService.notifications.insertOne(
+              new Notification({
+                title,
+                content,
+                path,
+                sender_id: new ObjectId(sender._id),
+                receiver_id: new ObjectId(admin_id),
+                is_read: false,
+                type
+              })
+            )
+        )
+      );
     });
 
     // Ngắt kết nối

@@ -3630,16 +3630,21 @@ components:
         conversation_id:
           type: string
           example: '65254889b371108cbaf739a7'
+        sender_id:
+          type: string
+          example: '64a4c57e9e3670721ae4be77'
+        receiver_id:
+          type: string
+          example: '64a4c57e9e3670721ae4be77'
         content:
           type: string
           example: '2121'
         is_read:
           type: boolean
           example: true
-        sender:
-          $ref: '#/components/schemas/User'
-        receiver:
-          $ref: '#/components/schemas/User'
+        is_sender:
+          type: boolean
+          example: true
         created_at:
           type: string
           format: date-time

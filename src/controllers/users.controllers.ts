@@ -198,12 +198,6 @@ export const getViewedProductsController = async (req: Request, res: Response) =
   return res.json(result);
 };
 
-// Lấy số lượng của mỗi collection
-export const getQuantityPerCollectionController = async (req: Request, res: Response) => {
-  const result = await userService.getQuantityPerCollection();
-  return res.json(result);
-};
-
 // Lấy danh sách khách hàng
 export const getCustomersController = async (
   req: Request<ParamsDictionary, any, any, PaginationRequestQuery>,

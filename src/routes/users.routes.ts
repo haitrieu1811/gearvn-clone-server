@@ -7,7 +7,6 @@ import {
   forgotPasswordController,
   getCustomersController,
   getMeController,
-  getQuantityPerCollectionController,
   getSellersController,
   getUsersController,
   getViewedProductsController,
@@ -130,15 +129,6 @@ usersRouter.post(
 
 // Lấy danh sách lịch sử sản phẩm đã xem của tài khoản đăng nhập
 usersRouter.get('/viewed-product', accessTokenValidator, wrapRequestHandler(getViewedProductsController));
-
-// Lấy số lượng của mỗi collection
-usersRouter.get(
-  '/quantity-per-collection',
-  accessTokenValidator,
-  verifiedUserValidator,
-  adminRoleValidator,
-  wrapRequestHandler(getQuantityPerCollectionController)
-);
 
 // Lấy danh sách khách hàng
 usersRouter.get(

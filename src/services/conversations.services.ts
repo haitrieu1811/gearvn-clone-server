@@ -3,7 +3,6 @@ import { ObjectId } from 'mongodb';
 import { CONVERSATIONS_MESSAGES } from '~/constants/messages';
 import { PaginationRequestQuery } from '~/models/requests/Common.requests';
 import Conversation from '~/models/schemas/Conversation.schema';
-import Message from '~/models/schemas/Message.schema';
 import databaseService from './database.services';
 
 class ConversationsService {
@@ -163,103 +162,6 @@ class ConversationsService {
     };
   }
 
-  // Thêm một tin nhắn mới (chỉ dùng ở server)
-  async createMessage({
-    conversation_id,
-    content,
-    sender_id,
-    receiver_id
-  }: {
-    conversation_id: ObjectId;
-    content: string;
-    sender_id: ObjectId;
-    receiver_id: ObjectId;
-  }) {
-    const { insertedId } = await databaseService.messages.insertOne(
-      new Message({
-        conversation_id,
-        content,
-        receiver_id,
-        sender_id,
-        is_read: false
-      })
-    );
-    const messages = await databaseService.messages
-      .aggregate([
-        {
-          $match: {
-            _id: insertedId
-          }
-        },
-        {
-          $lookup: {
-            from: 'users',
-            localField: 'sender_id',
-            foreignField: '_id',
-            as: 'sender'
-          }
-        },
-        {
-          $unwind: {
-            path: '$sender'
-          }
-        },
-        {
-          $lookup: {
-            from: 'users',
-            localField: 'receiver_id',
-            foreignField: '_id',
-            as: 'receiver'
-          }
-        },
-        {
-          $unwind: {
-            path: '$receiver'
-          }
-        },
-        {
-          $group: {
-            _id: '$_id',
-            conversation_id: {
-              $first: '$conversation_id'
-            },
-            content: {
-              $first: '$content'
-            },
-            is_read: {
-              $first: '$is_read'
-            },
-            sender: {
-              $first: '$sender'
-            },
-            receiver: {
-              $first: '$receiver'
-            },
-            created_at: {
-              $first: '$created_at'
-            },
-            updated_at: {
-              $first: '$updated_at'
-            }
-          }
-        },
-        {
-          $project: {
-            'sender.password': 0,
-            'sender.addresses': 0,
-            'sender.email_verify_token': 0,
-            'sender.forgot_password_token': 0,
-            'receiver.password': 0,
-            'receiver.addresses': 0,
-            'receiver.email_verify_token': 0,
-            'receiver.forgot_password_token': 0
-          }
-        }
-      ])
-      .toArray();
-    return messages[0];
-  }
-
   // Lấy danh sách tin nhắn
   async getMessages({
     conversation_id,
@@ -283,29 +185,16 @@ class ConversationsService {
             }
           },
           {
-            $lookup: {
-              from: 'users',
-              localField: 'sender_id',
-              foreignField: '_id',
-              as: 'sender'
-            }
-          },
-          {
-            $unwind: {
-              path: '$sender'
-            }
-          },
-          {
-            $lookup: {
-              from: 'users',
-              localField: 'receiver_id',
-              foreignField: '_id',
-              as: 'receiver'
-            }
-          },
-          {
-            $unwind: {
-              path: '$receiver'
+            $addFields: {
+              is_sender: {
+                $cond: {
+                  if: {
+                    $eq: ['$sender_id', new ObjectId(user_id)]
+                  },
+                  then: true,
+                  else: false
+                }
+              }
             }
           },
           {
@@ -314,17 +203,20 @@ class ConversationsService {
               conversation_id: {
                 $first: '$conversation_id'
               },
+              sender_id: {
+                $first: '$sender_id'
+              },
+              receiver_id: {
+                $first: '$receiver_id'
+              },
               content: {
                 $first: '$content'
               },
               is_read: {
                 $first: '$is_read'
               },
-              sender: {
-                $first: '$sender'
-              },
-              receiver: {
-                $first: '$receiver'
+              is_sender: {
+                $first: '$is_sender'
               },
               created_at: {
                 $first: '$created_at'
@@ -332,18 +224,6 @@ class ConversationsService {
               updated_at: {
                 $first: '$updated_at'
               }
-            }
-          },
-          {
-            $project: {
-              'sender.password': 0,
-              'sender.addresses': 0,
-              'sender.email_verify_token': 0,
-              'sender.forgot_password_token': 0,
-              'receiver.password': 0,
-              'receiver.addresses': 0,
-              'receiver.email_verify_token': 0,
-              'receiver.forgot_password_token': 0
             }
           },
           {

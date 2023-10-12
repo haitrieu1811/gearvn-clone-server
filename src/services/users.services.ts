@@ -651,46 +651,6 @@ class UserService {
     };
   }
 
-  // Lấy số lượng của mỗi collection
-  async getQuantityPerCollection() {
-    const [users, products, orders, categories, brands, blogs] = await Promise.all([
-      databaseService.users.countDocuments(),
-      databaseService.products.countDocuments(),
-      databaseService.orders.countDocuments(),
-      databaseService.categories.countDocuments(),
-      databaseService.brands.countDocuments(),
-      databaseService.blogs.countDocuments()
-    ]);
-    return {
-      message: USERS_MESSAGES.GET_QUANTITY_PER_COLLECTION_SUCCEED,
-      data: {
-        users,
-        products,
-        orders,
-        categories,
-        brands,
-        blogs
-      }
-    };
-  }
-
-  // Lấy danh sách id của những tài khoản admin (chỉ sử dụng ở server)
-  async getAdminIds() {
-    const admin_ids = await databaseService.users
-      .find(
-        {
-          role: UserRole.Admin
-        },
-        {
-          projection: {
-            _id: 1
-          }
-        }
-      )
-      .toArray();
-    return admin_ids.map((admin) => admin._id);
-  }
-
   // Lấy danh sách khách hàng
   async getCustomers(query: PaginationRequestQuery) {
     const { page, limit } = query;
